@@ -120,7 +120,7 @@ export default function Header() {
           </nav>
 
           {/* Search & Actions */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 h-10">
             {/* Search Field - Desktop */}
             <div
               ref={searchContainerRef}
@@ -162,7 +162,7 @@ export default function Header() {
                 variant="ghost"
                 size="icon"
                 onClick={handleSearchToggle}
-                className="ml-2 hover:scale-105 transition-transform duration-200 cursor-pointer"
+                className="ml-2 h-10 w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
               >
                 <Search className="h-5 w-5" />
               </Button>
@@ -173,7 +173,7 @@ export default function Header() {
               variant="ghost"
               size="icon"
               onClick={handleSearchToggle}
-              className="md:hidden hover:scale-105 transition-transform duration-200 cursor-pointer"
+              className="md:hidden h-10 w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
             >
               <Search className="h-5 w-5" />
             </Button>
@@ -181,7 +181,7 @@ export default function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="relative hover:scale-105 transition-transform duration-200 cursor-pointer"
+              className="relative h-10 w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
               onClick={() => setIsCartDrawerOpen(true)}
             >
               <motion.div
@@ -218,10 +218,10 @@ export default function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden hover:scale-105 transition-all duration-200 cursor-pointer"
+              className="md:hidden h-10 w-10 hover:scale-105 transition-all duration-200 cursor-pointer flex items-center justify-center"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              <div className="relative w-5 h-5">
+              <div className="relative w-5 h-5 flex items-center justify-center">
                 <Menu
                   className={`h-5 w-5 absolute transition-all duration-200 ${
                     isMenuOpen ? "rotate-90 opacity-0" : "rotate-0 opacity-100"

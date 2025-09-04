@@ -1,0 +1,32 @@
+{
+  "id": "AB-1757020858207-5naij1f8k",
+  "customer": {
+    "name": "Святослав Потапенко",
+    "phone": "+380986553991",
+    "address": "Нова Пошта. Поштове відділення №11 (до 30 кг) м. Кривий Ріг, Дніпропетровська область Нова пошта №11"
+  },
+  "items": [
+    {
+      "id": 10,
+      "name": "Магнітний Кабель USB-C 2м",
+      "description": "Магнітний кабель з швидкою передачею даних та зарядкою. Довжина 2 метри.",
+      "price": 599,
+      "originalPrice": 799,
+      "image": "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=400&fit=crop&auto=format",
+      "rating": 4.2,
+      "reviewCount": 324,
+      "inStock": true,
+      "capacity": 0,
+      "brand": "MagCable",
+      "popularity": 73,
+      "createdAt": "2024-09-30T00:00:00Z",
+      "category": "cable",
+      "quantity": 1
+    }
+  ],
+  "total": 599,
+  "itemCount": 1,
+  "orderDate": "2025-09-04T21:20:57.889Z",
+  "status": "pending",
+  "createdAt": "2025-09-04T21:20:58.207Z"
+}

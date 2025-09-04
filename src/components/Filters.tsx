@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import PriceFilter from "@/components/PriceFilter";
+import CapacityFilter from "@/components/CapacityFilter";
 import {
   Sheet,
   SheetContent,
@@ -47,37 +48,6 @@ export default function Filters({
   priceRange,
   capacityRange,
 }: FiltersProps) {
-  const [tempCapacityMin, setTempCapacityMin] = useState(
-    filters.capacityRange.min.toString()
-  );
-  const [tempCapacityMax, setTempCapacityMax] = useState(
-    filters.capacityRange.max.toString()
-  );
-  // Track if we're updating from external source vs user interaction
-  const isUpdatingFromFilter = useRef(false);
-
-  // Only update capacity when filters change from external source
-  useEffect(() => {
-    // Prevent infinite loops by checking if this is our own update
-    if (!isUpdatingFromFilter.current) {
-      setTempCapacityMin(filters.capacityRange.min.toString());
-      setTempCapacityMax(filters.capacityRange.max.toString());
-    }
-    isUpdatingFromFilter.current = false;
-  }, [filters.capacityRange.min, filters.capacityRange.max]);
-
-  // Cleanup timers on unmount
-  useEffect(() => {
-    return () => {
-      if (capacityTimerRef.current) {
-        clearTimeout(capacityTimerRef.current);
-      }
-    };
-  }, []);
-
-  // Use refs for timers to avoid state updates interfering with user interaction
-  const capacityTimerRef = useRef<NodeJS.Timeout | null>(null);
-
   // Handle price filter changes
   const handlePriceChange = (priceRange: { min: number; max: number }) => {
     onFiltersChange({
@@ -86,69 +56,15 @@ export default function Filters({
     });
   };
 
-  // Handle capacity input changes with debounce
-  const handleCapacityInputChange = (field: "min" | "max", value: string) => {
-    if (field === "min") {
-      setTempCapacityMin(value);
-    } else {
-      setTempCapacityMax(value);
-    }
-
-    // Clear existing timer
-    if (capacityTimerRef.current) {
-      clearTimeout(capacityTimerRef.current);
-    }
-
-    // Set new timer
-    capacityTimerRef.current = setTimeout(() => {
-      const currentMin = field === "min" ? value : tempCapacityMin;
-      const currentMax = field === "max" ? value : tempCapacityMax;
-
-      const min = Math.max(
-        capacityRange.min,
-        parseInt(currentMin) || capacityRange.min
-      );
-      const max = Math.min(
-        capacityRange.max,
-        parseInt(currentMax) || capacityRange.max
-      );
-
-      if (
-        min !== filters.capacityRange.min ||
-        max !== filters.capacityRange.max
-      ) {
-        onFiltersChange({
-          ...filters,
-          capacityRange: { min, max },
-        });
-      }
-    }, 1000);
-  };
-
-  const handleCapacityInputKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === "Enter") {
-      // Clear any pending debounce
-      if (capacityTimerRef.current) {
-        clearTimeout(capacityTimerRef.current);
-        capacityTimerRef.current = null;
-      }
-
-      const min = Math.max(
-        capacityRange.min,
-        parseInt(tempCapacityMin) || capacityRange.min
-      );
-      const max = Math.min(
-        capacityRange.max,
-        parseInt(tempCapacityMax) || capacityRange.max
-      );
-
-      onFiltersChange({
-        ...filters,
-        capacityRange: { min, max },
-      });
-    }
+  // Handle capacity filter changes
+  const handleCapacityChange = (capacityRange: {
+    min: number;
+    max: number;
+  }) => {
+    onFiltersChange({
+      ...filters,
+      capacityRange,
+    });
   };
 
   const handleCategoryToggle = (category: string) => {
@@ -181,12 +97,6 @@ export default function Filters({
   };
 
   const clearAllFilters = () => {
-    // Clear any pending timers
-    if (capacityTimerRef.current) {
-      clearTimeout(capacityTimerRef.current);
-      capacityTimerRef.current = null;
-    }
-
     const clearedFilters = {
       priceRange: { min: priceRange.min, max: priceRange.max },
       categories: [],
@@ -195,11 +105,6 @@ export default function Filters({
       inStockOnly: false,
     };
 
-    // Update local state first
-    setTempCapacityMin(capacityRange.min.toString());
-    setTempCapacityMax(capacityRange.max.toString());
-
-    // Then update filters
     onFiltersChange(clearedFilters);
   };
 
@@ -306,34 +211,12 @@ export default function Filters({
       <Separator />
 
       {/* Capacity Range (for powerbanks) */}
-      <div className="space-y-3">
-        <h4 className="font-medium">Ємність (мАг)</h4>
-        <div className="flex gap-2">
-          <Input
-            type="number"
-            placeholder="Від"
-            value={tempCapacityMin}
-            onChange={(e) => handleCapacityInputChange("min", e.target.value)}
-            onKeyDown={handleCapacityInputKeyDown}
-            className="text-sm"
-            min={capacityRange.min}
-            max={capacityRange.max}
-          />
-          <Input
-            type="number"
-            placeholder="До"
-            value={tempCapacityMax}
-            onChange={(e) => handleCapacityInputChange("max", e.target.value)}
-            onKeyDown={handleCapacityInputKeyDown}
-            className="text-sm"
-            min={capacityRange.min}
-            max={capacityRange.max}
-          />
-        </div>
-        <div className="text-xs text-muted-foreground">
-          Для павербанків ({capacityRange.min} - {capacityRange.max} мАг)
-        </div>
-      </div>
+      <CapacityFilter
+        value={filters.capacityRange}
+        onChange={handleCapacityChange}
+        min={capacityRange.min}
+        max={capacityRange.max}
+      />
 
       <Separator />
 
