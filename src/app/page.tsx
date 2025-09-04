@@ -11,6 +11,7 @@ import SortDropdown, {
 } from "@/components/SortDropdown";
 import { Battery, Zap, Shield, Truck } from "lucide-react";
 import { useState, useMemo } from "react";
+import { useSearch } from "@/context/SearchContext";
 import productsData from "@/data/products.json";
 
 const features = [
@@ -40,6 +41,9 @@ const features = [
 export default function Home() {
   // Cast the imported JSON data to Product[]
   const allProducts = productsData as Product[];
+
+  // Search context
+  const { searchQuery, clearSearch } = useSearch();
 
   // Filter and sort state
   const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
@@ -73,9 +77,28 @@ export default function Home() {
     };
   }, [allProducts]);
 
-  // Filter products based on current filters
+  // Filter products based on current filters and search query
   const filteredProducts = useMemo(() => {
     return allProducts.filter((product) => {
+      // Search filter - case insensitive partial matching
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        const matchesName = product.name.toLowerCase().includes(query);
+        const matchesDescription =
+          product.description?.toLowerCase().includes(query) || false;
+        const matchesBrand = product.brand.toLowerCase().includes(query);
+        const matchesCategory = product.category.toLowerCase().includes(query);
+
+        if (
+          !matchesName &&
+          !matchesDescription &&
+          !matchesBrand &&
+          !matchesCategory
+        ) {
+          return false;
+        }
+      }
+
       // Price filter
       if (
         product.price < filters.priceRange.min ||
@@ -117,7 +140,7 @@ export default function Home() {
 
       return true;
     });
-  }, [allProducts, filters]);
+  }, [allProducts, filters, searchQuery]);
 
   // Sort filtered products
   const sortedProducts = useMemo(() => {
@@ -209,7 +232,12 @@ export default function Home() {
             <div className="lg:col-span-3 space-y-6">
               {/* Sort and Results Count */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col gap-2">
+                  {searchQuery && (
+                    <p className="text-sm text-blue-600 font-medium">
+                      Результати пошуку для: "{searchQuery}"
+                    </p>
+                  )}
                   <p className="text-muted-foreground">
                     Знайдено {sortedProducts.length} з {allProducts.length}{" "}
                     товарів
@@ -234,31 +262,46 @@ export default function Home() {
               ) : (
                 <div className="text-center py-16 space-y-4">
                   <div className="text-6xl">🔍</div>
-                  <h3 className="text-xl font-semibold">Товари не знайдено</h3>
+                  <h3 className="text-xl font-semibold">
+                    {searchQuery ? "Нічого не знайдено" : "Товари не знайдено"}
+                  </h3>
                   <p className="text-muted-foreground">
-                    Спробуйте змінити параметри фільтрації або очистити фільтри
+                    {searchQuery
+                      ? `За запитом "${searchQuery}" нічого не знайдено. Спробуйте інший пошуковий запит або змініть фільтри.`
+                      : "Спробуйте змінити параметри фільтрації або очистити фільтри"}
                   </p>
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      setFilters({
-                        priceRange: {
-                          min: priceRange.min,
-                          max: priceRange.max,
-                        },
-                        categories: [],
-                        brands: [],
-                        capacityRange: {
-                          min: capacityRange.min,
-                          max: capacityRange.max,
-                        },
-                        inStockOnly: false,
-                      })
-                    }
-                    className="cursor-pointer"
-                  >
-                    Очистити фільтри
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    {searchQuery && (
+                      <Button
+                        variant="default"
+                        onClick={clearSearch}
+                        className="cursor-pointer"
+                      >
+                        Очистити пошук
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        setFilters({
+                          priceRange: {
+                            min: priceRange.min,
+                            max: priceRange.max,
+                          },
+                          categories: [],
+                          brands: [],
+                          capacityRange: {
+                            min: capacityRange.min,
+                            max: capacityRange.max,
+                          },
+                          inStockOnly: false,
+                        })
+                      }
+                      className="cursor-pointer"
+                    >
+                      Очистити фільтри
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>

@@ -1,17 +1,75 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, Menu, X } from "lucide-react";
+import { ShoppingCart, Menu, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { useState, useRef, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
-import { motion } from "framer-motion";
+import { useSearch } from "@/context/SearchContext";
+import { motion, AnimatePresence } from "framer-motion";
 import { CartDrawer } from "@/components/CartDrawer";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const { state, isCartAnimating } = useCart();
+  const { searchQuery, setSearchQuery, clearSearch } = useSearch();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Handle search expansion and focus
+  const handleSearchToggle = () => {
+    if (isSearchExpanded) {
+      // If already expanded, just focus the input
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+      return;
+    }
+
+    setIsSearchExpanded(true);
+    setTimeout(() => searchInputRef.current?.focus(), 100);
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    // If there's a search query, keep the field expanded
+    if (query.trim()) {
+      setIsSearchExpanded(true);
+    }
+  };
+
+  // Handle search clear
+  const handleSearchClear = () => {
+    clearSearch();
+  };
+
+  // Handle Enter key
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      searchInputRef.current?.blur();
+    }
+  };
+
+  // Close search when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        if (!searchQuery) {
+          setIsSearchExpanded(false);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchQuery]);
 
   const navigation = [
     { name: "Головна", href: "/" },
@@ -61,8 +119,64 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Cart Icon & Mobile Menu Button */}
-          <div className="flex items-center space-x-4">
+          {/* Search & Actions */}
+          <div className="flex items-center space-x-2">
+            {/* Search Field - Desktop */}
+            <div
+              ref={searchContainerRef}
+              className="hidden md:flex items-center"
+            >
+              <AnimatePresence>
+                {isSearchExpanded ? (
+                  <motion.div
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: "240px", opacity: 1 }}
+                    exit={{ width: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="relative overflow-hidden"
+                  >
+                    <Input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder="Пошук товарів..."
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      onKeyPress={handleSearchKeyPress}
+                      className="w-full pr-8 h-9 text-sm border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                    {searchQuery && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleSearchClear}
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-gray-100"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSearchToggle}
+                className="ml-2 hover:scale-105 transition-transform duration-200 cursor-pointer"
+              >
+                <Search className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Search Button - Mobile */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSearchToggle}
+              className="md:hidden hover:scale-105 transition-transform duration-200 cursor-pointer"
+            >
+              <Search className="h-5 w-5" />
+            </Button>
             {/* Cart Button */}
             <Button
               variant="ghost"
@@ -122,6 +236,43 @@ export default function Header() {
             </Button>
           </div>
         </div>
+
+        {/* Mobile Search */}
+        <AnimatePresence>
+          {isSearchExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="md:hidden border-t bg-white/95 backdrop-blur-md overflow-hidden"
+            >
+              <div className="px-4 py-3">
+                <div className="relative">
+                  <Input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder="Пошук товарів..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    onKeyPress={handleSearchKeyPress}
+                    className="w-full pr-8 h-10 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                  {searchQuery && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSearchClear}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Mobile Navigation */}
         <div

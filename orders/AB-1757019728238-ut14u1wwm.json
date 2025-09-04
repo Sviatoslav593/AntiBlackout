@@ -1,0 +1,51 @@
+{
+  "id": "AB-1757019728238-ut14u1wwm",
+  "customer": {
+    "name": "Святослав Потапенко",
+    "phone": "+380986553991",
+    "address": "Нова Пошта. Поштове відділення №11 (до 30 кг) м. Кривий Ріг, Дніпропетровська область Нова пошта №11"
+  },
+  "items": [
+    {
+      "id": 3,
+      "name": "Аварійна Сонячна Зарядка",
+      "description": "Сонячна зарядка з LED-ліхтариком. Незамінна для екстрених ситуацій на природі.",
+      "price": 1499,
+      "originalPrice": 2099,
+      "image": "https://images.unsplash.com/photo-1593642532973-d31b6557fa68?w=400&h=400&fit=crop",
+      "rating": 4.4,
+      "reviewCount": 156,
+      "inStock": true,
+      "badge": "Еко-френдлі",
+      "capacity": 8000,
+      "brand": "SolarTech",
+      "popularity": 72,
+      "createdAt": "2024-10-20T00:00:00Z",
+      "category": "powerbank",
+      "quantity": 1
+    },
+    {
+      "id": 1,
+      "name": "PowerMax 20000мАг Швидка Зарядка",
+      "description": "Потужний павербанк з швидкою зарядкою 65Вт. Ідеально підходить для ноутбуків та кількох пристроїв.",
+      "price": 2999,
+      "originalPrice": 3699,
+      "image": "https://images.unsplash.com/photo-1609592234174-0a8f6b6f6a0e?w=400&h=400&fit=crop",
+      "rating": 4.8,
+      "reviewCount": 245,
+      "inStock": true,
+      "badge": "Хіт продажів",
+      "capacity": 20000,
+      "brand": "PowerMax",
+      "popularity": 95,
+      "createdAt": "2024-12-01T00:00:00Z",
+      "category": "powerbank",
+      "quantity": 1
+    }
+  ],
+  "total": 4498,
+  "itemCount": 2,
+  "orderDate": "2025-09-04T21:02:07.569Z",
+  "status": "pending",
+  "createdAt": "2025-09-04T21:02:08.238Z"
+}
