@@ -28,7 +28,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     name: "",
-    phone: "",
+    phone: "+380",
     address: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -65,24 +65,40 @@ export default function CheckoutPage() {
 
     // Name validation
     if (!formData.name.trim()) {
-      newErrors.name = "Ім'я є обов'язковим";
+      newErrors.name = "Ім'я є обов'язковим полем";
     } else if (formData.name.trim().length < 2) {
       newErrors.name = "Ім'я повинно містити мінімум 2 символи";
+    } else if (formData.name.trim().length > 50) {
+      newErrors.name = "Ім'я не повинно перевищувати 50 символів";
+    } else if (!/^[а-яА-ЯёЁa-zA-Z\s'`'-]+$/u.test(formData.name.trim())) {
+      newErrors.name = "Ім'я може містити тільки літери, пробіли та апострофи";
     }
 
     // Phone validation (Ukrainian format)
     const phoneRegex = /^\+380\d{9}$/;
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Телефон є обов'язковим";
-    } else if (!phoneRegex.test(formData.phone)) {
-      newErrors.phone = "Телефон повинен бути у форматі +380XXXXXXXXX";
+    const phoneNumber = formData.phone.trim();
+
+    if (!phoneNumber) {
+      newErrors.phone = "Номер телефону є обов'язковим";
+    } else if (!phoneNumber.startsWith("+380")) {
+      newErrors.phone = "Номер повинен починатися з +380";
+    } else if (phoneNumber.length !== 13) {
+      newErrors.phone = "Номер повинен містити 13 символів (+380XXXXXXXXX)";
+    } else if (!phoneRegex.test(phoneNumber)) {
+      newErrors.phone = "Неправильний формат. Приклад: +380671234567";
+    } else if (phoneNumber === "+380") {
+      newErrors.phone = "Введіть повний номер телефону";
     }
 
     // Address validation
     if (!formData.address.trim()) {
-      newErrors.address = "Адреса є обов'язковою";
-    } else if (formData.address.trim().length < 5) {
-      newErrors.address = "Адреса повинна містити мінімум 5 символів";
+      newErrors.address = "Адреса доставки є обов'язковою";
+    } else if (formData.address.trim().length < 10) {
+      newErrors.address = "Адреса повинна містити мінімум 10 символів";
+    } else if (formData.address.trim().length > 200) {
+      newErrors.address = "Адреса не повинна перевищувати 200 символів";
+    } else if (!/[а-яА-ЯёЁa-zA-Z]/u.test(formData.address.trim())) {
+      newErrors.address = "Адреса повинна містити назву міста та вулиці";
     }
 
     setErrors(newErrors);
@@ -131,10 +147,30 @@ export default function CheckoutPage() {
 
   const handleInputChange =
     (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      let value = e.target.value;
+
+      // Special handling for phone field
+      if (field === "phone") {
+        // Ensure +380 prefix is always present
+        if (!value.startsWith("+380")) {
+          value = "+380";
+        }
+        // Limit to 13 characters (+380XXXXXXXXX)
+        if (value.length > 13) {
+          value = value.slice(0, 13);
+        }
+        // Only allow digits after +380
+        const digitsAfter380 = value.slice(4);
+        if (digitsAfter380 && !/^\d*$/.test(digitsAfter380)) {
+          return; // Don't update if non-digits are entered
+        }
+      }
+
       setFormData((prev) => ({
         ...prev,
-        [field]: e.target.value,
+        [field]: value,
       }));
+
       // Clear error when user starts typing
       if (errors[field]) {
         setErrors((prev) => ({
@@ -144,10 +180,46 @@ export default function CheckoutPage() {
       }
     };
 
+  // Handle phone input key events
+  const handlePhoneKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const selectionStart = input.selectionStart || 0;
+
+    // Prevent deletion of +380 prefix
+    if ((e.key === "Backspace" || e.key === "Delete") && selectionStart <= 4) {
+      e.preventDefault();
+      // Move cursor to position after +380
+      setTimeout(() => {
+        input.setSelectionRange(4, 4);
+      }, 0);
+    }
+
+    // Only allow digits after +380
+    if (selectionStart >= 4) {
+      const allowedKeys = [
+        "Backspace",
+        "Delete",
+        "Tab",
+        "Enter",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "ArrowDown",
+      ];
+      if (!allowedKeys.includes(e.key) && !/^\d$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+  };
+
   const isFormValid =
     formData.name.trim().length >= 2 &&
+    formData.name.trim().length <= 50 &&
+    /^[а-яА-ЯёЁa-zA-Z\s'`'-]+$/u.test(formData.name.trim()) &&
     /^\+380\d{9}$/.test(formData.phone) &&
-    formData.address.trim().length >= 5;
+    formData.address.trim().length >= 10 &&
+    formData.address.trim().length <= 200 &&
+    /[а-яА-ЯёЁa-zA-Z]/u.test(formData.address.trim());
 
   return (
     <Layout>
@@ -180,6 +252,11 @@ export default function CheckoutPage() {
                     {errors.name && (
                       <p className="text-sm text-red-500">{errors.name}</p>
                     )}
+                    {!errors.name && (
+                      <p className="text-xs text-muted-foreground">
+                        Введіть ваше повне ім'я (2-50 символів)
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -192,11 +269,20 @@ export default function CheckoutPage() {
                       placeholder="+380XXXXXXXXX"
                       value={formData.phone}
                       onChange={handleInputChange("phone")}
+                      onKeyDown={handlePhoneKeyDown}
                       className={errors.phone ? "border-red-500" : ""}
+                      maxLength={13}
                     />
                     {errors.phone && (
                       <p className="text-sm text-red-500">{errors.phone}</p>
                     )}
+                    {!errors.phone &&
+                      formData.phone.length > 4 &&
+                      formData.phone.length < 13 && (
+                        <p className="text-xs text-muted-foreground">
+                          Залишилось {13 - formData.phone.length} цифр
+                        </p>
+                      )}
                   </div>
 
                   <div className="space-y-2">
@@ -213,6 +299,12 @@ export default function CheckoutPage() {
                     />
                     {errors.address && (
                       <p className="text-sm text-red-500">{errors.address}</p>
+                    )}
+                    {!errors.address && (
+                      <p className="text-xs text-muted-foreground">
+                        Введіть повну адресу доставки (місто, вулиця, номер
+                        дому)
+                      </p>
                     )}
                   </div>
 
