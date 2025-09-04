@@ -49,40 +49,46 @@ export function Toast({
         duration: 0.3,
       }}
       className={cn(
-        "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border border-border bg-background p-6 pr-8 shadow-lg transition-all hover:shadow-xl",
+        "group pointer-events-auto relative flex w-full flex-col overflow-hidden rounded-md border border-border bg-background p-4 shadow-lg transition-all hover:shadow-xl",
         "data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full"
       )}
     >
-      <div className="flex items-center space-x-3">
-        <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-        <div className="grid gap-1">
-          <div className="text-sm font-semibold">{title}</div>
+      {/* Close button - positioned absolutely in top-right corner */}
+      <Button
+        size="sm"
+        variant="ghost"
+        className="absolute top-2 right-2 h-6 w-6 p-0 hover:bg-muted"
+        onClick={onClose}
+      >
+        <X className="h-3 w-3" />
+      </Button>
+
+      {/* Content section - text and icon */}
+      <div className="flex items-start space-x-3 mb-3 pr-8">
+        <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+        <div className="grid gap-1 flex-1">
+          <div className="text-sm font-semibold leading-tight">{title}</div>
           {description && (
-            <div className="text-sm opacity-90">{description}</div>
+            <div className="text-sm opacity-90 leading-tight">
+              {description}
+            </div>
           )}
         </div>
       </div>
 
-      <div className="flex items-center space-x-2">
-        {action && (
+      {/* Action button section - full width at bottom */}
+      {action && (
+        <div className="w-full">
           <Button
             size="sm"
             onClick={action.onClick}
-            className="h-8 px-3 text-xs bg-primary hover:bg-primary/90 min-h-[44px] sm:min-h-[32px]"
+            className="w-full h-9 px-3 text-xs bg-primary hover:bg-primary/90"
           >
-            <ShoppingCart className="h-3 w-3 mr-1" />
+            <ShoppingCart className="h-3 w-3 mr-2" />
             {action.label}
           </Button>
-        )}
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-8 w-8 p-0 min-h-[44px] min-w-[44px] sm:min-h-[32px] sm:min-w-[32px]"
-          onClick={onClose}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
+        </div>
+      )}
     </motion.div>
   );
 }
