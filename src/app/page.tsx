@@ -4,87 +4,11 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/Layout";
 import ProductCard, { Product } from "@/components/ProductCard";
+import Filters, { FilterState } from "@/components/Filters";
+import SortDropdown, { SortOption, sortProducts } from "@/components/SortDropdown";
 import { Battery, Zap, Shield, Truck } from "lucide-react";
-
-// Дані товарів
-const products: Product[] = [
-  {
-    id: 1,
-    name: "PowerMax 20000мАг Швидка Зарядка",
-    description:
-      "Потужний павербанк з швидкою зарядкою 65Вт. Ідеально підходить для ноутбуків та кількох пристроїв.",
-    price: 2999,
-    originalPrice: 3699,
-    image:
-      "https://images.unsplash.com/photo-1609592234174-0a8f6b6f6a0e?w=400&h=400&fit=crop",
-    rating: 4.8,
-    reviewCount: 245,
-    inStock: true,
-    badge: "Хіт продажів",
-  },
-  {
-    id: 2,
-    name: "UltraSlim 10000мАг Бездротовий",
-    description:
-      "Компактний бездротовий павербанк з магнітним кріпленням для телефонів.",
-    price: 1899,
-    image:
-      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop",
-    rating: 4.6,
-    reviewCount: 189,
-    inStock: true,
-  },
-  {
-    id: 3,
-    name: "Аварійна Сонячна Зарядка",
-    description:
-      "Сонячна зарядка з LED-ліхтариком. Незамінна для екстрених ситуацій на природі.",
-    price: 1499,
-    originalPrice: 2099,
-    image:
-      "https://images.unsplash.com/photo-1593642532973-d31b6557fa68?w=400&h=400&fit=crop",
-    rating: 4.4,
-    reviewCount: 156,
-    inStock: true,
-    badge: "Еко-френдлі",
-  },
-  {
-    id: 4,
-    name: "USB-C 100Вт Настінна Зарядка",
-    description:
-      "Швидка настінна зарядка сумісна з ноутбуками, планшетами та телефонами.",
-    price: 1199,
-    image:
-      "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=400&fit=crop",
-    rating: 4.7,
-    reviewCount: 321,
-    inStock: true,
-  },
-  {
-    id: 5,
-    name: "Багатопортова Автозарядка",
-    description:
-      "4-портова автозарядка зі швидкою зарядкою для всієї сім'ї в дорожніх поїздках.",
-    price: 949,
-    image:
-      "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=400&fit=crop",
-    rating: 4.5,
-    reviewCount: 198,
-    inStock: false,
-  },
-  {
-    id: 6,
-    name: "Преміум Набір Кабелів",
-    description: "Міцні USB-C, Lightning та Micro-USB кабелі різної довжини.",
-    price: 749,
-    originalPrice: 1149,
-    image:
-      "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=400&fit=crop&auto=format",
-    rating: 4.3,
-    reviewCount: 412,
-    inStock: true,
-  },
-];
+import { useState, useMemo } from "react";
+import productsData from "@/data/products.json";
 
 const features = [
   {
@@ -111,10 +35,79 @@ const features = [
 ];
 
 export default function Home() {
-  const handleAddToCart = (product: Product) => {
-    // Це буде реалізовано з управлінням стану кошика в майбутніх блоках
-    console.log("Додано до кошика:", product.name);
-  };
+  // Cast the imported JSON data to Product[]
+  const allProducts = productsData as Product[];
+  
+  // Filter and sort state
+  const [sortBy, setSortBy] = useState<SortOption>('popularity-desc');
+  const [filters, setFilters] = useState<FilterState>({
+    priceRange: { min: 0, max: 10000 },
+    categories: [],
+    brands: [],
+    capacityRange: { min: 0, max: 50000 },
+    inStockOnly: false
+  });
+
+  // Calculate available options for filters
+  const availableCategories = useMemo(() => {
+    return Array.from(new Set(allProducts.map(p => p.category)));
+  }, [allProducts]);
+
+  const availableBrands = useMemo(() => {
+    return Array.from(new Set(allProducts.map(p => p.brand)));
+  }, [allProducts]);
+
+  const priceRange = useMemo(() => {
+    const prices = allProducts.map(p => p.price);
+    return { min: Math.min(...prices), max: Math.max(...prices) };
+  }, [allProducts]);
+
+  const capacityRange = useMemo(() => {
+    const capacities = allProducts.map(p => p.capacity).filter(c => c > 0);
+    return { 
+      min: capacities.length > 0 ? Math.min(...capacities) : 0, 
+      max: capacities.length > 0 ? Math.max(...capacities) : 50000 
+    };
+  }, [allProducts]);
+
+  // Filter products based on current filters
+  const filteredProducts = useMemo(() => {
+    return allProducts.filter(product => {
+      // Price filter
+      if (product.price < filters.priceRange.min || product.price > filters.priceRange.max) {
+        return false;
+      }
+
+      // Category filter
+      if (filters.categories.length > 0 && !filters.categories.includes(product.category)) {
+        return false;
+      }
+
+      // Brand filter
+      if (filters.brands.length > 0 && !filters.brands.includes(product.brand)) {
+        return false;
+      }
+
+      // Capacity filter (only for products with capacity > 0)
+      if (product.capacity > 0) {
+        if (product.capacity < filters.capacityRange.min || product.capacity > filters.capacityRange.max) {
+          return false;
+        }
+      }
+
+      // In stock filter
+      if (filters.inStockOnly && !product.inStock) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [allProducts, filters]);
+
+  // Sort filtered products
+  const sortedProducts = useMemo(() => {
+    return sortProducts(filteredProducts, sortBy);
+  }, [filteredProducts, sortBy]);
 
   const scrollToProducts = () => {
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
@@ -177,7 +170,7 @@ export default function Home() {
         <div className="container">
           <div className="text-center space-y-4 mb-12 animate-fade-in">
             <h2 className="text-3xl md:text-4xl font-bold">
-              Рекомендовані Товари
+              Каталог Товарів
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Відкрийте для себе наш асортимент надійних енергетичних рішень,
@@ -186,16 +179,67 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {products.map((product, index) => (
-              <div
-                key={product.id}
-                className="animate-slide-up"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <ProductCard product={product} onAddToCart={handleAddToCart} />
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Filters Sidebar */}
+            <div className="lg:col-span-1">
+              <Filters
+                filters={filters}
+                onFiltersChange={setFilters}
+                availableCategories={availableCategories}
+                availableBrands={availableBrands}
+                priceRange={priceRange}
+                capacityRange={capacityRange}
+              />
+            </div>
+
+            {/* Products Grid */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Sort and Results Count */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <p className="text-muted-foreground">
+                    Знайдено {sortedProducts.length} з {allProducts.length} товарів
+                  </p>
+                </div>
+                <SortDropdown value={sortBy} onValueChange={setSortBy} />
               </div>
-            ))}
+
+              {/* Products Grid */}
+              {sortedProducts.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                  {sortedProducts.map((product, index) => (
+                    <div
+                      key={product.id}
+                      className="animate-slide-up"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <ProductCard product={product} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16 space-y-4">
+                  <div className="text-6xl">🔍</div>
+                  <h3 className="text-xl font-semibold">Товари не знайдено</h3>
+                  <p className="text-muted-foreground">
+                    Спробуйте змінити параметри фільтрації або очистити фільтри
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => setFilters({
+                      priceRange: { min: priceRange.min, max: priceRange.max },
+                      categories: [],
+                      brands: [],
+                      capacityRange: { min: capacityRange.min, max: capacityRange.max },
+                      inStockOnly: false
+                    })}
+                    className="cursor-pointer"
+                  >
+                    Очистити фільтри
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>

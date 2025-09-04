@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,7 +8,8 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Star, ShoppingCart } from "lucide-react";
+import { Star, ShoppingCart, Plus, Minus } from "lucide-react";
+import { useCart } from "@/context/CartContext";
 
 export interface Product {
   id: number;
@@ -19,6 +22,11 @@ export interface Product {
   reviewCount: number;
   inStock: boolean;
   badge?: string;
+  capacity: number;
+  brand: string;
+  popularity: number;
+  createdAt: string;
+  category: string;
 }
 
 interface ProductCardProps {
@@ -28,11 +36,21 @@ interface ProductCardProps {
 
 export default function ProductCard({
   product,
-  onAddToCart,
 }: ProductCardProps) {
+  const { addItem, getItemQuantity, updateQuantity } = useCart();
+  const quantity = getItemQuantity(product.id);
+
   const handleAddToCart = () => {
-    if (onAddToCart) {
-      onAddToCart(product);
+    addItem(product);
+  };
+
+  const handleIncrement = () => {
+    updateQuantity(product.id, quantity + 1);
+  };
+
+  const handleDecrement = () => {
+    if (quantity > 1) {
+      updateQuantity(product.id, quantity - 1);
     }
   };
 
@@ -100,21 +118,45 @@ export default function ProductCard({
       </CardContent>
 
       <CardFooter className="p-3 pt-0">
-        <Button
-          onClick={handleAddToCart}
-          disabled={!product.inStock}
-          className="w-full hover:scale-105 transition-transform duration-200 cursor-pointer disabled:cursor-not-allowed text-xs sm:text-sm px-2 py-3"
-          size="sm"
-        >
-          {product.inStock ? (
-            <>
-              <ShoppingCart className="mr-1 h-3 w-3 sm:h-4 sm:w-4 group-hover:animate-bounce" />
-              Додати в кошик
-            </>
-          ) : (
-            "Немає в наявності"
-          )}
-        </Button>
+        {quantity > 0 ? (
+          <div className="w-full flex items-center justify-between gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDecrement}
+              className="cursor-pointer"
+            >
+              <Minus className="h-3 w-3" />
+            </Button>
+            <span className="font-medium text-sm">
+              В кошику: {quantity}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleIncrement}
+              className="cursor-pointer"
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          <Button
+            onClick={handleAddToCart}
+            disabled={!product.inStock}
+            className="w-full hover:scale-105 transition-transform duration-200 cursor-pointer disabled:cursor-not-allowed text-xs sm:text-sm px-2 py-3"
+            size="sm"
+          >
+            {product.inStock ? (
+              <>
+                <ShoppingCart className="mr-1 h-3 w-3 sm:h-4 sm:w-4 group-hover:animate-bounce" />
+                Додати в кошик
+              </>
+            ) : (
+              "Немає в наявності"
+            )}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
