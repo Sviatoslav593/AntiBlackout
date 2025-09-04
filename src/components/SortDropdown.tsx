@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   Select,
@@ -6,50 +6,53 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { ArrowUpDown } from 'lucide-react'
+} from "@/components/ui/select";
+import { ArrowUpDown } from "lucide-react";
 
-export type SortOption = 
-  | 'popularity-desc'
-  | 'price-asc'
-  | 'price-desc'
-  | 'newest'
-  | 'rating-desc'
-  | 'name-asc'
+export type SortOption =
+  | "popularity-desc"
+  | "price-asc"
+  | "price-desc"
+  | "newest"
+  | "rating-desc"
+  | "name-asc";
 
 interface SortDropdownProps {
-  value: SortOption
-  onValueChange: (value: SortOption) => void
+  value: SortOption;
+  onValueChange: (value: SortOption) => void;
 }
 
 const sortOptions = [
   {
-    value: 'popularity-desc' as SortOption,
-    label: 'За популярністю'
+    value: "popularity-desc" as SortOption,
+    label: "За популярністю",
   },
   {
-    value: 'price-asc' as SortOption,
-    label: 'Ціна: від низької до високої'
+    value: "price-asc" as SortOption,
+    label: "Ціна: від низької до високої",
   },
   {
-    value: 'price-desc' as SortOption,
-    label: 'Ціна: від високої до низької'
+    value: "price-desc" as SortOption,
+    label: "Ціна: від високої до низької",
   },
   {
-    value: 'newest' as SortOption,
-    label: 'Спочатку нові'
+    value: "newest" as SortOption,
+    label: "Спочатку нові",
   },
   {
-    value: 'rating-desc' as SortOption,
-    label: 'За рейтингом'
+    value: "rating-desc" as SortOption,
+    label: "За рейтингом",
   },
   {
-    value: 'name-asc' as SortOption,
-    label: 'За назвою (А-Я)'
-  }
-]
+    value: "name-asc" as SortOption,
+    label: "За назвою (А-Я)",
+  },
+];
 
-export default function SortDropdown({ value, onValueChange }: SortDropdownProps) {
+export default function SortDropdown({
+  value,
+  onValueChange,
+}: SortDropdownProps) {
   return (
     <div className="flex items-center gap-2">
       <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
@@ -59,8 +62,8 @@ export default function SortDropdown({ value, onValueChange }: SortDropdownProps
         </SelectTrigger>
         <SelectContent>
           {sortOptions.map((option) => (
-            <SelectItem 
-              key={option.value} 
+            <SelectItem
+              key={option.value}
               value={option.value}
               className="cursor-pointer"
             >
@@ -70,32 +73,35 @@ export default function SortDropdown({ value, onValueChange }: SortDropdownProps
         </SelectContent>
       </Select>
     </div>
-  )
+  );
 }
 
 export const sortProducts = (products: any[], sortBy: SortOption) => {
-  const sorted = [...products]
-  
+  const sorted = [...products];
+
   switch (sortBy) {
-    case 'popularity-desc':
-      return sorted.sort((a, b) => b.popularity - a.popularity)
-    
-    case 'price-asc':
-      return sorted.sort((a, b) => a.price - b.price)
-    
-    case 'price-desc':
-      return sorted.sort((a, b) => b.price - a.price)
-    
-    case 'newest':
-      return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    
-    case 'rating-desc':
-      return sorted.sort((a, b) => b.rating - a.rating)
-    
-    case 'name-asc':
-      return sorted.sort((a, b) => a.name.localeCompare(b.name, 'uk'))
-    
+    case "popularity-desc":
+      return sorted.sort((a, b) => b.popularity - a.popularity);
+
+    case "price-asc":
+      return sorted.sort((a, b) => a.price - b.price);
+
+    case "price-desc":
+      return sorted.sort((a, b) => b.price - a.price);
+
+    case "newest":
+      return sorted.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+    case "rating-desc":
+      return sorted.sort((a, b) => b.rating - a.rating);
+
+    case "name-asc":
+      return sorted.sort((a, b) => a.name.localeCompare(b.name, "uk"));
+
     default:
-      return sorted
+      return sorted;
   }
-}
+};

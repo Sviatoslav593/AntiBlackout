@@ -1,13 +1,14 @@
-import Layout from '@/components/Layout'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CheckCircle, Package, Truck, Phone } from 'lucide-react'
-import Link from 'next/link'
+import Layout from "@/components/Layout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle, Package, Truck, Phone } from "lucide-react";
+import Link from "next/link";
 
 export const metadata = {
-  title: 'Замовлення оформлено - AntiBlackout',
-  description: 'Ваше замовлення успішно оформлено та буде оброблено найближчим часом',
-}
+  title: "Замовлення оформлено - AntiBlackout",
+  description:
+    "Ваше замовлення успішно оформлено та буде оброблено найближчим часом",
+};
 
 export default function OrderSuccessPage() {
   return (
@@ -32,7 +33,7 @@ export default function OrderSuccessPage() {
               Замовлення оформлено!
             </h1>
             <p className="text-muted-foreground text-lg">
-              Дякуємо за ваше замовлення! Ми зв'яжемося з вами найближчим часом 
+              Дякуємо за ваше замовлення! Ми зв'яжемося з вами найближчим часом
               для підтвердження та уточнення деталей доставки.
             </p>
           </div>
@@ -56,7 +57,7 @@ export default function OrderSuccessPage() {
                     Протягом 30 хвилин з вами зв'яжеться наш менеджер
                   </p>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
                     <Package className="h-6 w-6 text-blue-600" />
@@ -66,7 +67,7 @@ export default function OrderSuccessPage() {
                     Ваше замовлення буде зібрано та упаковано
                   </p>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
                     <Truck className="h-6 w-6 text-blue-600" />
@@ -119,12 +120,12 @@ export default function OrderSuccessPage() {
 
           {/* Contact Info */}
           <div className="text-sm text-muted-foreground">
-            Маєте питання? Зв'яжіться з нами: 
+            Маєте питання? Зв'яжіться з нами:
             <br />
             📞 +380 (99) 123-4567 | 📧 support@antiblackout.com
           </div>
         </div>
       </div>
     </Layout>
-  )
+  );
 }

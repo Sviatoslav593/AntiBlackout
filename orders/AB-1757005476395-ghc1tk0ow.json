@@ -1,0 +1,33 @@
+{
+  "id": "AB-1757005476395-ghc1tk0ow",
+  "customer": {
+    "name": "івівівів",
+    "phone": "+380986553991",
+    "address": "івівіввіів"
+  },
+  "items": [
+    {
+      "id": 7,
+      "name": "PowerBank 30000мАг Швидка Зарядка",
+      "description": "Надпотужний павербанк для професійного використання. Заряджає ноутбуки кілька разів.",
+      "price": 4299,
+      "originalPrice": 4999,
+      "image": "https://images.unsplash.com/photo-1609592234174-0a8f6b6f6a0e?w=400&h=400&fit=crop",
+      "rating": 4.9,
+      "reviewCount": 89,
+      "inStock": true,
+      "badge": "Преміум",
+      "capacity": 30000,
+      "brand": "PowerMax",
+      "popularity": 67,
+      "createdAt": "2024-12-10T00:00:00Z",
+      "category": "powerbank",
+      "quantity": 3
+    }
+  ],
+  "total": 12897,
+  "itemCount": 3,
+  "orderDate": "2025-09-04T17:04:35.914Z",
+  "status": "pending",
+  "createdAt": "2025-09-04T17:04:36.395Z"
+}

@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import Layout from "@/components/Layout";
 import ProductCard, { Product } from "@/components/ProductCard";
 import Filters, { FilterState } from "@/components/Filters";
-import SortDropdown, { SortOption, sortProducts } from "@/components/SortDropdown";
+import SortDropdown, {
+  SortOption,
+  sortProducts,
+} from "@/components/SortDropdown";
 import { Battery, Zap, Shield, Truck } from "lucide-react";
 import { useState, useMemo } from "react";
 import productsData from "@/data/products.json";
@@ -37,60 +40,72 @@ const features = [
 export default function Home() {
   // Cast the imported JSON data to Product[]
   const allProducts = productsData as Product[];
-  
+
   // Filter and sort state
-  const [sortBy, setSortBy] = useState<SortOption>('popularity-desc');
+  const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
   const [filters, setFilters] = useState<FilterState>({
     priceRange: { min: 0, max: 10000 },
     categories: [],
     brands: [],
     capacityRange: { min: 0, max: 50000 },
-    inStockOnly: false
+    inStockOnly: false,
   });
 
   // Calculate available options for filters
   const availableCategories = useMemo(() => {
-    return Array.from(new Set(allProducts.map(p => p.category)));
+    return Array.from(new Set(allProducts.map((p) => p.category)));
   }, [allProducts]);
 
   const availableBrands = useMemo(() => {
-    return Array.from(new Set(allProducts.map(p => p.brand)));
+    return Array.from(new Set(allProducts.map((p) => p.brand)));
   }, [allProducts]);
 
   const priceRange = useMemo(() => {
-    const prices = allProducts.map(p => p.price);
+    const prices = allProducts.map((p) => p.price);
     return { min: Math.min(...prices), max: Math.max(...prices) };
   }, [allProducts]);
 
   const capacityRange = useMemo(() => {
-    const capacities = allProducts.map(p => p.capacity).filter(c => c > 0);
-    return { 
-      min: capacities.length > 0 ? Math.min(...capacities) : 0, 
-      max: capacities.length > 0 ? Math.max(...capacities) : 50000 
+    const capacities = allProducts.map((p) => p.capacity).filter((c) => c > 0);
+    return {
+      min: capacities.length > 0 ? Math.min(...capacities) : 0,
+      max: capacities.length > 0 ? Math.max(...capacities) : 50000,
     };
   }, [allProducts]);
 
   // Filter products based on current filters
   const filteredProducts = useMemo(() => {
-    return allProducts.filter(product => {
+    return allProducts.filter((product) => {
       // Price filter
-      if (product.price < filters.priceRange.min || product.price > filters.priceRange.max) {
+      if (
+        product.price < filters.priceRange.min ||
+        product.price > filters.priceRange.max
+      ) {
         return false;
       }
 
       // Category filter
-      if (filters.categories.length > 0 && !filters.categories.includes(product.category)) {
+      if (
+        filters.categories.length > 0 &&
+        !filters.categories.includes(product.category)
+      ) {
         return false;
       }
 
       // Brand filter
-      if (filters.brands.length > 0 && !filters.brands.includes(product.brand)) {
+      if (
+        filters.brands.length > 0 &&
+        !filters.brands.includes(product.brand)
+      ) {
         return false;
       }
 
       // Capacity filter (only for products with capacity > 0)
       if (product.capacity > 0) {
-        if (product.capacity < filters.capacityRange.min || product.capacity > filters.capacityRange.max) {
+        if (
+          product.capacity < filters.capacityRange.min ||
+          product.capacity > filters.capacityRange.max
+        ) {
           return false;
         }
       }
@@ -169,9 +184,7 @@ export default function Home() {
       <section id="products" className="py-16">
         <div className="container">
           <div className="text-center space-y-4 mb-12 animate-fade-in">
-            <h2 className="text-3xl md:text-4xl font-bold">
-              Каталог Товарів
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold">Каталог Товарів</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Відкрийте для себе наш асортимент надійних енергетичних рішень,
               розроблених для підтримки зв'язку під час надзвичайних ситуацій та
@@ -198,7 +211,8 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <p className="text-muted-foreground">
-                    Знайдено {sortedProducts.length} з {allProducts.length} товарів
+                    Знайдено {sortedProducts.length} з {allProducts.length}{" "}
+                    товарів
                   </p>
                 </div>
                 <SortDropdown value={sortBy} onValueChange={setSortBy} />
@@ -226,13 +240,21 @@ export default function Home() {
                   </p>
                   <Button
                     variant="outline"
-                    onClick={() => setFilters({
-                      priceRange: { min: priceRange.min, max: priceRange.max },
-                      categories: [],
-                      brands: [],
-                      capacityRange: { min: capacityRange.min, max: capacityRange.max },
-                      inStockOnly: false
-                    })}
+                    onClick={() =>
+                      setFilters({
+                        priceRange: {
+                          min: priceRange.min,
+                          max: priceRange.max,
+                        },
+                        categories: [],
+                        brands: [],
+                        capacityRange: {
+                          min: capacityRange.min,
+                          max: capacityRange.max,
+                        },
+                        inStockOnly: false,
+                      })
+                    }
                     className="cursor-pointer"
                   >
                     Очистити фільтри

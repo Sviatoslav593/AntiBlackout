@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import { useCart } from '@/context/CartContext'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
+import { useCart } from "@/context/CartContext";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function Cart() {
-  const { state, updateQuantity, removeItem, clearCart } = useCart()
+  const { state, updateQuantity, removeItem, clearCart } = useCart();
 
   if (state.items.length === 0) {
     return (
@@ -31,7 +31,7 @@ export default function Cart() {
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -84,7 +84,7 @@ export default function Cart() {
                             </span>
                           )}
                         </div>
-                        
+
                         <Button
                           variant="ghost"
                           size="sm"
@@ -112,7 +112,9 @@ export default function Cart() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() =>
+                              updateQuantity(item.id, item.quantity - 1)
+                            }
                             disabled={item.quantity <= 1}
                             className="cursor-pointer"
                           >
@@ -124,7 +126,9 @@ export default function Cart() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() =>
+                              updateQuantity(item.id, item.quantity + 1)
+                            }
                             className="cursor-pointer"
                           >
                             <Plus className="h-3 w-3" />
@@ -192,12 +196,13 @@ export default function Cart() {
               </div>
 
               <div className="text-xs text-muted-foreground text-center">
-                Швидка доставка з відправленням в день замовлення по всій Україні
+                Швидка доставка з відправленням в день замовлення по всій
+                Україні
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
     </div>
-  )
+  );
 }

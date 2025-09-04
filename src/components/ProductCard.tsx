@@ -34,9 +34,7 @@ interface ProductCardProps {
   onAddToCart?: (product: Product) => void;
 }
 
-export default function ProductCard({
-  product,
-}: ProductCardProps) {
+export default function ProductCard({ product }: ProductCardProps) {
   const { addItem, getItemQuantity, updateQuantity } = useCart();
   const quantity = getItemQuantity(product.id);
 
@@ -128,9 +126,7 @@ export default function ProductCard({
             >
               <Minus className="h-3 w-3" />
             </Button>
-            <span className="font-medium text-sm">
-              В кошику: {quantity}
-            </span>
+            <span className="font-medium text-sm">В кошику: {quantity}</span>
             <Button
               variant="outline"
               size="sm"

@@ -1,35 +1,42 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { Filter, X } from 'lucide-react'
+import { useState, useEffect, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Filter, X } from "lucide-react";
 
 export interface FilterState {
   priceRange: {
-    min: number
-    max: number
-  }
-  categories: string[]
-  brands: string[]
+    min: number;
+    max: number;
+  };
+  categories: string[];
+  brands: string[];
   capacityRange: {
-    min: number
-    max: number
-  }
-  inStockOnly: boolean
+    min: number;
+    max: number;
+  };
+  inStockOnly: boolean;
 }
 
 interface FiltersProps {
-  filters: FilterState
-  onFiltersChange: (filters: FilterState) => void
-  availableCategories: string[]
-  availableBrands: string[]
-  priceRange: { min: number; max: number }
-  capacityRange: { min: number; max: number }
+  filters: FilterState;
+  onFiltersChange: (filters: FilterState) => void;
+  availableCategories: string[];
+  availableBrands: string[];
+  priceRange: { min: number; max: number };
+  capacityRange: { min: number; max: number };
 }
 
 export default function Filters({
@@ -38,61 +45,131 @@ export default function Filters({
   availableCategories,
   availableBrands,
   priceRange,
-  capacityRange
+  capacityRange,
 }: FiltersProps) {
-  const [tempPriceMin, setTempPriceMin] = useState(filters.priceRange.min.toString())
-  const [tempPriceMax, setTempPriceMax] = useState(filters.priceRange.max.toString())
-  const [tempCapacityMin, setTempCapacityMin] = useState(filters.capacityRange.min.toString())
-  const [tempCapacityMax, setTempCapacityMax] = useState(filters.capacityRange.max.toString())
+  const [tempPriceMin, setTempPriceMin] = useState(
+    filters.priceRange.min.toString()
+  );
+  const [tempPriceMax, setTempPriceMax] = useState(
+    filters.priceRange.max.toString()
+  );
+  const [tempCapacityMin, setTempCapacityMin] = useState(
+    filters.capacityRange.min.toString()
+  );
+  const [tempCapacityMax, setTempCapacityMax] = useState(
+    filters.capacityRange.max.toString()
+  );
+  const [sliderPriceRange, setSliderPriceRange] = useState([
+    filters.priceRange.min,
+    filters.priceRange.max,
+  ]);
 
-  const handlePriceRangeChange = () => {
-    const min = Math.max(0, parseInt(tempPriceMin) || 0)
-    const max = parseInt(tempPriceMax) || priceRange.max
+  // Update temp values when filters change externally
+  useEffect(() => {
+    setTempPriceMin(filters.priceRange.min.toString());
+    setTempPriceMax(filters.priceRange.max.toString());
+    setSliderPriceRange([filters.priceRange.min, filters.priceRange.max]);
+  }, [filters.priceRange]);
+
+  // Debounce effect for price input changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const min = Math.max(priceRange.min, parseInt(tempPriceMin) || priceRange.min);
+      const max = Math.min(priceRange.max, parseInt(tempPriceMax) || priceRange.max);
+      
+      if (min !== filters.priceRange.min || max !== filters.priceRange.max) {
+        onFiltersChange({
+          ...filters,
+          priceRange: { min, max },
+        });
+      }
+    }, 800); // 800ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [tempPriceMin, tempPriceMax]);
+
+  // Debounce effect for capacity input changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const min = Math.max(capacityRange.min, parseInt(tempCapacityMin) || capacityRange.min);
+      const max = Math.min(capacityRange.max, parseInt(tempCapacityMax) || capacityRange.max);
+      
+      if (min !== filters.capacityRange.min || max !== filters.capacityRange.max) {
+        onFiltersChange({
+          ...filters,
+          capacityRange: { min, max },
+        });
+      }
+    }, 800); // 800ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [tempCapacityMin, tempCapacityMax]);
+
+  const handleSliderPriceChange = (values: number[]) => {
+    const [min, max] = values;
+    setSliderPriceRange([min, max]);
+    setTempPriceMin(min.toString());
+    setTempPriceMax(max.toString());
     
     onFiltersChange({
       ...filters,
-      priceRange: { min, max }
-    })
-  }
+      priceRange: { min, max },
+    });
+  };
 
-  const handleCapacityRangeChange = () => {
-    const min = Math.max(0, parseInt(tempCapacityMin) || 0)
-    const max = parseInt(tempCapacityMax) || capacityRange.max
-    
-    onFiltersChange({
-      ...filters,
-      capacityRange: { min, max }
-    })
-  }
+  const handlePriceInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      const min = Math.max(0, parseInt(tempPriceMin) || priceRange.min);
+      const max = Math.min(priceRange.max, parseInt(tempPriceMax) || priceRange.max);
+      
+      onFiltersChange({
+        ...filters,
+        priceRange: { min, max },
+      });
+      setSliderPriceRange([min, max]);
+    }
+  };
+
+  const handleCapacityInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      const min = Math.max(0, parseInt(tempCapacityMin) || capacityRange.min);
+      const max = Math.min(capacityRange.max, parseInt(tempCapacityMax) || capacityRange.max);
+      
+      onFiltersChange({
+        ...filters,
+        capacityRange: { min, max },
+      });
+    }
+  };
 
   const handleCategoryToggle = (category: string) => {
     const newCategories = filters.categories.includes(category)
-      ? filters.categories.filter(c => c !== category)
-      : [...filters.categories, category]
-    
+      ? filters.categories.filter((c) => c !== category)
+      : [...filters.categories, category];
+
     onFiltersChange({
       ...filters,
-      categories: newCategories
-    })
-  }
+      categories: newCategories,
+    });
+  };
 
   const handleBrandToggle = (brand: string) => {
     const newBrands = filters.brands.includes(brand)
-      ? filters.brands.filter(b => b !== brand)
-      : [...filters.brands, brand]
-    
+      ? filters.brands.filter((b) => b !== brand)
+      : [...filters.brands, brand];
+
     onFiltersChange({
       ...filters,
-      brands: newBrands
-    })
-  }
+      brands: newBrands,
+    });
+  };
 
   const handleInStockToggle = () => {
     onFiltersChange({
       ...filters,
-      inStockOnly: !filters.inStockOnly
-    })
-  }
+      inStockOnly: !filters.inStockOnly,
+    });
+  };
 
   const clearAllFilters = () => {
     const clearedFilters = {
@@ -100,25 +177,34 @@ export default function Filters({
       categories: [],
       brands: [],
       capacityRange: { min: capacityRange.min, max: capacityRange.max },
-      inStockOnly: false
-    }
-    
-    onFiltersChange(clearedFilters)
-    setTempPriceMin(priceRange.min.toString())
-    setTempPriceMax(priceRange.max.toString())
-    setTempCapacityMin(capacityRange.min.toString())
-    setTempCapacityMax(capacityRange.max.toString())
-  }
+      inStockOnly: false,
+    };
+
+    onFiltersChange(clearedFilters);
+    setTempPriceMin(priceRange.min.toString());
+    setTempPriceMax(priceRange.max.toString());
+    setTempCapacityMin(capacityRange.min.toString());
+    setTempCapacityMax(capacityRange.max.toString());
+    setSliderPriceRange([priceRange.min, priceRange.max]);
+  };
 
   const getActiveFiltersCount = () => {
-    let count = 0
-    if (filters.priceRange.min > priceRange.min || filters.priceRange.max < priceRange.max) count++
-    if (filters.categories.length > 0) count++
-    if (filters.brands.length > 0) count++
-    if (filters.capacityRange.min > capacityRange.min || filters.capacityRange.max < capacityRange.max) count++
-    if (filters.inStockOnly) count++
-    return count
-  }
+    let count = 0;
+    if (
+      filters.priceRange.min > priceRange.min ||
+      filters.priceRange.max < priceRange.max
+    )
+      count++;
+    if (filters.categories.length > 0) count++;
+    if (filters.brands.length > 0) count++;
+    if (
+      filters.capacityRange.min > capacityRange.min ||
+      filters.capacityRange.max < capacityRange.max
+    )
+      count++;
+    if (filters.inStockOnly) count++;
+    return count;
+  };
 
   const FilterContent = () => (
     <div className="space-y-6">
@@ -127,9 +213,7 @@ export default function Filters({
         <h3 className="font-semibold">Фільтри</h3>
         <div className="flex items-center gap-2">
           {getActiveFiltersCount() > 0 && (
-            <Badge variant="secondary">
-              {getActiveFiltersCount()}
-            </Badge>
+            <Badge variant="secondary">{getActiveFiltersCount()}</Badge>
           )}
           <Button
             variant="ghost"
@@ -143,30 +227,51 @@ export default function Filters({
       </div>
 
       {/* Price Range */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <h4 className="font-medium">Ціна (₴)</h4>
+        
+        {/* Price Slider */}
+        <div className="space-y-3">
+          <Slider
+            value={sliderPriceRange}
+            onValueChange={handleSliderPriceChange}
+            max={priceRange.max}
+            min={priceRange.min}
+            step={50}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>{sliderPriceRange[0]} ₴</span>
+            <span>{sliderPriceRange[1]} ₴</span>
+          </div>
+        </div>
+
+        {/* Price Inputs */}
         <div className="flex gap-2">
           <Input
             type="number"
             placeholder="Від"
             value={tempPriceMin}
             onChange={(e) => setTempPriceMin(e.target.value)}
-            onBlur={handlePriceRangeChange}
-            onKeyDown={(e) => e.key === 'Enter' && handlePriceRangeChange()}
+            onKeyDown={handlePriceInputKeyDown}
             className="text-sm"
+            min={priceRange.min}
+            max={priceRange.max}
           />
           <Input
             type="number"
             placeholder="До"
             value={tempPriceMax}
             onChange={(e) => setTempPriceMax(e.target.value)}
-            onBlur={handlePriceRangeChange}
-            onKeyDown={(e) => e.key === 'Enter' && handlePriceRangeChange()}
+            onKeyDown={handlePriceInputKeyDown}
             className="text-sm"
+            min={priceRange.min}
+            max={priceRange.max}
           />
         </div>
+        
         <div className="text-xs text-muted-foreground">
-          Діапазон: {priceRange.min} - {priceRange.max} ₴
+          Повний діапазон: {priceRange.min} - {priceRange.max} ₴
         </div>
       </div>
 
@@ -177,7 +282,10 @@ export default function Filters({
         <h4 className="font-medium">Категорії</h4>
         <div className="space-y-2">
           {availableCategories.map((category) => (
-            <label key={category} className="flex items-center space-x-2 cursor-pointer">
+            <label
+              key={category}
+              className="flex items-center space-x-2 cursor-pointer"
+            >
               <input
                 type="checkbox"
                 checked={filters.categories.includes(category)}
@@ -185,9 +293,13 @@ export default function Filters({
                 className="rounded border-gray-300"
               />
               <span className="text-sm capitalize">
-                {category === 'powerbank' ? 'Павербанки' :
-                 category === 'charger' ? 'Зарядки' :
-                 category === 'cable' ? 'Кабелі' : category}
+                {category === "powerbank"
+                  ? "Павербанки"
+                  : category === "charger"
+                  ? "Зарядки"
+                  : category === "cable"
+                  ? "Кабелі"
+                  : category}
               </span>
             </label>
           ))}
@@ -201,7 +313,10 @@ export default function Filters({
         <h4 className="font-medium">Бренди</h4>
         <div className="space-y-2">
           {availableBrands.map((brand) => (
-            <label key={brand} className="flex items-center space-x-2 cursor-pointer">
+            <label
+              key={brand}
+              className="flex items-center space-x-2 cursor-pointer"
+            >
               <input
                 type="checkbox"
                 checked={filters.brands.includes(brand)}
@@ -225,22 +340,24 @@ export default function Filters({
             placeholder="Від"
             value={tempCapacityMin}
             onChange={(e) => setTempCapacityMin(e.target.value)}
-            onBlur={handleCapacityRangeChange}
-            onKeyDown={(e) => e.key === 'Enter' && handleCapacityRangeChange()}
+            onKeyDown={handleCapacityInputKeyDown}
             className="text-sm"
+            min={capacityRange.min}
+            max={capacityRange.max}
           />
           <Input
             type="number"
             placeholder="До"
             value={tempCapacityMax}
             onChange={(e) => setTempCapacityMax(e.target.value)}
-            onBlur={handleCapacityRangeChange}
-            onKeyDown={(e) => e.key === 'Enter' && handleCapacityRangeChange()}
+            onKeyDown={handleCapacityInputKeyDown}
             className="text-sm"
+            min={capacityRange.min}
+            max={capacityRange.max}
           />
         </div>
         <div className="text-xs text-muted-foreground">
-          Для павербанків
+          Для павербанків ({capacityRange.min} - {capacityRange.max} мАг)
         </div>
       </div>
 
@@ -259,7 +376,7 @@ export default function Filters({
         </label>
       </div>
     </div>
-  )
+  );
 
   return (
     <>
@@ -289,16 +406,16 @@ export default function Filters({
               )}
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-80">
-            <SheetHeader>
+          <SheetContent side="left" className="w-80 overflow-y-auto">
+            <SheetHeader className="sticky top-0 bg-background pb-4 border-b">
               <SheetTitle>Фільтри товарів</SheetTitle>
             </SheetHeader>
-            <div className="mt-6">
+            <div className="mt-6 pb-6">
               <FilterContent />
             </div>
           </SheetContent>
         </Sheet>
       </div>
     </>
-  )
+  );
 }

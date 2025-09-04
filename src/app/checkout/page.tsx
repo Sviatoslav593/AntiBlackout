@@ -1,38 +1,38 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Layout from '@/components/Layout'
-import { useCart } from '@/context/CartContext'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { ShoppingBag, Loader2 } from 'lucide-react'
-import Link from 'next/link'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Layout from "@/components/Layout";
+import { useCart } from "@/context/CartContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ShoppingBag, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 interface FormData {
-  name: string
-  phone: string
-  address: string
+  name: string;
+  phone: string;
+  address: string;
 }
 
 interface FormErrors {
-  name?: string
-  phone?: string
-  address?: string
+  name?: string;
+  phone?: string;
+  address?: string;
 }
 
 export default function CheckoutPage() {
-  const { state, clearCart } = useCart()
-  const router = useRouter()
+  const { state, clearCart } = useCart();
+  const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
-    name: '',
-    phone: '',
-    address: ''
-  })
-  const [errors, setErrors] = useState<FormErrors>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
+    name: "",
+    phone: "",
+    address: "",
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect to cart if empty
   if (state.items.length === 0) {
@@ -57,46 +57,46 @@ export default function CheckoutPage() {
           </div>
         </div>
       </Layout>
-    )
+    );
   }
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {}
+    const newErrors: FormErrors = {};
 
     // Name validation
     if (!formData.name.trim()) {
-      newErrors.name = "Ім'я є обов'язковим"
+      newErrors.name = "Ім'я є обов'язковим";
     } else if (formData.name.trim().length < 2) {
-      newErrors.name = "Ім'я повинно містити мінімум 2 символи"
+      newErrors.name = "Ім'я повинно містити мінімум 2 символи";
     }
 
     // Phone validation (Ukrainian format)
-    const phoneRegex = /^\+380\d{9}$/
+    const phoneRegex = /^\+380\d{9}$/;
     if (!formData.phone.trim()) {
-      newErrors.phone = "Телефон є обов'язковим"
+      newErrors.phone = "Телефон є обов'язковим";
     } else if (!phoneRegex.test(formData.phone)) {
-      newErrors.phone = "Телефон повинен бути у форматі +380XXXXXXXXX"
+      newErrors.phone = "Телефон повинен бути у форматі +380XXXXXXXXX";
     }
 
     // Address validation
     if (!formData.address.trim()) {
-      newErrors.address = "Адреса є обов'язковою"
+      newErrors.address = "Адреса є обов'язковою";
     } else if (formData.address.trim().length < 5) {
-      newErrors.address = "Адреса повинна містити мінімум 5 символів"
+      newErrors.address = "Адреса повинна містити мінімум 5 символів";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       const orderData = {
@@ -104,57 +104,59 @@ export default function CheckoutPage() {
         items: state.items,
         total: state.total,
         itemCount: state.itemCount,
-        orderDate: new Date().toISOString()
-      }
+        orderDate: new Date().toISOString(),
+      };
 
-      const response = await fetch('/api/order', {
-        method: 'POST',
+      const response = await fetch("/api/order", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(orderData)
-      })
+        body: JSON.stringify(orderData),
+      });
 
       if (response.ok) {
-        clearCart()
-        router.push('/order-success')
+        clearCart();
+        router.push("/order-success");
       } else {
-        throw new Error('Failed to submit order')
+        throw new Error("Failed to submit order");
       }
     } catch (error) {
-      console.error('Error submitting order:', error)
-      alert('Помилка при оформленні замовлення. Спробуйте ще раз.')
+      console.error("Error submitting order:", error);
+      alert("Помилка при оформленні замовлення. Спробуйте ще раз.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const handleInputChange = (field: keyof FormData) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: e.target.value
-    }))
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({
+  const handleInputChange =
+    (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({
         ...prev,
-        [field]: undefined
-      }))
-    }
-  }
+        [field]: e.target.value,
+      }));
+      // Clear error when user starts typing
+      if (errors[field]) {
+        setErrors((prev) => ({
+          ...prev,
+          [field]: undefined,
+        }));
+      }
+    };
 
-  const isFormValid = formData.name.trim().length >= 2 && 
-                     /^\+380\d{9}$/.test(formData.phone) && 
-                     formData.address.trim().length >= 5
+  const isFormValid =
+    formData.name.trim().length >= 2 &&
+    /^\+380\d{9}$/.test(formData.phone) &&
+    formData.address.trim().length >= 5;
 
   return (
     <Layout>
       <div className="container py-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl md:text-3xl font-bold mb-8">Оформлення замовлення</h1>
-          
+          <h1 className="text-2xl md:text-3xl font-bold mb-8">
+            Оформлення замовлення
+          </h1>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Checkout Form */}
             <Card>
@@ -172,8 +174,8 @@ export default function CheckoutPage() {
                       type="text"
                       placeholder="Введіть ваше ім'я"
                       value={formData.name}
-                      onChange={handleInputChange('name')}
-                      className={errors.name ? 'border-red-500' : ''}
+                      onChange={handleInputChange("name")}
+                      className={errors.name ? "border-red-500" : ""}
                     />
                     {errors.name && (
                       <p className="text-sm text-red-500">{errors.name}</p>
@@ -189,8 +191,8 @@ export default function CheckoutPage() {
                       type="tel"
                       placeholder="+380XXXXXXXXX"
                       value={formData.phone}
-                      onChange={handleInputChange('phone')}
-                      className={errors.phone ? 'border-red-500' : ''}
+                      onChange={handleInputChange("phone")}
+                      className={errors.phone ? "border-red-500" : ""}
                     />
                     {errors.phone && (
                       <p className="text-sm text-red-500">{errors.phone}</p>
@@ -206,8 +208,8 @@ export default function CheckoutPage() {
                       type="text"
                       placeholder="Введіть повну адресу доставки"
                       value={formData.address}
-                      onChange={handleInputChange('address')}
-                      className={errors.address ? 'border-red-500' : ''}
+                      onChange={handleInputChange("address")}
+                      className={errors.address ? "border-red-500" : ""}
                     />
                     {errors.address && (
                       <p className="text-sm text-red-500">{errors.address}</p>
@@ -227,7 +229,7 @@ export default function CheckoutPage() {
                           Оформлення...
                         </>
                       ) : (
-                        'Підтвердити замовлення'
+                        "Підтвердити замовлення"
                       )}
                     </Button>
                   </div>
@@ -243,7 +245,10 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-3">
                   {state.items.map((item) => (
-                    <div key={item.id} className="flex justify-between items-start">
+                    <div
+                      key={item.id}
+                      className="flex justify-between items-start"
+                    >
                       <div className="flex-1">
                         <h4 className="font-medium text-sm leading-tight">
                           {item.name}
@@ -282,7 +287,8 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="text-xs text-muted-foreground">
-                  * Швидка доставка з відправленням в день замовлення по всій Україні
+                  * Швидка доставка з відправленням в день замовлення по всій
+                  Україні
                 </div>
 
                 <Link href="/cart" className="block">
@@ -296,5 +302,5 @@ export default function CheckoutPage() {
         </div>
       </div>
     </Layout>
-  )
+  );
 }
