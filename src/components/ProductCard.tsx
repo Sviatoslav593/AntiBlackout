@@ -178,12 +178,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         </CardHeader>
 
-        <CardContent className="p-4">
-          <div className="space-y-2">
-            <h3 className="font-semibold text-lg leading-tight line-clamp-2">
+        <CardContent className="p-2 sm:p-4">
+          <div className="space-y-1 sm:space-y-2">
+            <h3 className="font-semibold text-sm sm:text-lg leading-tight line-clamp-2">
               {product.name}
             </h3>
-            <p className="text-sm text-muted-foreground line-clamp-2">
+            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
               {product.description}
             </p>
 
@@ -193,7 +193,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-4 w-4 ${
+                    className={`h-3 w-3 sm:h-4 sm:w-4 ${
                       i < Math.floor(product.rating)
                         ? "fill-yellow-400 text-yellow-400"
                         : "text-gray-300"
@@ -201,14 +201,14 @@ export default function ProductCard({ product }: ProductCardProps) {
                   />
                 ))}
               </div>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs sm:text-sm text-muted-foreground">
                 ({product.reviewCount})
               </span>
             </div>
 
             {/* Price */}
-            <div className="flex items-center space-x-2">
-              <span className="text-lg sm:text-2xl font-bold text-foreground">
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <span className="text-base sm:text-lg lg:text-2xl font-bold text-foreground">
                 {product.price} ₴
               </span>
               {product.originalPrice && (
@@ -220,27 +220,27 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         </CardContent>
 
-        <CardFooter className="p-3 pt-0">
-          <div className="w-full space-y-2">
+        <CardFooter className="p-2 sm:p-3 pt-0">
+          <div className="w-full space-y-1 sm:space-y-2">
             {/* Add to Cart / Quantity Controls */}
             {quantity > 0 ? (
-              <div className="w-full flex items-center justify-between gap-2">
+              <div className="w-full flex items-center justify-between gap-1 sm:gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleDecrement}
-                  className="cursor-pointer"
+                  className="cursor-pointer h-8 w-8 p-0 sm:h-auto sm:w-auto sm:px-3"
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
-                <span className="font-medium text-sm">
+                <span className="font-medium text-xs sm:text-sm">
                   В кошику: {quantity}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleIncrement}
-                  className="cursor-pointer"
+                  className="cursor-pointer h-8 w-8 p-0 sm:h-auto sm:w-auto sm:px-3"
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
@@ -253,7 +253,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 <Button
                   onClick={handleAddToCart}
                   disabled={!product.inStock}
-                  className="w-full transition-all duration-200 cursor-pointer disabled:cursor-not-allowed text-xs sm:text-sm px-2 py-3 min-h-[48px]"
+                  className="w-full transition-all duration-200 cursor-pointer disabled:cursor-not-allowed text-xs sm:text-sm px-2 py-2 sm:py-3 min-h-[36px] sm:min-h-[48px]"
                   size="sm"
                 >
                   {product.inStock ? (
@@ -264,10 +264,11 @@ export default function ProductCard({ product }: ProductCardProps) {
                       >
                         <ShoppingCart className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
                       </motion.div>
-                      Додати в кошик
+                      <span className="hidden xs:inline">Додати в кошик</span>
+                      <span className="xs:hidden">Додати</span>
                     </>
                   ) : (
-                    "Немає в наявності"
+                    <span className="text-xs">Немає в наявності</span>
                   )}
                 </Button>
               </motion.div>
@@ -277,7 +278,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <Button
               variant="outline"
               onClick={handleDetailsClick}
-              className="w-full text-xs sm:text-sm cursor-pointer"
+              className="w-full text-xs sm:text-sm cursor-pointer h-8 sm:h-auto py-1 sm:py-2"
               size="sm"
             >
               Детальніше

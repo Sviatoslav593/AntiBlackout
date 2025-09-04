@@ -96,14 +96,17 @@ export default function Header() {
         boxShadow: "0 1px 3px 0 rgb(0 0 0 / 0.1)",
       }}
     >
-      <div className="container">
-        <div className="flex h-16 items-center justify-between">
+      <div className="container px-2 sm:px-4">
+        <div className="flex h-14 sm:h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 cursor-pointer">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold">
+          <Link
+            href="/"
+            className="flex items-center space-x-1 sm:space-x-2 cursor-pointer min-w-0 flex-shrink"
+          >
+            <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-xs sm:text-sm">
               AB
             </div>
-            <span className="text-xl font-bold text-foreground">
+            <span className="text-sm sm:text-xl font-bold text-foreground truncate max-w-[120px] sm:max-w-none">
               AntiBlackout
             </span>
           </Link>
@@ -122,7 +125,7 @@ export default function Header() {
           </nav>
 
           {/* Search & Actions */}
-          <div className="flex items-center space-x-2 h-10">
+          <div className="flex items-center space-x-1 sm:space-x-2 h-8 sm:h-10 flex-shrink-0">
             {/* Search Field - Desktop */}
             <div
               ref={searchContainerRef}
@@ -164,9 +167,9 @@ export default function Header() {
                 variant="ghost"
                 size="icon"
                 onClick={handleSearchToggle}
-                className="ml-2 h-10 w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
+                className="ml-1 sm:ml-2 h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
               >
-                <Search className="h-5 w-5" />
+                <Search className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
 
@@ -175,9 +178,9 @@ export default function Header() {
               variant="ghost"
               size="icon"
               onClick={handleSearchToggle}
-              className="md:hidden h-10 w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
+              className="md:hidden h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
             >
-              <Search className="h-5 w-5" />
+              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
 
             {/* Favorites Button */}
@@ -185,14 +188,14 @@ export default function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative h-10 w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
+                className="relative h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
               >
-                <Heart className="h-5 w-5" />
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
                 {favoritesCount > 0 && (
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center font-semibold"
+                    className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center font-semibold"
                   >
                     {favoritesCount}
                   </motion.span>
@@ -204,7 +207,7 @@ export default function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="relative h-10 w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
+              className="relative h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
               onClick={() => setIsCartDrawerOpen(true)}
             >
               <motion.div
@@ -218,13 +221,13 @@ export default function Header() {
                 }
                 transition={{ duration: 0.6, ease: "easeInOut" }}
               >
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
               </motion.div>
               {state.itemCount > 0 && (
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-blue-600 text-xs text-white flex items-center justify-center font-semibold"
+                  className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-blue-600 text-xs text-white flex items-center justify-center font-semibold"
                 >
                   {state.itemCount}
                 </motion.span>
@@ -241,17 +244,17 @@ export default function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden h-10 w-10 hover:scale-105 transition-all duration-200 cursor-pointer flex items-center justify-center"
+              className="md:hidden h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-all duration-200 cursor-pointer flex items-center justify-center"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              <div className="relative w-5 h-5 flex items-center justify-center">
+              <div className="relative w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                 <Menu
-                  className={`h-5 w-5 absolute transition-all duration-200 ${
+                  className={`h-4 w-4 sm:h-5 sm:w-5 absolute transition-all duration-200 ${
                     isMenuOpen ? "rotate-90 opacity-0" : "rotate-0 opacity-100"
                   }`}
                 />
                 <X
-                  className={`h-5 w-5 absolute transition-all duration-200 ${
+                  className={`h-4 w-4 sm:h-5 sm:w-5 absolute transition-all duration-200 ${
                     isMenuOpen ? "rotate-0 opacity-100" : "-rotate-90 opacity-0"
                   }`}
                 />
