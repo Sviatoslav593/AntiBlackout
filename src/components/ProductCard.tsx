@@ -43,7 +43,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
   const quantity = getItemQuantity(product.id);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
     addItem(product);
 
     showToast({
@@ -57,13 +58,30 @@ export default function ProductCard({ product }: ProductCardProps) {
     });
   };
 
-  const handleIncrement = () => {
+  const handleIncrement = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
     updateQuantity(product.id, quantity + 1);
   };
 
-  const handleDecrement = () => {
+  const handleDecrement = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
     if (quantity > 1) {
       updateQuantity(product.id, quantity - 1);
+    }
+  };
+
+  const handleDetailsClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click (though it does the same thing)
+    router.push(`/product/${product.id}`);
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on buttons
+    const target = e.target as HTMLElement;
+    const isButton = target.closest("button") || target.tagName === "BUTTON";
+
+    if (!isButton) {
+      router.push(`/product/${product.id}`);
     }
   };
 
@@ -74,7 +92,10 @@ export default function ProductCard({ product }: ProductCardProps) {
       transition={{ duration: 0.5 }}
       whileHover={{ y: -4 }}
     >
-      <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10">
+      <Card
+        className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 cursor-pointer"
+        onClick={handleCardClick}
+      >
         {/* Badge */}
         {product.badge && (
           <div className="absolute top-3 left-3 z-10 rounded-full bg-blue-600 px-2 py-1 text-xs font-medium text-white animate-pulse">
@@ -137,50 +158,68 @@ export default function ProductCard({ product }: ProductCardProps) {
         </CardContent>
 
         <CardFooter className="p-3 pt-0">
-          {quantity > 0 ? (
-            <div className="w-full flex items-center justify-between gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDecrement}
-                className="cursor-pointer"
+          <div className="w-full space-y-2">
+            {/* Add to Cart / Quantity Controls */}
+            {quantity > 0 ? (
+              <div className="w-full flex items-center justify-between gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDecrement}
+                  className="cursor-pointer"
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <span className="font-medium text-sm">
+                  В кошику: {quantity}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleIncrement}
+                  className="cursor-pointer"
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
+            ) : (
+              <motion.div
+                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
               >
-                <Minus className="h-3 w-3" />
-              </Button>
-              <span className="font-medium text-sm">В кошику: {quantity}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleIncrement}
-                className="cursor-pointer"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
-          ) : (
-            <motion.div whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.02 }}>
-              <Button
-                onClick={handleAddToCart}
-                disabled={!product.inStock}
-                className="w-full transition-all duration-200 cursor-pointer disabled:cursor-not-allowed text-xs sm:text-sm px-2 py-3 min-h-[48px]"
-                size="sm"
-              >
-                {product.inStock ? (
-                  <>
-                    <motion.div
-                      animate={{ rotate: [0, 15, -15, 0] }}
-                      transition={{ duration: 0.5, repeat: 0 }}
-                    >
-                      <ShoppingCart className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
-                    </motion.div>
-                    Додати в кошик
-                  </>
-                ) : (
-                  "Немає в наявності"
-                )}
-              </Button>
-            </motion.div>
-          )}
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={!product.inStock}
+                  className="w-full transition-all duration-200 cursor-pointer disabled:cursor-not-allowed text-xs sm:text-sm px-2 py-3 min-h-[48px]"
+                  size="sm"
+                >
+                  {product.inStock ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: [0, 15, -15, 0] }}
+                        transition={{ duration: 0.5, repeat: 0 }}
+                      >
+                        <ShoppingCart className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                      </motion.div>
+                      Додати в кошик
+                    </>
+                  ) : (
+                    "Немає в наявності"
+                  )}
+                </Button>
+              </motion.div>
+            )}
+
+            {/* Details Button - Always below cart button */}
+            <Button
+              variant="outline"
+              onClick={handleDetailsClick}
+              className="w-full text-xs sm:text-sm cursor-pointer"
+              size="sm"
+            >
+              Детальніше
+            </Button>
+          </div>
         </CardFooter>
       </Card>
     </motion.div>
