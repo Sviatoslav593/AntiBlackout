@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
+import PriceFilter from "@/components/PriceFilter";
 import {
   Sheet,
   SheetContent,
@@ -47,36 +47,28 @@ export default function Filters({
   priceRange,
   capacityRange,
 }: FiltersProps) {
-  const [tempPriceMin, setTempPriceMin] = useState(
-    filters.priceRange.min.toString()
-  );
-  const [tempPriceMax, setTempPriceMax] = useState(
-    filters.priceRange.max.toString()
-  );
   const [tempCapacityMin, setTempCapacityMin] = useState(
     filters.capacityRange.min.toString()
   );
   const [tempCapacityMax, setTempCapacityMax] = useState(
     filters.capacityRange.max.toString()
   );
-  const [sliderPriceRange, setSliderPriceRange] = useState([
-    filters.priceRange.min,
-    filters.priceRange.max,
-  ]);
+  // Track if we're updating from external source vs user interaction
+  const isUpdatingFromFilter = useRef(false);
 
-  // Only update when filters change from external source (not from user interaction)
+  // Only update capacity when filters change from external source
   useEffect(() => {
-    setTempPriceMin(filters.priceRange.min.toString());
-    setTempPriceMax(filters.priceRange.max.toString());
-    setSliderPriceRange([filters.priceRange.min, filters.priceRange.max]);
-  }, [filters.priceRange.min, filters.priceRange.max]);
+    // Prevent infinite loops by checking if this is our own update
+    if (!isUpdatingFromFilter.current) {
+      setTempCapacityMin(filters.capacityRange.min.toString());
+      setTempCapacityMax(filters.capacityRange.max.toString());
+    }
+    isUpdatingFromFilter.current = false;
+  }, [filters.capacityRange.min, filters.capacityRange.max]);
 
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
-      if (priceTimerRef.current) {
-        clearTimeout(priceTimerRef.current);
-      }
       if (capacityTimerRef.current) {
         clearTimeout(capacityTimerRef.current);
       }
@@ -84,43 +76,14 @@ export default function Filters({
   }, []);
 
   // Use refs for timers to avoid state updates interfering with user interaction
-  const priceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const capacityTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Handle price input changes with debounce
-  const handlePriceInputChange = (field: "min" | "max", value: string) => {
-    if (field === "min") {
-      setTempPriceMin(value);
-    } else {
-      setTempPriceMax(value);
-    }
-
-    // Clear existing timer
-    if (priceTimerRef.current) {
-      clearTimeout(priceTimerRef.current);
-    }
-
-    // Set new timer
-    priceTimerRef.current = setTimeout(() => {
-      const currentMin = field === "min" ? value : tempPriceMin;
-      const currentMax = field === "max" ? value : tempPriceMax;
-      
-      const min = Math.max(
-        priceRange.min,
-        parseInt(currentMin) || priceRange.min
-      );
-      const max = Math.min(
-        priceRange.max,
-        parseInt(currentMax) || priceRange.max
-      );
-
-      if (min !== filters.priceRange.min || max !== filters.priceRange.max) {
-        onFiltersChange({
-          ...filters,
-          priceRange: { min, max },
-        });
-      }
-    }, 1000);
+  // Handle price filter changes
+  const handlePriceChange = (priceRange: { min: number; max: number }) => {
+    onFiltersChange({
+      ...filters,
+      priceRange,
+    });
   };
 
   // Handle capacity input changes with debounce
@@ -140,7 +103,7 @@ export default function Filters({
     capacityTimerRef.current = setTimeout(() => {
       const currentMin = field === "min" ? value : tempCapacityMin;
       const currentMax = field === "max" ? value : tempCapacityMax;
-      
+
       const min = Math.max(
         capacityRange.min,
         parseInt(currentMin) || capacityRange.min
@@ -160,55 +123,6 @@ export default function Filters({
         });
       }
     }, 1000);
-  };
-
-  const handleSliderPriceChange = (values: number[]) => {
-    const [min, max] = values;
-    
-    // Update local state immediately for smooth UI
-    setSliderPriceRange([min, max]);
-    setTempPriceMin(min.toString());
-    setTempPriceMax(max.toString());
-
-    // Clear existing timer
-    if (priceTimerRef.current) {
-      clearTimeout(priceTimerRef.current);
-    }
-
-    // Apply changes with minimal delay for slider
-    priceTimerRef.current = setTimeout(() => {
-      onFiltersChange({
-        ...filters,
-        priceRange: { min, max },
-      });
-    }, 50); // Very short delay for responsive feel
-  };
-
-  const handlePriceInputKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === "Enter") {
-      // Clear any pending debounce
-      if (priceTimerRef.current) {
-        clearTimeout(priceTimerRef.current);
-        priceTimerRef.current = null;
-      }
-
-      const min = Math.max(
-        priceRange.min,
-        parseInt(tempPriceMin) || priceRange.min
-      );
-      const max = Math.min(
-        priceRange.max,
-        parseInt(tempPriceMax) || priceRange.max
-      );
-
-      setSliderPriceRange([min, max]);
-      onFiltersChange({
-        ...filters,
-        priceRange: { min, max },
-      });
-    }
   };
 
   const handleCapacityInputKeyDown = (
@@ -268,10 +182,6 @@ export default function Filters({
 
   const clearAllFilters = () => {
     // Clear any pending timers
-    if (priceTimerRef.current) {
-      clearTimeout(priceTimerRef.current);
-      priceTimerRef.current = null;
-    }
     if (capacityTimerRef.current) {
       clearTimeout(capacityTimerRef.current);
       capacityTimerRef.current = null;
@@ -286,12 +196,9 @@ export default function Filters({
     };
 
     // Update local state first
-    setTempPriceMin(priceRange.min.toString());
-    setTempPriceMax(priceRange.max.toString());
     setTempCapacityMin(capacityRange.min.toString());
     setTempCapacityMax(capacityRange.max.toString());
-    setSliderPriceRange([priceRange.min, priceRange.max]);
-    
+
     // Then update filters
     onFiltersChange(clearedFilters);
   };
@@ -335,53 +242,12 @@ export default function Filters({
       </div>
 
       {/* Price Range */}
-      <div className="space-y-4">
-        <h4 className="font-medium">Ціна (₴)</h4>
-
-        {/* Price Slider */}
-        <div className="space-y-3">
-          <Slider
-            value={sliderPriceRange}
-            onValueChange={handleSliderPriceChange}
-            max={priceRange.max}
-            min={priceRange.min}
-            step={50}
-            className="w-full"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{sliderPriceRange[0]} ₴</span>
-            <span>{sliderPriceRange[1]} ₴</span>
-          </div>
-        </div>
-
-        {/* Price Inputs */}
-        <div className="flex gap-2">
-          <Input
-            type="number"
-            placeholder="Від"
-            value={tempPriceMin}
-            onChange={(e) => handlePriceInputChange("min", e.target.value)}
-            onKeyDown={handlePriceInputKeyDown}
-            className="text-sm"
-            min={priceRange.min}
-            max={priceRange.max}
-          />
-          <Input
-            type="number"
-            placeholder="До"
-            value={tempPriceMax}
-            onChange={(e) => handlePriceInputChange("max", e.target.value)}
-            onKeyDown={handlePriceInputKeyDown}
-            className="text-sm"
-            min={priceRange.min}
-            max={priceRange.max}
-          />
-        </div>
-
-        <div className="text-xs text-muted-foreground">
-          Повний діапазон: {priceRange.min} - {priceRange.max} ₴
-        </div>
-      </div>
+      <PriceFilter
+        value={filters.priceRange}
+        onChange={handlePriceChange}
+        min={priceRange.min}
+        max={priceRange.max}
+      />
 
       <Separator />
 

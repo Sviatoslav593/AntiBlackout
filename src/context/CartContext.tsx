@@ -5,6 +5,7 @@ import React, {
   useContext,
   useReducer,
   useEffect,
+  useState,
   ReactNode,
 } from "react";
 
@@ -45,11 +46,13 @@ type CartAction =
 
 interface CartContextType {
   state: CartState;
-  addItem: (product: Product) => void;
+  addItem: (product: Product, showToast?: boolean) => void;
   removeItem: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
   getItemQuantity: (id: number) => number;
+  triggerCartAnimation: () => void;
+  isCartAnimating: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -156,6 +159,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
+  const [isCartAnimating, setIsCartAnimating] = useState(false);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -175,8 +179,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     localStorage.setItem("antiblackout-cart", JSON.stringify(state.items));
   }, [state.items]);
 
-  const addItem = (product: Product) => {
+  const triggerCartAnimation = () => {
+    setIsCartAnimating(true);
+    setTimeout(() => setIsCartAnimating(false), 600);
+  };
+
+  const addItem = (product: Product, showToast = true) => {
     dispatch({ type: "ADD_ITEM", payload: product });
+    triggerCartAnimation();
   };
 
   const removeItem = (id: number) => {
@@ -205,6 +215,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
         updateQuantity,
         clearCart,
         getItemQuantity,
+        triggerCartAnimation,
+        isCartAnimating,
       }}
     >
       {children}

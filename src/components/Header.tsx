@@ -5,10 +5,13 @@ import { ShoppingCart, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import { motion } from "framer-motion";
+import { CartDrawer } from "@/components/CartDrawer";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { state } = useCart();
+  const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const { state, isCartAnimating } = useCart();
 
   const navigation = [
     { name: "Головна", href: "/" },
@@ -18,7 +21,21 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className="fixed top-0 left-0 right-0 z-[200] w-full border-b bg-white/95 backdrop-blur-md shadow-sm supports-[backdrop-filter]:bg-white/80"
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 200,
+        width: "100%",
+        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        backdropFilter: "blur(12px)",
+        borderBottom: "1px solid #e5e7eb",
+        boxShadow: "0 1px 3px 0 rgb(0 0 0 / 0.1)",
+      }}
+    >
       <div className="container">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -46,20 +63,42 @@ export default function Header() {
 
           {/* Cart Icon & Mobile Menu Button */}
           <div className="flex items-center space-x-4">
-            <Link href="/cart">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative hover:scale-105 transition-transform duration-200 cursor-pointer"
+            {/* Cart Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative hover:scale-105 transition-transform duration-200 cursor-pointer"
+              onClick={() => setIsCartDrawerOpen(true)}
+            >
+              <motion.div
+                animate={
+                  isCartAnimating
+                    ? {
+                        scale: [1, 1.2, 1],
+                        rotate: [0, -10, 10, 0],
+                      }
+                    : {}
+                }
+                transition={{ duration: 0.6, ease: "easeInOut" }}
               >
                 <ShoppingCart className="h-5 w-5" />
-                {state.itemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-blue-600 text-xs text-white flex items-center justify-center animate-pulse">
-                    {state.itemCount}
-                  </span>
-                )}
-              </Button>
-            </Link>
+              </motion.div>
+              {state.itemCount > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-blue-600 text-xs text-white flex items-center justify-center font-semibold"
+                >
+                  {state.itemCount}
+                </motion.span>
+              )}
+            </Button>
+
+            {/* Cart Drawer */}
+            <CartDrawer
+              isOpen={isCartDrawerOpen}
+              onClose={() => setIsCartDrawerOpen(false)}
+            />
 
             {/* Mobile menu button */}
             <Button

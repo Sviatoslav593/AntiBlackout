@@ -112,54 +112,6 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-/* Scroll and sticky header fixes */
-html,
-body {
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  touch-action: pan-y !important;
-  height: auto !important;
-  min-height: 100vh !important;
-}
-
-body[data-scroll-locked] {
-  overflow: hidden !important;
-}
-
-/* Ensure proper document flow for sticky elements */
-html {
-  scroll-behavior: smooth !important;
-}
-
-body {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Ensure sticky positioning works */
-.sticky {
-  position: sticky !important;
-}
-
-/* Header z-index hierarchy and fixed positioning */
-header {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  z-index: 200 !important;
-  width: 100% !important;
-}
-
-/* Ensure no element blocks header interactions */
-.toast-container {
-  pointer-events: none;
-}
-
-.toast-container > * {
-  pointer-events: auto;
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -172,6 +124,11 @@ header {
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
+  }
+
+  /* Override any scroll blocking */
+  body[data-scroll-locked] {
+    overflow: visible !important;
   }
 }
 
