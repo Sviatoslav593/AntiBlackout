@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, Menu, X, Search } from "lucide-react";
+import { ShoppingCart, Menu, X, Search, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useRef, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { useSearch } from "@/context/SearchContext";
+import { useFavorites } from "@/context/FavoritesContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { CartDrawer } from "@/components/CartDrawer";
 
@@ -16,6 +17,7 @@ export default function Header() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const { state, isCartAnimating } = useCart();
   const { searchQuery, setSearchQuery, clearSearch } = useSearch();
+  const { count: favoritesCount } = useFavorites();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
@@ -177,6 +179,27 @@ export default function Header() {
             >
               <Search className="h-5 w-5" />
             </Button>
+
+            {/* Favorites Button */}
+            <Link href="/favorites">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-10 w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
+              >
+                <Heart className="h-5 w-5" />
+                {favoritesCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center font-semibold"
+                  >
+                    {favoritesCount}
+                  </motion.span>
+                )}
+              </Button>
+            </Link>
+
             {/* Cart Button */}
             <Button
               variant="ghost"

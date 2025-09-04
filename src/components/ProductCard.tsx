@@ -8,9 +8,10 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Star, ShoppingCart, Plus, Minus } from "lucide-react";
+import { Star, ShoppingCart, Plus, Minus, Heart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
+import { useFavorites } from "@/context/FavoritesContext";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
@@ -40,6 +41,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const { addItem, getItemQuantity, updateQuantity } = useCart();
   const { showToast } = useToast();
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
   const router = useRouter();
   const quantity = getItemQuantity(product.id);
 
@@ -73,6 +75,45 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleDetailsClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click (though it does the same thing)
     router.push(`/product/${product.id}`);
+  };
+
+  const handleFavoriteToggle = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+
+    const isCurrentlyFavorite = isFavorite(product.id.toString());
+
+    if (isCurrentlyFavorite) {
+      removeFromFavorites(product.id.toString());
+      showToast({
+        title: "Видалено з обраних",
+        description: `${product.name} видалено з обраних товарів`,
+      });
+    } else {
+      addToFavorites({
+        id: product.id.toString(),
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        description: product.description,
+        rating: product.rating,
+        reviewCount: product.reviewCount,
+        inStock: product.inStock,
+        badge: product.badge,
+        capacity: product.capacity,
+        brand: product.brand,
+        popularity: product.popularity,
+        createdAt: product.createdAt,
+        category: product.category,
+      });
+      showToast({
+        title: "Додано до обраних!",
+        description: `${product.name} додано до обраних товарів`,
+        action: {
+          label: "Переглянути обрані",
+          onClick: () => router.push("/favorites"),
+        },
+      });
+    }
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -112,6 +153,28 @@ export default function ProductCard({ product }: ProductCardProps) {
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
+
+            {/* Favorite Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleFavoriteToggle}
+              className={`absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white/95 transition-all cursor-pointer ${
+                isFavorite(product.id.toString())
+                  ? "text-red-500 hover:text-red-600"
+                  : "text-gray-600 hover:text-gray-700"
+              }`}
+            >
+              <motion.div whileTap={{ scale: 0.8 }} whileHover={{ scale: 1.1 }}>
+                <Heart
+                  className={`h-4 w-4 transition-colors ${
+                    isFavorite(product.id.toString())
+                      ? "fill-red-500 text-red-500"
+                      : "text-gray-600"
+                  }`}
+                />
+              </motion.div>
+            </Button>
           </div>
         </CardHeader>
 

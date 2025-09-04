@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Layout from "@/components/Layout";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
+import { useFavorites } from "@/context/FavoritesContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,7 @@ export default function ProductPage() {
   const productId = parseInt(params.id as string);
   const { addItem, getItemQuantity } = useCart();
   const { showToast } = useToast();
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
@@ -96,6 +98,45 @@ export default function ProductPage() {
     });
 
     setTimeout(() => setIsAddingToCart(false), 500);
+  };
+
+  const handleFavoriteToggle = () => {
+    if (!product) return;
+
+    const isCurrentlyFavorite = isFavorite(product.id.toString());
+
+    if (isCurrentlyFavorite) {
+      removeFromFavorites(product.id.toString());
+      showToast({
+        title: "Видалено з обраних",
+        description: `${product.name} видалено з обраних товарів`,
+      });
+    } else {
+      addToFavorites({
+        id: product.id.toString(),
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        description: product.description,
+        rating: product.rating,
+        reviewCount: product.reviewCount,
+        inStock: product.inStock,
+        badge: product.badge,
+        capacity: product.capacity,
+        brand: product.brand,
+        popularity: product.popularity,
+        createdAt: product.createdAt,
+        category: product.category,
+      });
+      showToast({
+        title: "Додано до обраних!",
+        description: `${product.name} додано до обраних товарів`,
+        action: {
+          label: "Переглянути обрані",
+          onClick: () => router.push("/favorites"),
+        },
+      });
+    }
   };
 
   const renderStars = (rating: number) => {
@@ -346,9 +387,25 @@ export default function ProductPage() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="h-12 px-4 cursor-pointer"
+                  onClick={handleFavoriteToggle}
+                  className={`h-12 px-4 cursor-pointer transition-all ${
+                    isFavorite(product.id.toString())
+                      ? "bg-red-50 border-red-300 text-red-600 hover:bg-red-100"
+                      : "hover:bg-gray-50"
+                  }`}
                 >
-                  <Heart className="h-5 w-5" />
+                  <motion.div
+                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.1 }}
+                  >
+                    <Heart
+                      className={`h-5 w-5 transition-colors ${
+                        isFavorite(product.id.toString())
+                          ? "fill-red-500 text-red-500"
+                          : "text-gray-600"
+                      }`}
+                    />
+                  </motion.div>
                 </Button>
               </div>
 
