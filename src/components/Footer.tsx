@@ -79,7 +79,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/#contact"
+                  href="/contacts"
                   className="text-muted-foreground hover:text-foreground transition-colors hover:translate-x-1 transform duration-200 cursor-pointer"
                 >
                   Контакти

@@ -1,0 +1,47 @@
+{
+  "id": "AB-1757085112320-227j3c07e",
+  "customer": {
+    "name": "Святослав Потапенко",
+    "phone": "+380986553991",
+    "address": "Нова Пошта. Поштове відділення №11 (до 30 кг) м. Кривий Ріг, Дніпропетровська область Нова пошта №11"
+  },
+  "items": [
+    {
+      "id": 2,
+      "name": "UltraSlim 10000мАг Бездротовий",
+      "description": "Компактний бездротовий павербанк з магнітним кріпленням для телефонів.",
+      "price": 1899,
+      "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop",
+      "rating": 4.6,
+      "reviewCount": 189,
+      "inStock": true,
+      "capacity": 10000,
+      "brand": "UltraSlim",
+      "popularity": 88,
+      "createdAt": "2024-11-15T00:00:00Z",
+      "category": "powerbank",
+      "quantity": 2
+    },
+    {
+      "id": 4,
+      "name": "USB-C 100Вт Настінна Зарядка",
+      "description": "Швидка настінна зарядка сумісна з ноутбуками, планшетами та телефонами.",
+      "price": 1199,
+      "image": "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=400&fit=crop",
+      "rating": 4.7,
+      "reviewCount": 321,
+      "inStock": true,
+      "capacity": 0,
+      "brand": "FastCharge",
+      "popularity": 91,
+      "createdAt": "2024-11-30T00:00:00Z",
+      "category": "charger",
+      "quantity": 2
+    }
+  ],
+  "total": 6196,
+  "itemCount": 4,
+  "orderDate": "2025-09-05T15:11:51.877Z",
+  "status": "pending",
+  "createdAt": "2025-09-05T15:11:52.320Z"
+}

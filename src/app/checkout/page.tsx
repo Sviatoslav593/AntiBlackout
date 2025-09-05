@@ -132,8 +132,36 @@ export default function CheckoutPage() {
       });
 
       if (response.ok) {
+        const responseData = await response.json();
+        const orderNumber =
+          responseData.orderId || `AB-${Date.now().toString().slice(-10)}`;
+
+        // Prepare data for order success page
+        const orderSuccessData = {
+          items: state.items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+          })),
+          customerInfo: {
+            name: formData.name,
+            phone: formData.phone,
+            address: formData.address,
+            email: "", // Add email if collected in future
+          },
+        };
+
         clearCart();
-        router.push("/order-success");
+
+        // Encode data for URL
+        const encodedData = encodeURIComponent(
+          JSON.stringify(orderSuccessData)
+        );
+        router.push(
+          `/order-success?orderData=${encodedData}&orderNumber=${orderNumber}`
+        );
       } else {
         throw new Error("Failed to submit order");
       }
