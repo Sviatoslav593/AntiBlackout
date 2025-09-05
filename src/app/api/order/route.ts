@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { OrderService } from "@/services/orders";
+import { ProductService } from "@/services/products";
 
 interface OrderData {
   customer: {
@@ -48,65 +48,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No items in order" }, { status: 400 });
     }
 
-    // Generate unique order ID
-    const orderId = `AB-${Date.now()}-${Math.random()
-      .toString(36)
-      .substr(2, 9)}`;
-
-    const order = {
-      id: orderId,
-      ...orderData,
-      status: "pending",
-      createdAt: new Date().toISOString(),
+    // Prepare order data for Supabase
+    const supabaseOrderData = {
+      customer_name: orderData.customer.name,
+      customer_email: orderData.customer.email,
+      customer_phone: orderData.customer.phone,
+      city: orderData.customer.city || "Не вказано",
+      branch: orderData.customer.warehouse || orderData.customer.address,
+      payment_method: orderData.customer.paymentMethod || "cash_on_delivery",
+      total_amount: orderData.total,
+      items: orderData.items.map((item) => ({
+        product_id: item.id.toString(), // Convert to string for UUID
+        quantity: item.quantity,
+        price: item.price,
+      })),
     };
+
+    // Create order in Supabase
+    const order = await OrderService.createOrder(supabaseOrderData);
 
     // Log order to console
     console.log("📦 New Order Received:");
-    console.log("Order ID:", orderId);
-    console.log("Customer:", orderData.customer.name, orderData.customer.phone);
-    if (orderData.customer.firstName && orderData.customer.lastName) {
-      console.log("First Name:", orderData.customer.firstName);
-      console.log("Last Name:", orderData.customer.lastName);
+    console.log("Order ID:", order.id);
+    console.log("Customer:", order.customer_name, order.customer_phone);
+    if (order.customer_email) {
+      console.log("Email:", order.customer_email);
     }
-    if (orderData.customer.email) {
-      console.log("Email:", orderData.customer.email);
-    }
-    console.log("Address:", orderData.customer.address);
-    console.log("Payment Method:", orderData.customer.paymentMethod);
-    console.log("City:", orderData.customer.city);
-    console.log("Warehouse:", orderData.customer.warehouse);
-    console.log("Items:", orderData.items.length);
-    console.log("Total:", orderData.total, "₴");
+    console.log("Address:", order.branch);
+    console.log("Payment Method:", order.payment_method);
+    console.log("City:", order.city);
+    console.log("Items:", order.order_items.length);
+    console.log("Total:", order.total_amount, "₴");
     console.log("Full Order:", JSON.stringify(order, null, 2));
-
-    // Save order to temporary JSON file (in production, save to database)
-    try {
-      const ordersDir = path.join(process.cwd(), "orders");
-
-      // Create orders directory if it doesn't exist
-      if (!fs.existsSync(ordersDir)) {
-        fs.mkdirSync(ordersDir, { recursive: true });
-      }
-
-      const orderFile = path.join(ordersDir, `${orderId}.json`);
-      fs.writeFileSync(orderFile, JSON.stringify(order, null, 2));
-
-      console.log("💾 Order saved to:", orderFile);
-    } catch (fileError) {
-      console.error("Failed to save order to file:", fileError);
-      // Continue execution - don't fail the API call if file save fails
-    }
-
-    // In a real application, here you would:
-    // 1. Save to database
-    // 2. Send confirmation email
-    // 3. Integrate with payment gateway
-    // 4. Send to fulfillment system
-    // 5. Send SMS notification
 
     return NextResponse.json({
       success: true,
-      orderId,
+      orderId: order.id,
       message: "Замовлення успішно оформлено",
       estimatedDelivery: "1-2 робочих дні",
     });
