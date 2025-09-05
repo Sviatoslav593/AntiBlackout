@@ -88,7 +88,8 @@ export default function Header() {
     { name: "Головна", href: "/" },
     { name: "Товари", href: "/#products" },
     { name: "Про нас", href: "/about" },
-    { name: "Контакти", href: "/#contact" },
+    { name: "FAQ", href: "/faq" },
+    { name: "Контакти", href: "/contacts" },
   ];
 
   return (

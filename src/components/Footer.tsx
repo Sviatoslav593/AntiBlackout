@@ -1,12 +1,5 @@
 import Link from "next/link";
-import {
-  Facebook,
-  Twitter,
-  Instagram,
-  Mail,
-  Phone,
-  MapPin,
-} from "lucide-react";
+import { Mail, MapPin, MessageCircle } from "lucide-react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -37,24 +30,20 @@ export default function Footer() {
               важливо.
             </p>
             <div className="flex space-x-4">
-              <Link
-                href="#"
+              <a
+                href="mailto:antiblackoutsupp@gmail.com"
                 className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
-                <Facebook className="h-5 w-5" />
-              </Link>
-              <Link
-                href="#"
+                <Mail className="h-5 w-5" />
+              </a>
+              <a
+                href="https://t.me/antiblackout_support"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
-                <Twitter className="h-5 w-5" />
-              </Link>
-              <Link
-                href="#"
-                className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-              >
-                <Instagram className="h-5 w-5" />
-              </Link>
+                <MessageCircle className="h-5 w-5" />
+              </a>
             </div>
           </div>
 
@@ -105,7 +94,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  href="#"
+                  href="/faq"
                   className="text-muted-foreground hover:text-foreground transition-colors hover:translate-x-1 transform duration-200 cursor-pointer"
                 >
                   Часті питання
@@ -113,7 +102,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/delivery"
                   className="text-muted-foreground hover:text-foreground transition-colors hover:translate-x-1 transform duration-200 cursor-pointer"
                 >
                   Доставка
@@ -121,7 +110,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/returns"
                   className="text-muted-foreground hover:text-foreground transition-colors hover:translate-x-1 transform duration-200 cursor-pointer"
                 >
                   Повернення
@@ -129,7 +118,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/warranty"
                   className="text-muted-foreground hover:text-foreground transition-colors hover:translate-x-1 transform duration-200 cursor-pointer"
                 >
                   Гарантія
@@ -142,17 +131,29 @@ export default function Footer() {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground">Контакти</h3>
             <ul className="space-y-2 text-sm">
-              <li className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer">
-                <Mail className="h-4 w-4" />
-                <span>support@antiblackout.com</span>
+              <li>
+                <a
+                  href="mailto:antiblackoutsupp@gmail.com"
+                  className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer"
+                >
+                  <Mail className="h-4 w-4" />
+                  <span>antiblackoutsupp@gmail.com</span>
+                </a>
               </li>
-              <li className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer">
-                <Phone className="h-4 w-4" />
-                <span>+380 (99) 123-4567</span>
+              <li>
+                <a
+                  href="https://t.me/antiblackout_support"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>@antiblackout_support</span>
+                </a>
               </li>
-              <li className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors duration-200 cursor-pointer">
+              <li className="flex items-center space-x-2 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span>вул. Енергетична 123, Київ</span>
+                <span>вул. Івана Франка, 41, м. Львів</span>
               </li>
             </ul>
           </div>
