@@ -17,10 +17,10 @@ async function migrateProducts() {
         name: product.name,
         description: product.description,
         price: product.price,
-        stock: product.stock || 10, // Default stock
+        stock: product.inStock ? 10 : 0, // Use inStock to determine stock
         image_url: product.image,
         brand: product.brand,
-        capacity: product.capacity,
+        capacity: product.capacity?.toString() || "", // Convert to string
       };
 
       await ProductService.createProduct(productData);

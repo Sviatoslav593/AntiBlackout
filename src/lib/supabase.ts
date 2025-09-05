@@ -1,7 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -34,7 +35,9 @@ export interface Order {
 export interface OrderItem {
   id: string;
   order_id: string;
-  product_id: string;
+  product_id: string | null;
+  product_name: string;
+  product_price: number;
   quantity: number;
   price: number;
   product?: Product;

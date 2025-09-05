@@ -29,9 +29,9 @@ async function setupDatabase() {
       const statement = statements[i];
       if (statement.trim()) {
         console.log(`⚡ Executing statement ${i + 1}/${statements.length}...`);
-        
+
         const { error } = await supabase.rpc("exec_sql", { sql: statement });
-        
+
         if (error) {
           console.error(`❌ Error executing statement ${i + 1}:`, error);
           console.log("Statement:", statement);
@@ -46,7 +46,7 @@ async function setupDatabase() {
 
     // Test the setup
     console.log("🧪 Testing database setup...");
-    
+
     const { data: products, error: productsError } = await supabase
       .from("products")
       .select("count")
@@ -70,7 +70,6 @@ async function setupDatabase() {
     }
 
     console.log("🎉 Database setup and testing completed successfully!");
-
   } catch (error) {
     console.error("❌ Database setup failed:", error);
   }

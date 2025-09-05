@@ -7,10 +7,16 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "migrate": "ts-node --project tsconfig.scripts.json scripts/migrate-to-supabase.ts",
-    "test:supabase": "ts-node --project tsconfig.scripts.json scripts/test-supabase.ts",
-    "setup:db": "ts-node --project tsconfig.scripts.json scripts/setup-database.ts",
-    "create:tables": "ts-node --project tsconfig.scripts.json scripts/create-tables.ts"
+    "migrate": "ts-node -r tsconfig-paths/register --project tsconfig.scripts.json scripts/migrate-to-supabase.ts",
+    "test:supabase": "ts-node -r tsconfig-paths/register --project tsconfig.scripts.json scripts/test-supabase.ts",
+    "setup:db": "ts-node -r tsconfig-paths/register --project tsconfig.scripts.json scripts/setup-database.ts",
+    "create:tables": "ts-node -r tsconfig-paths/register --project tsconfig.scripts.json scripts/create-tables.ts",
+    "check:schema": "ts-node -r tsconfig-paths/register --project tsconfig.scripts.json scripts/check-schema.ts",
+    "create:tables:auto": "ts-node -r tsconfig-paths/register --project tsconfig.scripts.json scripts/create-tables-auto.ts",
+    "fix:rls": "ts-node -r tsconfig-paths/register --project tsconfig.scripts.json scripts/fix-rls-policies.ts",
+    "disable:rls": "ts-node -r tsconfig-paths/register --project tsconfig.scripts.json scripts/disable-rls.ts",
+    "update:schema": "ts-node -r tsconfig-paths/register --project tsconfig.scripts.json scripts/update-order-items-schema.ts",
+    "check:order-items": "ts-node -r tsconfig-paths/register --project tsconfig.scripts.json scripts/check-order-items-schema.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -48,6 +54,7 @@
     "jest-environment-jsdom": "^30.1.2",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "tw-animate-css": "^1.3.8",
     "typescript": "^5"
   }

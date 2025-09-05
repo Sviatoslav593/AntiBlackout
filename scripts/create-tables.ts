@@ -31,7 +31,7 @@ async function createTables() {
     console.log("2. Navigate to SQL Editor");
     console.log("3. Copy and paste the following SQL:");
     console.log("\n" + "=".repeat(60));
-    
+
     const schemaSQL = `
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
@@ -111,7 +111,6 @@ create policy "Order items are viewable by everyone" on order_items
     console.log("\n4. Click 'Run' to execute the SQL");
     console.log("5. After creating tables, run: npm run test:supabase");
     console.log("6. Then run: npm run migrate");
-
   } catch (error) {
     console.error("❌ Error:", error);
   }

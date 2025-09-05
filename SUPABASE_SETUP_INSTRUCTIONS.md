@@ -1,6 +1,7 @@
 # 🚀 Supabase Setup Instructions
 
 ## ✅ Current Status
+
 - ✅ Supabase project created
 - ✅ Environment variables configured
 - ✅ Connection tested successfully
@@ -11,10 +12,12 @@
 ### Step 1: Create Database Tables
 
 1. **Go to your Supabase project dashboard:**
+
    - Open: https://supabase.com/dashboard
    - Select your project: `gtizpymstxfjyidhzygd`
 
 2. **Navigate to SQL Editor:**
+
    - Click on "SQL Editor" in the left sidebar
    - Click "New query"
 
@@ -108,6 +111,7 @@ npm run test:supabase
 ```
 
 Expected output:
+
 ```
 🧪 Testing Supabase connection...
 ✅ Database connected successfully!
@@ -125,6 +129,7 @@ npm run migrate
 ```
 
 Expected output:
+
 ```
 🚀 Starting products migration to Supabase...
 ✅ Migrated product: PowerMax 20000мАг Швидка Зарядка
@@ -151,16 +156,19 @@ npm run dev
 ## 🧪 Testing the Integration
 
 ### 1. Test Products API
+
 ```bash
 curl http://localhost:3000/api/products
 ```
 
 ### 2. Test Orders API
+
 ```bash
 curl http://localhost:3000/api/orders
 ```
 
 ### 3. Test Order Creation
+
 1. Add products to cart
 2. Go to checkout page
 3. Fill out the form
@@ -179,16 +187,19 @@ After setup, you can monitor your data in the Supabase dashboard:
 ## 🆘 Troubleshooting
 
 ### If `npm run test:supabase` fails:
+
 - Check that tables were created successfully
 - Verify environment variables in `.env.local`
 - Check Supabase project is active
 
 ### If `npm run migrate` fails:
+
 - Ensure products table exists
 - Check for duplicate product names
 - Verify product data format
 
 ### If API endpoints fail:
+
 - Check Supabase RLS policies
 - Verify table permissions
 - Check network connectivity

@@ -1,4 +1,4 @@
-import { supabase, Order, OrderItem, OrderWithItems } from "@/lib/supabase";
+import { supabase, Order, OrderWithItems } from "@/lib/supabase";
 
 export interface CreateOrderData {
   customer_name: string;
@@ -9,7 +9,9 @@ export interface CreateOrderData {
   payment_method: string;
   total_amount: number;
   items: {
-    product_id: string;
+    product_id: string | null;
+    product_name?: string;
+    product_price?: number;
     quantity: number;
     price: number;
   }[];
@@ -46,16 +48,16 @@ export class OrderService {
     const orderItems = orderData.items.map((item) => ({
       order_id: order.id,
       product_id: item.product_id,
+      product_name: item.product_name || "Unknown Product",
+      product_price: item.product_price || item.price,
       quantity: item.quantity,
       price: item.price,
     }));
 
     const { data: items, error: itemsError } = await supabase
       .from("order_items")
-      .insert(orderItems).select(`
-        *,
-        product:products(*)
-      `);
+      .insert(orderItems)
+      .select("*");
 
     if (itemsError) {
       console.error("Error creating order items:", itemsError);
@@ -75,10 +77,7 @@ export class OrderService {
       .select(
         `
         *,
-        order_items (
-          *,
-          product:products(*)
-        )
+        order_items (*)
       `
       )
       .eq("id", id)
@@ -99,10 +98,7 @@ export class OrderService {
       .select(
         `
         *,
-        order_items (
-          *,
-          product:products(*)
-        )
+        order_items (*)
       `
       )
       .order("created_at", { ascending: false });
@@ -144,10 +140,7 @@ export class OrderService {
       .select(
         `
         *,
-        order_items (
-          *,
-          product:products(*)
-        )
+        order_items (*)
       `
       )
       .eq("status", status)

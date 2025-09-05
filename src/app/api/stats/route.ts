@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { OrderService } from "@/services/orders";
 
 // GET /api/stats - Get order statistics

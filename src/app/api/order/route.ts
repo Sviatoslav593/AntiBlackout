@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { OrderService } from "@/services/orders";
-import { ProductService } from "@/services/products";
 
 interface OrderData {
   customer: {
@@ -58,7 +57,9 @@ export async function POST(request: NextRequest) {
       payment_method: orderData.customer.paymentMethod || "cash_on_delivery",
       total_amount: orderData.total,
       items: orderData.items.map((item) => ({
-        product_id: item.id.toString(), // Convert to string for UUID
+        product_id: null, // Don't reference products table for now
+        product_name: item.name, // Store product name from cart data
+        product_price: item.price, // Store product price from cart data
         quantity: item.quantity,
         price: item.price,
       })),

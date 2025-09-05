@@ -23,13 +23,14 @@ npm run test:supabase
 ```
 
 **Expected output:**
+
 ```
 🧪 Testing Supabase connection...
 ✅ Connection successful!
 ❌ Database connection failed: Could not find the table 'public.products'
 ```
 
-*Note: The connection works, but tables need to be created.*
+_Note: The connection works, but tables need to be created._
 
 ## 🚀 Next Steps
 
@@ -50,6 +51,7 @@ npm run test:supabase
 ```
 
 **Expected output:**
+
 ```
 🧪 Testing Supabase connection...
 ✅ Database connected successfully!

@@ -9,7 +9,14 @@ export async function GET(request: NextRequest) {
 
     let orders;
     if (status) {
-      orders = await OrderService.getOrdersByStatus(status as any);
+      orders = await OrderService.getOrdersByStatus(
+        status as
+          | "pending"
+          | "confirmed"
+          | "shipped"
+          | "delivered"
+          | "cancelled"
+      );
     } else {
       orders = await OrderService.getAllOrders();
     }
