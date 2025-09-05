@@ -1,0 +1,47 @@
+{
+  "id": "AB-1757024137999-ann2jolaq",
+  "customer": {
+    "name": "Святослав Потапенко",
+    "phone": "+380986553991",
+    "address": "Нова Пошта. Поштове відділення №11 (до 30 кг) м. Кривий Ріг, Дніпропетровська область Нова пошта №11"
+  },
+  "items": [
+    {
+      "id": "8",
+      "name": "Компактна Зарядка 45Вт",
+      "price": 899,
+      "image": "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=400&fit=crop",
+      "description": "Міні зарядний пристрій з підтримкою швидкої зарядки для смартфонів та планшетів.",
+      "rating": 4.4,
+      "reviewCount": 267,
+      "inStock": true,
+      "capacity": 0,
+      "brand": "MiniCharge",
+      "popularity": 79,
+      "createdAt": "2024-11-05T00:00:00Z",
+      "category": "charger",
+      "quantity": 1
+    },
+    {
+      "id": "2",
+      "name": "UltraSlim 10000мАг Бездротовий",
+      "price": 1899,
+      "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop",
+      "description": "Компактний бездротовий павербанк з магнітним кріпленням для телефонів.",
+      "rating": 4.6,
+      "reviewCount": 189,
+      "inStock": true,
+      "capacity": 10000,
+      "brand": "UltraSlim",
+      "popularity": 88,
+      "createdAt": "2024-11-15T00:00:00Z",
+      "category": "powerbank",
+      "quantity": 1
+    }
+  ],
+  "total": 2798,
+  "itemCount": 2,
+  "orderDate": "2025-09-04T22:15:37.725Z",
+  "status": "pending",
+  "createdAt": "2025-09-04T22:15:37.999Z"
+}

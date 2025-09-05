@@ -16,7 +16,8 @@ export default function Header() {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const { state, isCartAnimating } = useCart();
-  const { searchQuery, setSearchQuery, clearSearch } = useSearch();
+  const { searchQuery, setSearchQuery, clearSearch, scrollToProducts } =
+    useSearch();
   const { count: favoritesCount } = useFavorites();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -38,9 +39,13 @@ export default function Header() {
     const query = e.target.value;
     setSearchQuery(query);
 
-    // If there's a search query, keep the field expanded
+    // If there's a search query, keep the field expanded and scroll to products
     if (query.trim()) {
       setIsSearchExpanded(true);
+      // Scroll to products section with a small delay to allow filtering to complete
+      setTimeout(() => {
+        scrollToProducts();
+      }, 100);
     }
   };
 
@@ -53,6 +58,12 @@ export default function Header() {
   const handleSearchKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       searchInputRef.current?.blur();
+      // Scroll to products section when user presses Enter
+      if (searchQuery.trim()) {
+        setTimeout(() => {
+          scrollToProducts();
+        }, 100);
+      }
     }
   };
 

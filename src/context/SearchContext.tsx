@@ -12,6 +12,7 @@ interface SearchContextType {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   clearSearch: () => void;
+  scrollToProducts: () => void;
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
@@ -27,11 +28,30 @@ export function SearchProvider({ children }: SearchProviderProps) {
     setSearchQuery("");
   };
 
+  const scrollToProducts = () => {
+    const productsSection = document.getElementById("products");
+    if (productsSection) {
+      // Get header height to offset scroll position
+      const header = document.querySelector("header");
+      const headerHeight = header ? header.offsetHeight : 80; // fallback to 80px
+
+      // Calculate position accounting for fixed header
+      const elementPosition = productsSection.offsetTop;
+      const offsetPosition = elementPosition - headerHeight - 20; // 20px extra padding
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
   const value = useMemo(
     () => ({
       searchQuery,
       setSearchQuery,
       clearSearch,
+      scrollToProducts,
     }),
     [searchQuery]
   );
