@@ -76,7 +76,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#about"
+                  href="/about"
                   className="text-muted-foreground hover:text-foreground transition-colors hover:translate-x-1 transform duration-200 cursor-pointer"
                 >
                   Про нас
