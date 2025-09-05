@@ -13,6 +13,8 @@ import {
   User,
   Mail,
   MapPin,
+  CreditCard,
+  Building,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -30,6 +32,9 @@ interface CustomerInfo {
   phone: string;
   address: string;
   email?: string;
+  paymentMethod?: string;
+  city?: string;
+  warehouse?: string;
 }
 
 export default function OrderSuccessPage() {
@@ -72,8 +77,11 @@ export default function OrderSuccessPage() {
         setCustomerInfo({
           name: "Іван Петренко",
           phone: "+380671234567",
-          address: "вул. Хрещатик, 1, Київ",
+          address: "м. Київ, Відділення №1: вул. Хрещатик, 1",
           email: "ivan@example.com",
+          paymentMethod: "cash_on_delivery",
+          city: "м. Київ",
+          warehouse: "Відділення №1: вул. Хрещатик, 1",
         });
       }
     }
@@ -222,6 +230,45 @@ export default function OrderSuccessPage() {
                         <div>
                           <p className="text-sm text-muted-foreground">Email</p>
                           <p className="font-medium">{customerInfo.email}</p>
+                        </div>
+                      </div>
+                    )}
+                    {customerInfo.paymentMethod && (
+                      <div className="flex items-start gap-3">
+                        <CreditCard className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            Спосіб оплати
+                          </p>
+                          <p className="font-medium">
+                            {customerInfo.paymentMethod === "online"
+                              ? "Оплата карткою онлайн"
+                              : "Післяплата (оплата при отриманні)"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {customerInfo.city && (
+                      <div className="flex items-start gap-3">
+                        <Building className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            Населений пункт
+                          </p>
+                          <p className="font-medium">{customerInfo.city}</p>
+                        </div>
+                      </div>
+                    )}
+                    {customerInfo.warehouse && (
+                      <div className="flex items-start gap-3">
+                        <Package className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            Відділення Нової пошти
+                          </p>
+                          <p className="font-medium">
+                            {customerInfo.warehouse}
+                          </p>
                         </div>
                       </div>
                     )}

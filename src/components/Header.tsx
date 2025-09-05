@@ -100,7 +100,7 @@ export default function Header() {
         top: 0,
         left: 0,
         right: 0,
-        zIndex: 200,
+        zIndex: 9999,
         width: "100%",
         backgroundColor: "rgba(255, 255, 255, 0.95)",
         backdropFilter: "blur(12px)",

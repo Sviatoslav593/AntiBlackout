@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test Order API</title>
+  </head>
+  <body>
+    <h1>Test Order API</h1>
+    <button onclick="testOrder()">Test Order Submission</button>
+    <div id="result"></div>
+
+    <script>
+      async function testOrder() {
+        const orderData = {
+          customer: {
+            name: "Тест Тестович",
+            firstName: "Тест",
+            lastName: "Тестович",
+            phone: "+380123456789",
+            address: "Відділення №1",
+            paymentMethod: "online",
+            city: "Київ",
+            cityRef: "test-ref",
+            warehouse: "Відділення №1",
+            warehouseRef: "test-warehouse-ref",
+            customAddress: "",
+          },
+          items: [
+            {
+              id: 1,
+              name: "Тестовий товар",
+              price: 100,
+              quantity: 1,
+            },
+          ],
+          total: 100,
+          itemCount: 1,
+          orderDate: new Date().toISOString(),
+        };
+
+        try {
+          console.log("📤 Sending test order:", orderData);
+
+          const response = await fetch("/api/order", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(orderData),
+          });
+
+          console.log("📥 Response status:", response.status);
+
+          const result = await response.json();
+          console.log("📥 Response data:", result);
+
+          document.getElementById("result").innerHTML = `<h3>Result:</h3>
+                     <p>Status: ${response.status}</p>
+                     <p>Success: ${response.ok}</p>
+                     <pre>${JSON.stringify(result, null, 2)}</pre>`;
+        } catch (error) {
+          console.error("❌ Error:", error);
+          document.getElementById(
+            "result"
+          ).innerHTML = `<h3>Error:</h3><p>${error.message}</p>`;
+        }
+      }
+    </script>
+  </body>
+</html>

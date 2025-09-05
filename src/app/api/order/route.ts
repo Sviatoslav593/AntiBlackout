@@ -5,8 +5,16 @@ import path from "path";
 interface OrderData {
   customer: {
     name: string;
+    firstName?: string;
+    lastName?: string;
     phone: string;
     address: string;
+    paymentMethod?: string;
+    city?: string;
+    cityRef?: string;
+    warehouse?: string;
+    warehouseRef?: string;
+    customAddress?: string;
   };
   items: Array<{
     id: number;
@@ -54,7 +62,15 @@ export async function POST(request: NextRequest) {
     // Log order to console
     console.log("📦 New Order Received:");
     console.log("Order ID:", orderId);
-    console.log("Customer:", orderData.customer);
+    console.log("Customer:", orderData.customer.name, orderData.customer.phone);
+    if (orderData.customer.firstName && orderData.customer.lastName) {
+      console.log("First Name:", orderData.customer.firstName);
+      console.log("Last Name:", orderData.customer.lastName);
+    }
+    console.log("Address:", orderData.customer.address);
+    console.log("Payment Method:", orderData.customer.paymentMethod);
+    console.log("City:", orderData.customer.city);
+    console.log("Warehouse:", orderData.customer.warehouse);
     console.log("Items:", orderData.items.length);
     console.log("Total:", orderData.total, "₴");
     console.log("Full Order:", JSON.stringify(order, null, 2));
