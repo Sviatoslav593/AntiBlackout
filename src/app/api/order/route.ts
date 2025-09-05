@@ -8,6 +8,7 @@ interface OrderData {
     firstName?: string;
     lastName?: string;
     phone: string;
+    email?: string;
     address: string;
     paymentMethod?: string;
     city?: string;
@@ -66,6 +67,9 @@ export async function POST(request: NextRequest) {
     if (orderData.customer.firstName && orderData.customer.lastName) {
       console.log("First Name:", orderData.customer.firstName);
       console.log("Last Name:", orderData.customer.lastName);
+    }
+    if (orderData.customer.email) {
+      console.log("Email:", orderData.customer.email);
     }
     console.log("Address:", orderData.customer.address);
     console.log("Payment Method:", orderData.customer.paymentMethod);

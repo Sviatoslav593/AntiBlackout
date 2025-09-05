@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Тест валідації форми</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .test-section {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #fafafa;
+      }
+      .test-title {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-size: 18px;
+      }
+      .test-case {
+        margin-bottom: 15px;
+        padding: 10px;
+        background: white;
+        border-radius: 5px;
+        border-left: 4px solid #3498db;
+      }
+      .test-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 5px;
+      }
+      .test-input.error {
+        border-color: #e74c3c;
+      }
+      .error-message {
+        color: #e74c3c;
+        font-size: 12px;
+        margin-top: 5px;
+      }
+      .success-message {
+        color: #27ae60;
+        font-size: 12px;
+        margin-top: 5px;
+      }
+      .test-description {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 10px;
+      }
+      .status {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: bold;
+      }
+      .status.pass {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .status.fail {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🧪 Тест валідації форми замовлення</h1>
+
+      <div class="test-section">
+        <div class="test-title">📝 Тест поля "Ім'я"</div>
+        <div class="test-description">
+          Перевірка валідації імені: мінімум 2 символи, тільки літери, апострофи
+          та дефіси
+        </div>
+
+        <div class="test-case">
+          <input
+            type="text"
+            class="test-input"
+            id="firstName"
+            placeholder="Введіть ім'я"
+            value=""
+          />
+          <div
+            id="firstNameError"
+            class="error-message"
+            style="display: none"
+          ></div>
+          <div
+            id="firstNameSuccess"
+            class="success-message"
+            style="display: none"
+          ></div>
+          <div class="test-description">
+            <strong>Тест 1:</strong> Введіть 1 символ → має з'явитися помилка<br />
+            <strong>Тест 2:</strong> Введіть 2+ символів → помилка має зникнути
+          </div>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <div class="test-title">📞 Тест поля "Телефон"</div>
+        <div class="test-description">
+          Перевірка валідації телефону: формат +380XXXXXXXXX або 0XXXXXXXXX
+        </div>
+
+        <div class="test-case">
+          <input
+            type="tel"
+            class="test-input"
+            id="phone"
+            placeholder="+380XXXXXXXXX"
+            value="+380"
+          />
+          <div
+            id="phoneError"
+            class="error-message"
+            style="display: none"
+          ></div>
+          <div
+            id="phoneSuccess"
+            class="success-message"
+            style="display: none"
+          ></div>
+          <div class="test-description">
+            <strong>Тест 1:</strong> Введіть неповний номер → має з'явитися
+            помилка<br />
+            <strong>Тест 2:</strong> Введіть повний номер → помилка має зникнути
+          </div>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <div class="test-title">📧 Тест поля "Email"</div>
+        <div class="test-description">
+          Перевірка валідації email: правильний формат (опціональне поле)
+        </div>
+
+        <div class="test-case">
+          <input
+            type="email"
+            class="test-input"
+            id="email"
+            placeholder="user@example.com"
+            value=""
+          />
+          <div
+            id="emailError"
+            class="error-message"
+            style="display: none"
+          ></div>
+          <div
+            id="emailSuccess"
+            class="success-message"
+            style="display: none"
+          ></div>
+          <div class="test-description">
+            <strong>Тест 1:</strong> Введіть неправильний email → має з'явитися
+            помилка<br />
+            <strong>Тест 2:</strong> Введіть правильний email → помилка має
+            зникнути<br />
+            <strong>Тест 3:</strong> Залиште порожнім → помилки не має бути
+          </div>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <div class="test-title">💳 Тест поля "Спосіб оплати"</div>
+        <div class="test-description">
+          Перевірка вибору способу оплати: обов'язкове поле
+        </div>
+
+        <div class="test-case">
+          <div style="margin-bottom: 10px">
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="online"
+              id="online"
+            />
+            <label for="online">Оплата карткою онлайн</label>
+          </div>
+          <div>
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="cash_on_delivery"
+              id="cash"
+            />
+            <label for="cash">Післяплата (оплата при отриманні)</label>
+          </div>
+          <div
+            id="paymentError"
+            class="error-message"
+            style="display: none"
+          ></div>
+          <div
+            id="paymentSuccess"
+            class="success-message"
+            style="display: none"
+          ></div>
+          <div class="test-description">
+            <strong>Тест 1:</strong> Не вибирайте спосіб оплати → має з'явитися
+            помилка<br />
+            <strong>Тест 2:</strong> Виберіть спосіб оплати → помилка має
+            зникнути
+          </div>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <div class="test-title">📊 Результати тестування</div>
+        <div id="testResults">
+          <div class="test-description">
+            Запустіть тести, щоб побачити результати валідації
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Простий валідатор для тестування
+      function validateFirstName(value) {
+        if (!value.trim()) return "Ім'я є обов'язковим полем";
+        if (value.trim().length < 2)
+          return "Ім'я має містити принаймні 2 символи";
+        if (value.trim().length > 30)
+          return "Ім'я не повинно перевищувати 30 символів";
+        if (!/^[а-яА-ЯёЁa-zA-Z'`'-]+$/u.test(value.trim()))
+          return "Ім'я може містити тільки літери, апострофи та дефіси";
+        return null;
+      }
+
+      function validatePhone(value) {
+        const phoneRegex = /^(\+?380|0)\d{9}$/;
+        if (!value.trim()) return "Номер телефону є обов'язковим";
+        if (!value.startsWith("+380")) return "Номер повинен починатися з +380";
+        if (value.length !== 13)
+          return "Номер повинен містити 13 символів (+380XXXXXXXXX)";
+        if (!phoneRegex.test(value))
+          return "Неправильний формат. Приклад: +380671234567";
+        if (value === "+380") return "Введіть повний номер телефону";
+        return null;
+      }
+
+      function validateEmail(value) {
+        if (!value.trim()) return null; // Email is optional
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (value.trim().length > 100)
+          return "Електронна пошта не повинна перевищувати 100 символів";
+        if (!emailRegex.test(value.trim()))
+          return "Введіть коректну електронну адресу";
+        return null;
+      }
+
+      function validatePaymentMethod() {
+        const selected = document.querySelector(
+          'input[name="paymentMethod"]:checked'
+        );
+        if (!selected) return "Будь ласка, оберіть спосіб оплати";
+        return null;
+      }
+
+      function showError(elementId, message) {
+        const errorEl = document.getElementById(elementId);
+        const successEl = document.getElementById(
+          elementId.replace("Error", "Success")
+        );
+        if (errorEl) {
+          errorEl.textContent = message;
+          errorEl.style.display = "block";
+        }
+        if (successEl) {
+          successEl.style.display = "none";
+        }
+      }
+
+      function showSuccess(elementId, message) {
+        const errorEl = document.getElementById(elementId);
+        const successEl = document.getElementById(
+          elementId.replace("Error", "Success")
+        );
+        if (errorEl) {
+          errorEl.style.display = "none";
+        }
+        if (successEl) {
+          successEl.textContent = message;
+          successEl.style.display = "block";
+        }
+      }
+
+      function clearMessage(elementId) {
+        const errorEl = document.getElementById(elementId);
+        const successEl = document.getElementById(
+          elementId.replace("Error", "Success")
+        );
+        if (errorEl) {
+          errorEl.style.display = "none";
+        }
+        if (successEl) {
+          successEl.style.display = "none";
+        }
+      }
+
+      // Тестування поля імені
+      document
+        .getElementById("firstName")
+        .addEventListener("input", function () {
+          const error = validateFirstName(this.value);
+          if (error) {
+            showError("firstNameError", error);
+            this.classList.add("error");
+          } else {
+            showSuccess("firstNameSuccess", "✅ Ім'я валідне");
+            this.classList.remove("error");
+          }
+        });
+
+      // Тестування поля телефону
+      document.getElementById("phone").addEventListener("input", function () {
+        const error = validatePhone(this.value);
+        if (error) {
+          showError("phoneError", error);
+          this.classList.add("error");
+        } else {
+          showSuccess("phoneSuccess", "✅ Телефон валідний");
+          this.classList.remove("error");
+        }
+      });
+
+      // Тестування поля email
+      document.getElementById("email").addEventListener("input", function () {
+        const error = validateEmail(this.value);
+        if (error) {
+          showError("emailError", error);
+          this.classList.add("error");
+        } else if (this.value.trim()) {
+          showSuccess("emailSuccess", "✅ Email валідний");
+          this.classList.remove("error");
+        } else {
+          clearMessage("emailError");
+          this.classList.remove("error");
+        }
+      });
+
+      // Тестування способу оплати
+      document
+        .querySelectorAll('input[name="paymentMethod"]')
+        .forEach((radio) => {
+          radio.addEventListener("change", function () {
+            const error = validatePaymentMethod();
+            if (error) {
+              showError("paymentError", error);
+            } else {
+              showSuccess("paymentSuccess", "✅ Спосіб оплати вибрано");
+            }
+          });
+        });
+
+      // Автоматичне тестування
+      function runAutoTests() {
+        const results = [];
+
+        // Тест 1: Ім'я з 1 символом
+        const firstNameInput = document.getElementById("firstName");
+        firstNameInput.value = "A";
+        firstNameInput.dispatchEvent(new Event("input"));
+        const firstNameError =
+          document.getElementById("firstNameError").textContent;
+        results.push({
+          test: "Ім'я з 1 символом",
+          expected: "Помилка",
+          actual: firstNameError ? "Помилка" : "Без помилки",
+          passed: !!firstNameError,
+        });
+
+        // Тест 2: Ім'я з 2+ символами
+        firstNameInput.value = "Anna";
+        firstNameInput.dispatchEvent(new Event("input"));
+        const firstNameSuccess =
+          document.getElementById("firstNameSuccess").textContent;
+        results.push({
+          test: "Ім'я з 2+ символами",
+          expected: "Валідне",
+          actual: firstNameSuccess ? "Валідне" : "Не валідне",
+          passed: !!firstNameSuccess,
+        });
+
+        // Тест 3: Телефон неповний
+        const phoneInput = document.getElementById("phone");
+        phoneInput.value = "+380123";
+        phoneInput.dispatchEvent(new Event("input"));
+        const phoneError = document.getElementById("phoneError").textContent;
+        results.push({
+          test: "Телефон неповний",
+          expected: "Помилка",
+          actual: phoneError ? "Помилка" : "Без помилки",
+          passed: !!phoneError,
+        });
+
+        // Тест 4: Телефон повний
+        phoneInput.value = "+380123456789";
+        phoneInput.dispatchEvent(new Event("input"));
+        const phoneSuccess =
+          document.getElementById("phoneSuccess").textContent;
+        results.push({
+          test: "Телефон повний",
+          expected: "Валідний",
+          actual: phoneSuccess ? "Валідний" : "Не валідний",
+          passed: !!phoneSuccess,
+        });
+
+        // Тест 5: Email неправильний
+        const emailInput = document.getElementById("email");
+        emailInput.value = "invalid-email";
+        emailInput.dispatchEvent(new Event("input"));
+        const emailError = document.getElementById("emailError").textContent;
+        results.push({
+          test: "Email неправильний",
+          expected: "Помилка",
+          actual: emailError ? "Помилка" : "Без помилки",
+          passed: !!emailError,
+        });
+
+        // Тест 6: Email правильний
+        emailInput.value = "user@example.com";
+        emailInput.dispatchEvent(new Event("input"));
+        const emailSuccess =
+          document.getElementById("emailSuccess").textContent;
+        results.push({
+          test: "Email правильний",
+          expected: "Валідний",
+          actual: emailSuccess ? "Валідний" : "Не валідний",
+          passed: !!emailSuccess,
+        });
+
+        // Показуємо результати
+        const resultsHtml = results
+          .map(
+            (result) => `
+                <div class="test-case">
+                    <strong>${result.test}:</strong> 
+                    <span class="status ${result.passed ? "pass" : "fail"}">
+                        ${result.passed ? "ПРОЙДЕНО" : "НЕ ПРОЙДЕНО"}
+                    </span>
+                    <br>
+                    <small>Очікувалося: ${result.expected}, Отримано: ${
+              result.actual
+            }</small>
+                </div>
+            `
+          )
+          .join("");
+
+        document.getElementById("testResults").innerHTML = `
+                <div class="test-description">
+                    <strong>Автоматичні тести валідації:</strong>
+                </div>
+                ${resultsHtml}
+            `;
+      }
+
+      // Запускаємо автоматичні тести через 2 секунди
+      setTimeout(runAutoTests, 2000);
+    </script>
+  </body>
+</html>

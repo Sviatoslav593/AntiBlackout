@@ -51,43 +51,87 @@ export default function OrderSuccessPage() {
     if (orderData) {
       try {
         const parsedData = JSON.parse(decodeURIComponent(orderData));
+        console.log("📥 Received order success data:", parsedData);
         setOrderItems(parsedData.items || []);
         setCustomerInfo(parsedData.customerInfo || null);
       } catch (error) {
         console.error("Error parsing order data:", error);
-        // Fallback to sample data for demonstration
-        setOrderItems([
-          {
-            id: 1,
-            name: "Powerbank ANKER 20000mAh",
-            price: 2499,
-            quantity: 1,
-            image:
-              "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
-          },
-          {
-            id: 2,
-            name: "Кабель USB-C 2m",
-            price: 199,
-            quantity: 2,
-            image:
-              "https://images.unsplash.com/photo-1558618666-5c0c2c7e7985?w=300&h=300&fit=crop",
-          },
-        ]);
-        setCustomerInfo({
-          name: "Іван Петренко",
-          phone: "+380671234567",
-          address: "м. Київ, Відділення №1: вул. Хрещатик, 1",
-          email: "ivan@example.com",
-          paymentMethod: "cash_on_delivery",
-          city: "м. Київ",
-          warehouse: "Відділення №1: вул. Хрещатик, 1",
-        });
+        // Try to get data from localStorage as fallback
+        const savedOrderData = localStorage.getItem("lastOrderData");
+        if (savedOrderData) {
+          try {
+            const parsedSavedData = JSON.parse(savedOrderData);
+            console.log("📥 Using saved order data:", parsedSavedData);
+            setOrderItems(parsedSavedData.items || []);
+            setCustomerInfo(parsedSavedData.customerInfo || null);
+          } catch (savedError) {
+            console.error("Error parsing saved order data:", savedError);
+            loadFallbackData();
+          }
+        } else {
+          loadFallbackData();
+        }
       }
+    } else {
+      // Try to get data from localStorage
+      const savedOrderData = localStorage.getItem("lastOrderData");
+      if (savedOrderData) {
+        try {
+          const parsedSavedData = JSON.parse(savedOrderData);
+          console.log("📥 Using saved order data:", parsedSavedData);
+          setOrderItems(parsedSavedData.items || []);
+          setCustomerInfo(parsedSavedData.customerInfo || null);
+        } catch (savedError) {
+          console.error("Error parsing saved order data:", savedError);
+          loadFallbackData();
+        }
+      } else {
+        loadFallbackData();
+      }
+    }
+
+    function loadFallbackData() {
+      // Fallback to sample data for demonstration
+      setOrderItems([
+        {
+          id: 1,
+          name: "Powerbank ANKER 20000mAh",
+          price: 2499,
+          quantity: 1,
+          image:
+            "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
+        },
+        {
+          id: 2,
+          name: "Кабель USB-C 2m",
+          price: 199,
+          quantity: 2,
+          image:
+            "https://images.unsplash.com/photo-1558618666-5c0c2c7e7985?w=300&h=300&fit=crop",
+        },
+      ]);
+      setCustomerInfo({
+        name: "Іван Петренко",
+        phone: "+380671234567",
+        address: "м. Київ, Відділення №1: вул. Хрещатик, 1",
+        email: "ivan@example.com",
+        paymentMethod: "cash_on_delivery",
+        city: "м. Київ",
+        warehouse: "Відділення №1: вул. Хрещатик, 1",
+      });
     }
 
     if (orderNum) {
       setOrderNumber(orderNum);
+    } else if (orderData) {
+      try {
+        const parsedData = JSON.parse(decodeURIComponent(orderData));
+        setOrderNumber(
+          parsedData.orderId || `AB-${Date.now().toString().slice(-10)}`
+        );
+      } catch (error) {
+        setOrderNumber(`AB-${Date.now().toString().slice(-10)}`);
+      }
     } else {
       // Generate a sample order number
       setOrderNumber(`AB-${Date.now().toString().slice(-10)}`);

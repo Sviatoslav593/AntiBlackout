@@ -1,0 +1,31 @@
+{
+  "id": "AB-1757094962259-gsd23n2ul",
+  "customer": {
+    "name": "Святослав Потапенко",
+    "firstName": "Святослав",
+    "lastName": "Потапенко",
+    "phone": "+380986553991",
+    "email": "",
+    "address": "Нова Пошта. Поштове відділення №11 (до 30 кг) м. Кривий Ріг, Дніпропетровська область Нова пошта №11",
+    "paymentMethod": "cash_on_delivery",
+    "city": "Велика Олександрівка",
+    "cityRef": "32001c2f-f173-11e8-ad0d-005056b24375",
+    "warehouse": "",
+    "warehouseRef": "",
+    "customAddress": "Нова Пошта. Поштове відділення №11 (до 30 кг) м. Кривий Ріг, Дніпропетровська область Нова пошта №11"
+  },
+  "items": [
+    {
+      "id": 4,
+      "name": "USB-C 100Вт Настінна Зарядка",
+      "price": 1199,
+      "quantity": 1,
+      "image": "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=400&fit=crop"
+    }
+  ],
+  "total": 1199,
+  "subtotal": 1199,
+  "orderDate": "2025-09-05T17:56:01.960Z",
+  "status": "pending",
+  "createdAt": "2025-09-05T17:56:02.259Z"
+}

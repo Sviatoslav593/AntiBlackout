@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Тест передачі даних замовлення</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .test-section {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #fafafa;
+      }
+      .test-title {
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-size: 18px;
+      }
+      .test-case {
+        margin-bottom: 15px;
+        padding: 10px;
+        background: white;
+        border-radius: 5px;
+        border-left: 4px solid #3498db;
+      }
+      .test-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 5px;
+      }
+      .test-button {
+        background-color: #3498db;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 10px;
+      }
+      .test-button:hover {
+        background-color: #2980b9;
+      }
+      .result {
+        margin-top: 15px;
+        padding: 10px;
+        background-color: #e8f5e8;
+        border-radius: 4px;
+        border-left: 4px solid #27ae60;
+      }
+      .error {
+        background-color: #f8d7da;
+        border-left-color: #e74c3c;
+      }
+      pre {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🧪 Тест передачі даних замовлення</h1>
+
+      <div class="test-section">
+        <div class="test-title">📝 Тест структури даних</div>
+        <div class="test-case">
+          <h3>Створення тестових даних замовлення</h3>
+          <button class="test-button" onclick="createTestData()">
+            Створити тестові дані
+          </button>
+          <button class="test-button" onclick="testURLEncoding()">
+            Тест кодування URL
+          </button>
+          <button class="test-button" onclick="testLocalStorage()">
+            Тест localStorage
+          </button>
+          <div id="result" class="result" style="display: none"></div>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <div class="test-title">🔗 Тест URL параметрів</div>
+        <div class="test-case">
+          <h3>Перевірка URL параметрів</h3>
+          <button class="test-button" onclick="checkURLParams()">
+            Перевірити URL
+          </button>
+          <button class="test-button" onclick="simulateOrderSuccess()">
+            Симулювати order-success
+          </button>
+          <div id="urlResult" class="result" style="display: none"></div>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <div class="test-title">💾 Тест localStorage</div>
+        <div class="test-case">
+          <h3>Перевірка збереження в localStorage</h3>
+          <button class="test-button" onclick="saveToLocalStorage()">
+            Зберегти в localStorage
+          </button>
+          <button class="test-button" onclick="loadFromLocalStorage()">
+            Завантажити з localStorage
+          </button>
+          <button class="test-button" onclick="clearLocalStorage()">
+            Очистити localStorage
+          </button>
+          <div id="storageResult" class="result" style="display: none"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Тестові дані замовлення
+      const testOrderData = {
+        orderId: "AB-1234567890",
+        items: [
+          {
+            id: 1,
+            name: "PowerMax 20000мАг Швидка Зарядка",
+            price: 2999,
+            quantity: 1,
+            image:
+              "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
+          },
+          {
+            id: 2,
+            name: "Кабель USB-C 2m",
+            price: 199,
+            quantity: 2,
+            image:
+              "https://images.unsplash.com/photo-1558618666-5c0c2c7e7985?w=300&h=300&fit=crop",
+          },
+        ],
+        customerInfo: {
+          name: "Іван Петренко",
+          firstName: "Іван",
+          lastName: "Петренко",
+          phone: "+380671234567",
+          email: "ivan@example.com",
+          address: "м. Київ, Відділення №1: вул. Хрещатик, 1",
+          paymentMethod: "cash_on_delivery",
+          city: "м. Київ",
+          warehouse: "Відділення №1: вул. Хрещатик, 1",
+        },
+        total: 3397,
+        subtotal: 3397,
+        paymentMethod: "cash_on_delivery",
+        city: "м. Київ",
+        warehouse: "Відділення №1: вул. Хрещатик, 1",
+      };
+
+      function createTestData() {
+        const result = document.getElementById("result");
+        result.style.display = "block";
+        result.className = "result";
+        result.innerHTML = `
+                <h4>✅ Тестові дані створено:</h4>
+                <pre>${JSON.stringify(testOrderData, null, 2)}</pre>
+            `;
+      }
+
+      function testURLEncoding() {
+        try {
+          const encodedData = encodeURIComponent(JSON.stringify(testOrderData));
+          const url = `/order-success?orderData=${encodedData}&orderNumber=${testOrderData.orderId}`;
+
+          const result = document.getElementById("result");
+          result.style.display = "block";
+          result.className = "result";
+          result.innerHTML = `
+                    <h4>✅ URL кодування успішне:</h4>
+                    <p><strong>URL:</strong> <code>${url}</code></p>
+                    <p><strong>Довжина:</strong> ${url.length} символів</p>
+                    <h5>Декодування:</h5>
+                    <pre>${JSON.stringify(
+                      JSON.parse(decodeURIComponent(encodedData)),
+                      null,
+                      2
+                    )}</pre>
+                `;
+        } catch (error) {
+          const result = document.getElementById("result");
+          result.style.display = "block";
+          result.className = "result error";
+          result.innerHTML = `
+                    <h4>❌ Помилка кодування URL:</h4>
+                    <p>${error.message}</p>
+                `;
+        }
+      }
+
+      function testLocalStorage() {
+        try {
+          localStorage.setItem("testOrderData", JSON.stringify(testOrderData));
+          const retrieved = JSON.parse(localStorage.getItem("testOrderData"));
+
+          const result = document.getElementById("result");
+          result.style.display = "block";
+          result.className = "result";
+          result.innerHTML = `
+                    <h4>✅ localStorage тест успішний:</h4>
+                    <p>Дані збережено та завантажено з localStorage</p>
+                    <pre>${JSON.stringify(retrieved, null, 2)}</pre>
+                `;
+        } catch (error) {
+          const result = document.getElementById("result");
+          result.style.display = "block";
+          result.className = "result error";
+          result.innerHTML = `
+                    <h4>❌ Помилка localStorage:</h4>
+                    <p>${error.message}</p>
+                `;
+        }
+      }
+
+      function checkURLParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderData = urlParams.get("orderData");
+        const orderNumber = urlParams.get("orderNumber");
+
+        const result = document.getElementById("urlResult");
+        result.style.display = "block";
+
+        if (orderData || orderNumber) {
+          result.className = "result";
+          result.innerHTML = `
+                    <h4>✅ URL параметри знайдено:</h4>
+                    <p><strong>orderData:</strong> ${
+                      orderData ? "Так" : "Ні"
+                    }</p>
+                    <p><strong>orderNumber:</strong> ${orderNumber || "Ні"}</p>
+                    ${
+                      orderData
+                        ? `<h5>Декодовані дані:</h5><pre>${JSON.stringify(
+                            JSON.parse(decodeURIComponent(orderData)),
+                            null,
+                            2
+                          )}</pre>`
+                        : ""
+                    }
+                `;
+        } else {
+          result.className = "result error";
+          result.innerHTML = `
+                    <h4>❌ URL параметри не знайдено</h4>
+                    <p>Додайте ?orderData=...&orderNumber=... до URL для тестування</p>
+                `;
+        }
+      }
+
+      function simulateOrderSuccess() {
+        const encodedData = encodeURIComponent(JSON.stringify(testOrderData));
+        const url = `/order-success?orderData=${encodedData}&orderNumber=${testOrderData.orderId}`;
+
+        const result = document.getElementById("urlResult");
+        result.style.display = "block";
+        result.className = "result";
+        result.innerHTML = `
+                <h4>✅ Симуляція order-success:</h4>
+                <p><strong>URL для тестування:</strong></p>
+                <p><code>${window.location.origin}${url}</code></p>
+                <button class="test-button" onclick="window.open('${url}', '_blank')">Відкрити в новій вкладці</button>
+            `;
+      }
+
+      function saveToLocalStorage() {
+        try {
+          localStorage.setItem("lastOrderData", JSON.stringify(testOrderData));
+
+          const result = document.getElementById("storageResult");
+          result.style.display = "block";
+          result.className = "result";
+          result.innerHTML = `
+                    <h4>✅ Дані збережено в localStorage</h4>
+                    <p>Ключ: <code>lastOrderData</code></p>
+                `;
+        } catch (error) {
+          const result = document.getElementById("storageResult");
+          result.style.display = "block";
+          result.className = "result error";
+          result.innerHTML = `
+                    <h4>❌ Помилка збереження:</h4>
+                    <p>${error.message}</p>
+                `;
+        }
+      }
+
+      function loadFromLocalStorage() {
+        try {
+          const savedData = localStorage.getItem("lastOrderData");
+
+          const result = document.getElementById("storageResult");
+          result.style.display = "block";
+
+          if (savedData) {
+            const parsedData = JSON.parse(savedData);
+            result.className = "result";
+            result.innerHTML = `
+                        <h4>✅ Дані завантажено з localStorage</h4>
+                        <pre>${JSON.stringify(parsedData, null, 2)}</pre>
+                    `;
+          } else {
+            result.className = "result error";
+            result.innerHTML = `
+                        <h4>❌ Дані не знайдено в localStorage</h4>
+                        <p>Спочатку збережіть дані</p>
+                    `;
+          }
+        } catch (error) {
+          const result = document.getElementById("storageResult");
+          result.style.display = "block";
+          result.className = "result error";
+          result.innerHTML = `
+                    <h4>❌ Помилка завантаження:</h4>
+                    <p>${error.message}</p>
+                `;
+        }
+      }
+
+      function clearLocalStorage() {
+        localStorage.removeItem("lastOrderData");
+        localStorage.removeItem("testOrderData");
+
+        const result = document.getElementById("storageResult");
+        result.style.display = "block";
+        result.className = "result";
+        result.innerHTML = `
+                <h4>✅ localStorage очищено</h4>
+                <p>Всі тестові дані видалено</p>
+            `;
+      }
+
+      // Автоматично перевіряємо URL параметри при завантаженні
+      window.onload = function () {
+        checkURLParams();
+      };
+    </script>
+  </body>
+</html>

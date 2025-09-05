@@ -1,0 +1,31 @@
+{
+  "id": "AB-1757095000720-hgmwv4hqx",
+  "customer": {
+    "name": "Святослав Потапенко",
+    "firstName": "Святослав",
+    "lastName": "Потапенко",
+    "phone": "+380986553991",
+    "email": "potsvatik@gmail.com",
+    "address": "Відділення №1: Велика Олександрівка, Братська, 17",
+    "paymentMethod": "cash_on_delivery",
+    "city": "Велика Олександрівка (Херсонська обл.)",
+    "cityRef": "f706231c-4078-11de-b509-001d92f78698",
+    "warehouse": "Відділення №1: Велика Олександрівка, Братська, 17",
+    "warehouseRef": "1ec09dd4-e1c2-11e3-8c4a-0050568002cf",
+    "customAddress": ""
+  },
+  "items": [
+    {
+      "id": 4,
+      "name": "USB-C 100Вт Настінна Зарядка",
+      "price": 1199,
+      "quantity": 1,
+      "image": "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=400&fit=crop"
+    }
+  ],
+  "total": 1199,
+  "subtotal": 1199,
+  "orderDate": "2025-09-05T17:56:40.453Z",
+  "status": "pending",
+  "createdAt": "2025-09-05T17:56:40.720Z"
+}
