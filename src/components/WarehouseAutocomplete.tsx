@@ -65,14 +65,16 @@ export default function WarehouseAutocomplete({
             // Filter warehouses by name and number only (not address)
             const filtered = allWarehouses.filter((warehouse) => {
               const warehouseNum = warehouse.Number?.toString() || "";
-              const warehouseName = `Відділення №${warehouse.Number}`;
+              const warehouseName = getWarehouseDisplayName(warehouse);
               const searchTerm = searchQuery.toLowerCase();
 
               return (
                 warehouseNum.includes(searchTerm) ||
                 warehouseName.toLowerCase().includes(searchTerm) ||
                 `№${warehouseNum}`.includes(searchTerm) ||
-                `#${warehouseNum}`.includes(searchTerm)
+                `#${warehouseNum}`.includes(searchTerm) ||
+                warehouse.Description?.toLowerCase().includes(searchTerm) ||
+                warehouse.DescriptionRu?.toLowerCase().includes(searchTerm)
               );
             });
 
@@ -130,9 +132,29 @@ export default function WarehouseAutocomplete({
     }
   };
 
+  // Get proper warehouse name based on type with address
+  const getWarehouseDisplayName = (warehouse: NovaPoshtaWarehouse): string => {
+    const type = warehouse.TypeOfWarehouse?.toLowerCase() || "";
+    const address = warehouse.ShortAddress || warehouse.Description || "";
+
+    // Check if it's a postomat (поштомат)
+    if (
+      type.includes("поштомат") ||
+      type.includes("postomat") ||
+      type.includes("postal") ||
+      warehouse.Description?.toLowerCase().includes("поштомат") ||
+      warehouse.DescriptionRu?.toLowerCase().includes("поштомат")
+    ) {
+      return `Поштомат №${warehouse.Number}${address ? `: ${address}` : ""}`;
+    }
+
+    // Default to branch (відділення)
+    return `Відділення №${warehouse.Number}${address ? `: ${address}` : ""}`;
+  };
+
   // Handle warehouse selection
   const handleWarehouseSelect = (warehouse: NovaPoshtaWarehouse) => {
-    const warehouseName = `Відділення №${warehouse.Number}`;
+    const warehouseName = getWarehouseDisplayName(warehouse);
     setQuery(warehouseName);
     setIsOpen(false);
     setSelectedIndex(-1);
@@ -266,7 +288,7 @@ export default function WarehouseAutocomplete({
                 <Package className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-foreground">
-                    Відділення №{warehouse.Number}
+                    {getWarehouseDisplayName(warehouse)}
                   </div>
                   <div className="text-sm text-muted-foreground truncate">
                     {warehouse.ShortAddress}

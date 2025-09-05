@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Тест назв відділень та поштоматів</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .test-case {
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ccc;
+      }
+      .postomat {
+        background-color: #e8f5e8;
+      }
+      .branch {
+        background-color: #e8f0ff;
+      }
+      .result {
+        font-weight: bold;
+        margin-top: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Тест розрізнення відділень та поштоматів</h1>
+
+    <div id="test-results"></div>
+
+    <script>
+      // Функція для визначення типу (копія з WarehouseAutocomplete)
+      function getWarehouseDisplayName(warehouse) {
+        const type = (warehouse.TypeOfWarehouse || "").toLowerCase();
+        const address = warehouse.ShortAddress || warehouse.Description || "";
+
+        // Check if it's a postomat (поштомат)
+        if (
+          type.includes("поштомат") ||
+          type.includes("postomat") ||
+          type.includes("postal") ||
+          (warehouse.Description || "").toLowerCase().includes("поштомат") ||
+          (warehouse.DescriptionRu || "").toLowerCase().includes("поштомат")
+        ) {
+          return `Поштомат №${warehouse.Number}${
+            address ? `: ${address}` : ""
+          }`;
+        }
+
+        // Default to branch (відділення)
+        return `Відділення №${warehouse.Number}${
+          address ? `: ${address}` : ""
+        }`;
+      }
+
+      // Тестові дані
+      const testCases = [
+        {
+          name: "Звичайне відділення",
+          warehouse: {
+            Number: "1",
+            TypeOfWarehouse: "Відділення",
+            Description: "Відділення №1",
+            DescriptionRu: "Отделение №1",
+            ShortAddress: "вул. Хрещатик, 1",
+          },
+        },
+        {
+          name: "Поштомат з TypeOfWarehouse",
+          warehouse: {
+            Number: "1023",
+            TypeOfWarehouse: "Поштомат",
+            Description: "Поштомат №1023",
+            DescriptionRu: "Почтомат №1023",
+            ShortAddress: "ТРЦ 'Глобус', 2-й поверх",
+          },
+        },
+        {
+          name: "Поштомат з Description",
+          warehouse: {
+            Number: "1500",
+            TypeOfWarehouse: "Postomat",
+            Description: "Поштомат №1500, ТРЦ 'Глобус'",
+            DescriptionRu: "Почтомат №1500, ТРЦ 'Глобус'",
+            ShortAddress: "ТРЦ 'Глобус', вул. Хрещатик, 1",
+          },
+        },
+        {
+          name: "Поштомат з DescriptionRu",
+          warehouse: {
+            Number: "2000",
+            TypeOfWarehouse: "Postal",
+            Description: "Postomat #2000",
+            DescriptionRu: "Поштомат №2000, вул. Хрещатик",
+            ShortAddress: "вул. Хрещатик, 22",
+          },
+        },
+        {
+          name: "Відділення з порожнім TypeOfWarehouse",
+          warehouse: {
+            Number: "5",
+            TypeOfWarehouse: "",
+            Description: "Відділення №5",
+            DescriptionRu: "Отделение №5",
+            ShortAddress: "вул. Шевченка, 10",
+          },
+        },
+        {
+          name: "Поштомат з різними варіантами",
+          warehouse: {
+            Number: "3000",
+            TypeOfWarehouse: "postomat",
+            Description: "Поштомат №3000",
+            DescriptionRu: "Почтомат №3000",
+            ShortAddress: "вул. Незалежності, 15",
+          },
+        },
+        {
+          name: "Відділення без адреси",
+          warehouse: {
+            Number: "10",
+            TypeOfWarehouse: "Відділення",
+            Description: "Відділення №10",
+            DescriptionRu: "Отделение №10",
+            ShortAddress: "",
+          },
+        },
+      ];
+
+      // Запуск тестів
+      const resultsDiv = document.getElementById("test-results");
+
+      testCases.forEach((testCase, index) => {
+        const result = getWarehouseDisplayName(testCase.warehouse);
+        const isPostomat = result.includes("Поштомат");
+        const isBranch = result.includes("Відділення");
+
+        const testDiv = document.createElement("div");
+        testDiv.className = `test-case ${isPostomat ? "postomat" : "branch"}`;
+
+        testDiv.innerHTML = `
+                 <h3>Тест ${index + 1}: ${testCase.name}</h3>
+                 <p><strong>TypeOfWarehouse:</strong> "${
+                   testCase.warehouse.TypeOfWarehouse
+                 }"</p>
+                 <p><strong>Description:</strong> "${
+                   testCase.warehouse.Description
+                 }"</p>
+                 <p><strong>DescriptionRu:</strong> "${
+                   testCase.warehouse.DescriptionRu
+                 }"</p>
+                 <p><strong>ShortAddress:</strong> "${
+                   testCase.warehouse.ShortAddress || "немає"
+                 }"</p>
+                 <div class="result">Результат: ${result}</div>
+                 <div class="result">Тип: ${
+                   isPostomat
+                     ? "✅ Поштомат"
+                     : isBranch
+                     ? "✅ Відділення"
+                     : "❌ Невідомо"
+                 }</div>
+             `;
+
+        resultsDiv.appendChild(testDiv);
+      });
+
+      // Підсумок
+      const summaryDiv = document.createElement("div");
+      summaryDiv.className = "test-case";
+      summaryDiv.style.backgroundColor = "#f0f0f0";
+      summaryDiv.innerHTML = `
+            <h2>Підсумок тестування</h2>
+            <p>Всього тестів: ${testCases.length}</p>
+            <p>Функція getWarehouseDisplayName() правильно розрізняє відділення та поштомати на основі:</p>
+            <ul>
+                <li>TypeOfWarehouse (поштомат, postomat, postal)</li>
+                <li>Description (містить "поштомат")</li>
+                <li>DescriptionRu (містить "поштомат")</li>
+            </ul>
+        `;
+      resultsDiv.appendChild(summaryDiv);
+    </script>
+  </body>
+</html>

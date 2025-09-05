@@ -156,13 +156,13 @@ export default function CheckoutPage() {
           lastName: formData.lastName,
           phone: formData.phone,
           address: formData.warehouse
-            ? `Відділення №${formData.warehouse.Number}`
+            ? getWarehouseDisplayName(formData.warehouse)
             : formData.customAddress || "",
           paymentMethod: formData.paymentMethod,
           city: formData.city?.Description || "",
           cityRef: formData.city?.Ref || "",
           warehouse: formData.warehouse
-            ? `Відділення №${formData.warehouse.Number}`
+            ? getWarehouseDisplayName(formData.warehouse)
             : formData.customAddress || "",
           warehouseRef: formData.warehouse?.Ref || "",
           customAddress: formData.customAddress || "",
@@ -213,7 +213,7 @@ export default function CheckoutPage() {
             paymentMethod: formData.paymentMethod,
             city: formData.city?.Description || "",
             warehouse: formData.warehouse
-              ? `Відділення №${formData.warehouse.Number}`
+              ? getWarehouseDisplayName(formData.warehouse)
               : "",
           },
         };
@@ -240,6 +240,26 @@ export default function CheckoutPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Get proper warehouse display name with address
+  const getWarehouseDisplayName = (warehouse: NovaPoshtaWarehouse): string => {
+    const type = warehouse.TypeOfWarehouse?.toLowerCase() || "";
+    const address = warehouse.ShortAddress || warehouse.Description || "";
+
+    // Check if it's a postomat (поштомат)
+    if (
+      type.includes("поштомат") ||
+      type.includes("postomat") ||
+      type.includes("postal") ||
+      warehouse.Description?.toLowerCase().includes("поштомат") ||
+      warehouse.DescriptionRu?.toLowerCase().includes("поштомат")
+    ) {
+      return `Поштомат №${warehouse.Number}${address ? `: ${address}` : ""}`;
+    }
+
+    // Default to branch (відділення)
+    return `Відділення №${warehouse.Number}${address ? `: ${address}` : ""}`;
   };
 
   // Validate individual field
@@ -626,7 +646,7 @@ export default function CheckoutPage() {
                         cityRef={formData.city?.Ref || null}
                         value={
                           formData.warehouse
-                            ? `Відділення №${formData.warehouse.Number}`
+                            ? getWarehouseDisplayName(formData.warehouse)
                             : formData.customAddress || ""
                         }
                         onChange={(warehouse, customAddress) => {

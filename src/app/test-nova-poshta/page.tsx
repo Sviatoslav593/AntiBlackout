@@ -115,7 +115,31 @@ export default function TestNovaPoshtaPage() {
                     className="p-2 border rounded"
                   >
                     <div className="font-medium">
-                      Відділення №{warehouse.Number}
+                      {(() => {
+                        const type =
+                          warehouse.TypeOfWarehouse?.toLowerCase() || "";
+                        const address =
+                          warehouse.ShortAddress || warehouse.Description || "";
+
+                        if (
+                          type.includes("поштомат") ||
+                          type.includes("postomat") ||
+                          type.includes("postal") ||
+                          warehouse.Description?.toLowerCase().includes(
+                            "поштомат"
+                          ) ||
+                          warehouse.DescriptionRu?.toLowerCase().includes(
+                            "поштомат"
+                          )
+                        ) {
+                          return `Поштомат №${warehouse.Number}${
+                            address ? `: ${address}` : ""
+                          }`;
+                        }
+                        return `Відділення №${warehouse.Number}${
+                          address ? `: ${address}` : ""
+                        }`;
+                      })()}
                     </div>
                     <div className="text-sm text-gray-600">
                       {warehouse.ShortAddress}
@@ -143,7 +167,34 @@ export default function TestNovaPoshtaPage() {
                 cityRef={selectedCity.Ref}
                 value={
                   selectedWarehouse
-                    ? `Відділення №${selectedWarehouse.Number}`
+                    ? (() => {
+                        const type =
+                          selectedWarehouse.TypeOfWarehouse?.toLowerCase() ||
+                          "";
+                        const address =
+                          selectedWarehouse.ShortAddress ||
+                          selectedWarehouse.Description ||
+                          "";
+
+                        if (
+                          type.includes("поштомат") ||
+                          type.includes("postomat") ||
+                          type.includes("postal") ||
+                          selectedWarehouse.Description?.toLowerCase().includes(
+                            "поштомат"
+                          ) ||
+                          selectedWarehouse.DescriptionRu?.toLowerCase().includes(
+                            "поштомат"
+                          )
+                        ) {
+                          return `Поштомат №${selectedWarehouse.Number}${
+                            address ? `: ${address}` : ""
+                          }`;
+                        }
+                        return `Відділення №${selectedWarehouse.Number}${
+                          address ? `: ${address}` : ""
+                        }`;
+                      })()
                     : customAddress || ""
                 }
                 onChange={(warehouse, address) => {
@@ -176,7 +227,34 @@ export default function TestNovaPoshtaPage() {
                 <p>
                   <strong>Value:</strong>{" "}
                   {selectedWarehouse
-                    ? `Відділення №${selectedWarehouse.Number}`
+                    ? (() => {
+                        const type =
+                          selectedWarehouse.TypeOfWarehouse?.toLowerCase() ||
+                          "";
+                        const address =
+                          selectedWarehouse.ShortAddress ||
+                          selectedWarehouse.Description ||
+                          "";
+
+                        if (
+                          type.includes("поштомат") ||
+                          type.includes("postomat") ||
+                          type.includes("postal") ||
+                          selectedWarehouse.Description?.toLowerCase().includes(
+                            "поштомат"
+                          ) ||
+                          selectedWarehouse.DescriptionRu?.toLowerCase().includes(
+                            "поштомат"
+                          )
+                        ) {
+                          return `Поштомат №${selectedWarehouse.Number}${
+                            address ? `: ${address}` : ""
+                          }`;
+                        }
+                        return `Відділення №${selectedWarehouse.Number}${
+                          address ? `: ${address}` : ""
+                        }`;
+                      })()
                     : customAddress || "None"}
                 </p>
               </div>
