@@ -86,9 +86,9 @@ export default function Header() {
 
   const navigation = [
     { name: "Головна", href: "/" },
-    { name: "Товари", href: "#products" },
+    { name: "Товари", href: "/#products" },
     { name: "Про нас", href: "/about" },
-    { name: "Контакти", href: "#contact" },
+    { name: "Контакти", href: "/#contact" },
   ];
 
   return (
@@ -114,8 +114,14 @@ export default function Header() {
             href="/"
             className="flex items-center space-x-1 sm:space-x-2 cursor-pointer min-w-0 flex-shrink"
           >
-            <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-xs sm:text-sm">
-              AB
+            <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
+              <svg
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="h-4 w-4 sm:h-5 sm:w-5"
+              >
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+              </svg>
             </div>
             <span className="text-sm sm:text-xl font-bold text-foreground truncate max-w-[120px] sm:max-w-none">
               AntiBlackout
