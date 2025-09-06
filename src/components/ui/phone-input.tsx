@@ -30,11 +30,7 @@ export function PhoneInput<T extends Record<string, unknown>>({
   className,
   disabled = false,
 }: PhoneInputProps<T>) {
-  const {
-    onChange: registerOnChange,
-    onBlur: registerOnBlur,
-    ...registerProps
-  } = register(name);
+  const { onChange: registerOnChange, ...registerProps } = register(name);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = e.target.value;

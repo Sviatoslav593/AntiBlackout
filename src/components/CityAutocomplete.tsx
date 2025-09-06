@@ -132,7 +132,7 @@ export default function CityAutocomplete({
     if (value !== query) {
       setQuery(value);
     }
-  }, [value]);
+  }, [value, query]);
 
   // Cleanup debounce on unmount
   useEffect(() => {

@@ -159,10 +159,7 @@ class NovaPoshtaApiService {
    * @param cityName - Optional city name to filter results
    * @param limit - Maximum number of results (default: 50)
    */
-  getCities = async (
-    cityName?: string,
-    limit = 50
-  ): Promise<NovaPoshtaCity[]> => {
+  getCities = async (cityName?: string): Promise<NovaPoshtaCity[]> => {
     try {
       const methodProperties: Record<string, string> = {
         FindByString:

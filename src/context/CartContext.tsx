@@ -184,7 +184,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     setTimeout(() => setIsCartAnimating(false), 600);
   };
 
-  const addItem = (product: Product, showToast = true) => {
+  const addItem = (product: Product) => {
     dispatch({ type: "ADD_ITEM", payload: product });
     triggerCartAnimation();
   };

@@ -2,11 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ChevronDown, Package, Loader2, MapPin } from "lucide-react";
-import {
-  novaPoshtaApi,
-  NovaPoshtaWarehouse,
-  formatWarehouseName,
-} from "@/services/novaPoshtaApi";
+import { novaPoshtaApi, NovaPoshtaWarehouse } from "@/services/novaPoshtaApi";
 
 interface WarehouseAutocompleteProps {
   cityRef: string | null;
@@ -99,7 +95,7 @@ export default function WarehouseAutocomplete({
     if (value !== query) {
       setQuery(value);
     }
-  }, [value]);
+  }, [value, query]);
 
   // Load warehouses when city changes
   useEffect(() => {

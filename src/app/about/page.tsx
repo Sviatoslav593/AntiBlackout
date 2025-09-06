@@ -1,6 +1,5 @@
 "use client";
 
-import { Metadata } from "next";
 import Layout from "@/components/Layout";
 import { motion } from "framer-motion";
 import {

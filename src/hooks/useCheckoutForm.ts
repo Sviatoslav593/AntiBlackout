@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { checkoutSchema, CheckoutFormData } from "@/lib/validations";
 import { NovaPoshtaCity, NovaPoshtaWarehouse } from "@/services/novaPoshtaApi";
 
@@ -20,15 +20,7 @@ export const useCheckoutForm = () => {
     },
   });
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    formState,
-    trigger,
-    clearErrors,
-  } = form;
+  const { register, watch, setValue, formState, trigger, clearErrors } = form;
 
   // Watch specific fields for real-time validation
   const firstName = watch("firstName");
@@ -106,7 +98,7 @@ export const useCheckoutForm = () => {
 
   // Real-time error clearing effect
   useEffect(() => {
-    const subscription = watch((value, { name, type }) => {
+    const subscription = watch((value, { name }) => {
       if (name && formState.errors[name as keyof CheckoutFormData]) {
         // Trigger validation for the field to check if it's now valid
         trigger(name as keyof CheckoutFormData);
@@ -122,6 +114,7 @@ export const useCheckoutForm = () => {
   return {
     form,
     formState,
+    register,
     handlePhoneChange,
     handleCitySelect,
     handleWarehouseSelect,

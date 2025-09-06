@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/Layout";
 import ProductCard, { Product } from "@/components/ProductCard";

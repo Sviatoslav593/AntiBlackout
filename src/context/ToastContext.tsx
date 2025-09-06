@@ -25,16 +25,19 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [toasts, setToasts] = useState<ActiveToast[]>([]);
 
-  const showToast = useCallback((toast: Omit<ToastProps, "id" | "onClose">) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const newToast: ActiveToast = {
-      ...toast,
-      id,
-      onClose: () => dismissToast(id),
-    };
+  const showToast = useCallback(
+    (toast: Omit<ToastProps, "id" | "onClose">) => {
+      const id = Math.random().toString(36).substr(2, 9);
+      const newToast: ActiveToast = {
+        ...toast,
+        id,
+        onClose: () => dismissToast(id),
+      };
 
-    setToasts((prev) => [...prev, newToast]);
-  }, []);
+      setToasts((prev) => [...prev, newToast]);
+    },
+    [dismissToast]
+  );
 
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));

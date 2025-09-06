@@ -71,7 +71,7 @@ export default function WarehouseSelect({
     };
 
     loadWarehouses();
-  }, [cityRef, value]);
+  }, [cityRef, value, onChange]);
 
   // Handle warehouse selection
   const handleWarehouseSelect = (warehouse: NovaPoshtaWarehouse) => {

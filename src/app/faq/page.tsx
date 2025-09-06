@@ -122,7 +122,7 @@ export default function FAQPage() {
               className="bg-white rounded-lg shadow-sm"
             >
               <div className="divide-y divide-gray-200">
-                {faqData.map((item, index) => (
+                {faqData.map((item) => (
                   <motion.div
                     key={item.id}
                     variants={itemVariants}

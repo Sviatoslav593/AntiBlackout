@@ -24,11 +24,11 @@ export default function CheckoutPage() {
   const {
     form,
     formState,
+    register,
     handlePhoneChange,
     handleCitySelect,
     handleWarehouseSelect,
     handlePaymentMethodChange,
-    isFormValid,
     firstName,
     lastName,
     phone,
@@ -39,7 +39,7 @@ export default function CheckoutPage() {
     customAddress,
   } = useCheckoutForm();
 
-  const { handleSubmit, register, watch, setValue } = form;
+  const { handleSubmit } = form;
 
   // Redirect to cart if empty
   if (state.items.length === 0) {
