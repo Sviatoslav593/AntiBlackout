@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { OrderService } from "@/services/orders";
+import {
+  sendOrderConfirmationEmail,
+  formatOrderForEmail,
+} from "@/services/emailService";
 
 interface OrderData {
   customer: {
@@ -82,11 +86,36 @@ export async function POST(request: NextRequest) {
     console.log("Total:", order.total_amount, "₴");
     console.log("Full Order:", JSON.stringify(order, null, 2));
 
+    // Send confirmation email if customer has email
+    if (order.customer_email) {
+      try {
+        console.log("📧 Sending confirmation email...");
+
+        const emailOrder = formatOrderForEmail(order);
+        const emailResult = await sendOrderConfirmationEmail(emailOrder);
+
+        if (emailResult.success) {
+          console.log("✅ Confirmation email sent successfully");
+        } else {
+          console.log(
+            "⚠️ Failed to send confirmation email:",
+            emailResult.error
+          );
+        }
+      } catch (emailError) {
+        console.log("⚠️ Email sending error (non-critical):", emailError);
+        // Don't fail the order if email fails
+      }
+    } else {
+      console.log("ℹ️ No email provided, skipping confirmation email");
+    }
+
     return NextResponse.json({
       success: true,
       orderId: order.id,
       message: "Замовлення успішно оформлено",
       estimatedDelivery: "1-2 робочих дні",
+      emailSent: !!order.customer_email,
     });
   } catch (error) {
     console.error("Error processing order:", error);
