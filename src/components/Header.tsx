@@ -21,6 +21,7 @@ export default function Header() {
   const { count: favoritesCount } = useFavorites();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
 
   // Handle search expansion and focus
   const handleSearchToggle = () => {
@@ -39,9 +40,11 @@ export default function Header() {
     const query = e.target.value;
     setSearchQuery(query);
 
-    // If there's a search query, keep the field expanded and scroll to products
+    // Always keep the field expanded when user is typing
+    setIsSearchExpanded(true);
+
+    // If there's a search query, scroll to products
     if (query.trim()) {
-      setIsSearchExpanded(true);
       // Scroll to products section with a small delay to allow filtering to complete
       setTimeout(() => {
         scrollToProducts();
@@ -52,6 +55,10 @@ export default function Header() {
   // Handle search clear
   const handleSearchClear = () => {
     clearSearch();
+    // Keep the field expanded after clearing so user can continue typing
+    setIsSearchExpanded(true);
+    // Focus back to input after clearing
+    setTimeout(() => searchInputRef.current?.focus(), 100);
   };
 
   // Handle Enter key
@@ -64,17 +71,34 @@ export default function Header() {
           scrollToProducts();
         }, 100);
       }
+    } else if (e.key === "Escape") {
+      // Close search field when Escape is pressed
+      setIsSearchExpanded(false);
+      searchInputRef.current?.blur();
     }
   };
 
   // Close search when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        searchContainerRef.current &&
-        !searchContainerRef.current.contains(event.target as Node)
-      ) {
-        if (!searchQuery) {
+      const target = event.target as Node;
+
+      // Check if click is on search button - if so, don't close
+      const isSearchButton = (target as Element)?.closest(
+        "[data-search-button]"
+      );
+      if (isSearchButton) {
+        return;
+      }
+
+      // Check if click is outside both desktop and mobile search containers
+      const isOutsideDesktop = !searchContainerRef.current?.contains(target);
+      const isOutsideMobile = !mobileSearchRef.current?.contains(target);
+
+      // Only close if click is outside both containers
+      if (isOutsideDesktop && isOutsideMobile) {
+        // Only close if search query is empty
+        if (!searchQuery.trim()) {
           setIsSearchExpanded(false);
         }
       }
@@ -185,6 +209,7 @@ export default function Header() {
                 variant="ghost"
                 size="icon"
                 onClick={handleSearchToggle}
+                data-search-button
                 className="ml-1 sm:ml-2 h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
               >
                 <Search className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -196,6 +221,7 @@ export default function Header() {
               variant="ghost"
               size="icon"
               onClick={handleSearchToggle}
+              data-search-button
               className="md:hidden h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
             >
               <Search className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -285,6 +311,7 @@ export default function Header() {
         <AnimatePresence>
           {isSearchExpanded && (
             <motion.div
+              ref={mobileSearchRef}
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
