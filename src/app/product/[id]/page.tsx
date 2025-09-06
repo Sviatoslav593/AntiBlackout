@@ -470,3 +470,4 @@ export default function ProductPage() {
     </Layout>
   );
 }
+export const dynamic = 'force-dynamic';

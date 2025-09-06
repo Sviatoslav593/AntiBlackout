@@ -13,3 +13,4 @@ export default function CartPage() {
     </Layout>
   );
 }
+export const dynamic = 'force-dynamic';

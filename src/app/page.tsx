@@ -333,3 +333,4 @@ export default function Home() {
     </Layout>
   );
 }
+export const dynamic = "force-dynamic";

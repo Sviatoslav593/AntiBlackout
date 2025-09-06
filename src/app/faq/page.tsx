@@ -207,3 +207,4 @@ export default function FAQPage() {
     </Layout>
   );
 }
+export const dynamic = "force-dynamic";

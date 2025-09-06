@@ -250,3 +250,4 @@ export default function WarrantyPage() {
     </Layout>
   );
 }
+export const dynamic = "force-dynamic";

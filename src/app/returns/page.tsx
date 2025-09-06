@@ -222,3 +222,4 @@ export default function ReturnsPage() {
     </Layout>
   );
 }
+export const dynamic = "force-dynamic";

@@ -160,3 +160,4 @@ export default function FavoritesPage() {
     </Layout>
   );
 }
+export const dynamic = 'force-dynamic';

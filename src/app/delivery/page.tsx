@@ -188,3 +188,4 @@ export default function DeliveryPage() {
     </Layout>
   );
 }
+export const dynamic = 'force-dynamic';

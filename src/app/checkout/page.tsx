@@ -412,3 +412,4 @@ export default function CheckoutPage() {
     </Layout>
   );
 }
+export const dynamic = 'force-dynamic';

@@ -25,6 +25,10 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [toasts, setToasts] = useState<ActiveToast[]>([]);
 
+  const dismissToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
+
   const showToast = useCallback(
     (toast: Omit<ToastProps, "id" | "onClose">) => {
       const id = Math.random().toString(36).substr(2, 9);
@@ -38,10 +42,6 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({
     },
     [dismissToast]
   );
-
-  const dismissToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  }, []);
 
   return (
     <ToastContext.Provider value={{ showToast, dismissToast }}>

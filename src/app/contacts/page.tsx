@@ -360,3 +360,4 @@ export default function ContactsPage() {
     </Layout>
   );
 }
+export const dynamic = "force-dynamic";

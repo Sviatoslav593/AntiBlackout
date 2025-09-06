@@ -215,3 +215,4 @@ export default function AboutPage() {
     </Layout>
   );
 }
+export const dynamic = "force-dynamic";
