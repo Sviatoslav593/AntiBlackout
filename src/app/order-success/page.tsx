@@ -47,8 +47,53 @@ function OrderSuccessContent() {
   const fetchOrderFromAPI = async (orderId: string) => {
     try {
       setIsLoading(true);
-      console.log("🔄 Fetching order data from API for orderId:", orderId);
+      console.log("🔄 Fetching order data for orderId:", orderId);
       
+      // First, try to get data from localStorage
+      const storedOrderData = localStorage.getItem(`pending_order_${orderId}`);
+      if (storedOrderData) {
+        try {
+          const orderData = JSON.parse(storedOrderData);
+          console.log("📥 Using stored order data from localStorage:", orderData);
+          
+          // Set order number
+          setOrderNumber(orderId);
+          
+          // Convert order items to the expected format
+          const items: OrderItem[] = orderData.items?.map((item: any) => ({
+            id: item.id || 0,
+            name: item.name || "Unknown Product",
+            price: item.price || 0,
+            quantity: item.quantity || 1,
+            image: item.image || "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
+          })) || [];
+
+          setOrderItems(items);
+          
+          // Set customer info
+          setCustomerInfo({
+            name: orderData.customerData?.name || "Unknown Customer",
+            phone: orderData.customerData?.phone || "",
+            address: orderData.customerData?.address || "",
+            email: orderData.customerData?.email || "",
+            paymentMethod: orderData.customerData?.paymentMethod || "online",
+            city: orderData.customerData?.city || "",
+            warehouse: orderData.customerData?.warehouse || "",
+          });
+
+          // Clear cart after successful order
+          localStorage.removeItem("cart");
+          localStorage.removeItem(`pending_order_${orderId}`);
+          localStorage.removeItem(`order_${orderId}`);
+          console.log("🧹 Cart cleared after successful order");
+          return;
+        } catch (parseError) {
+          console.error("Error parsing stored order data:", parseError);
+        }
+      }
+      
+      // If no localStorage data, try API
+      console.log("🔄 No localStorage data, trying API...");
       const response = await fetch(`/api/order-success?orderId=${orderId}`);
       const result = await response.json();
 

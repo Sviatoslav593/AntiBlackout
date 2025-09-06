@@ -84,6 +84,12 @@ export default function LiqPayPaymentForm({
           `order_${orderId}`,
           JSON.stringify(result.orderData)
         );
+        // Also store in a more accessible key for order success page
+        localStorage.setItem(
+          `pending_order_${orderId}`,
+          JSON.stringify(result.orderData)
+        );
+        console.log("💾 Order data stored in localStorage:", result.orderData);
       }
 
       setPaymentData({

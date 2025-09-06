@@ -117,7 +117,7 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
   try {
     // Get stored order data from pending_orders table
     const supabase = createServerSupabaseClient();
-    
+
     const { data: pendingOrder, error: pendingError } = await supabase
       .from("pending_orders")
       .select("*")
@@ -125,7 +125,7 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
       .single();
 
     if (pendingError || !pendingOrder) {
-      console.error("❌ Error retrieving pending order:", pendingError);
+      console.log("⚠️ Pending orders table not available or order not found, using fallback data");
       // Fallback to basic order data
       const orderData = {
         customer_name: callbackData.sender_phone
@@ -145,6 +145,15 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
 
       const order = await OrderService.createOrder(orderData);
       console.log(`✅ Order created with fallback data: ${order.id}`);
+      
+      // Send confirmation emails
+      try {
+        const emailOrder = formatOrderForEmail(order);
+        await sendOrderEmails(emailOrder);
+        console.log(`📧 Confirmation emails sent for order ${order.id}`);
+      } catch (emailError) {
+        console.error("⚠️ Email sending failed (non-critical):", emailError);
+      }
       return;
     }
 
@@ -155,7 +164,8 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
     const orderData = {
       customer_name: customerData.name || "Customer",
       customer_email: customerData.email || "customer@example.com",
-      customer_phone: customerData.phone || callbackData.sender_phone || "+380000000000",
+      customer_phone:
+        customerData.phone || callbackData.sender_phone || "+380000000000",
       city: customerData.city || "Київ",
       branch: customerData.warehouse || customerData.address || "Відділення №1",
       payment_method: "online",

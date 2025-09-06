@@ -17,10 +17,7 @@ export async function GET(request: NextRequest) {
     const order = await OrderService.getOrderById(orderId);
 
     if (!order) {
-      return NextResponse.json(
-        { error: "Order not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
     // Return order data for success page

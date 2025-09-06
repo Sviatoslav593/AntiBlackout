@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     // Store order data in Supabase for later retrieval
     try {
       const supabase = createServerSupabaseClient();
-      
+
       const { error: insertError } = await supabase
         .from("pending_orders")
         .insert({
