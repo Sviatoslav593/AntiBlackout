@@ -95,7 +95,7 @@ function OrderSuccessContent() {
           } else {
             console.log("🧹 Cart already cleared");
           }
-          
+
           localStorage.removeItem(`pending_order_${orderId}`);
           localStorage.removeItem(`order_${orderId}`);
           console.log("🧹 localStorage cleared:", {
@@ -252,6 +252,12 @@ function OrderSuccessContent() {
         warehouse: "Відділення №1: вул. Хрещатик, 1",
       });
     }
+
+    const clearCart = () => {
+      localStorage.removeItem("cart");
+      console.log("🧹 Cart manually cleared");
+      alert("Кошик очищено!");
+    };
 
     if (orderNum) {
       setOrderNumber(orderNum);
@@ -574,6 +580,16 @@ function OrderSuccessContent() {
             Маєте питання? Зв'яжіться з нами:
             <br />
             📧 antiblackoutsupp@gmail.com | 💬 @antiblackout_support
+          </div>
+          
+          {/* Debug: Clear Cart Button */}
+          <div className="text-center mt-4">
+            <button
+              onClick={clearCart}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            >
+              Очистити кошик (Debug)
+            </button>
           </div>
         </div>
       </div>

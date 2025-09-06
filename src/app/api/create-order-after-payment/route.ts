@@ -5,7 +5,7 @@ import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
 export async function POST(request: NextRequest) {
   try {
     console.log("🔄 Creating order after payment...");
-    
+
     const body = await request.json();
     const { customerData, items, total, orderId } = body;
 
