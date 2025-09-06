@@ -110,3 +110,4 @@ Sviatoslav Potapenko - [GitHub](https://github.com/Sviatoslav593)
 ---
 
 🇺🇦 Зроблено з ❤️ для України
+# Force Vercel rebuild
