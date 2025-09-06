@@ -42,11 +42,71 @@ function OrderSuccessContent() {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [orderNumber, setOrderNumber] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchOrderFromAPI = async (orderId: string) => {
+    try {
+      setIsLoading(true);
+      console.log("🔄 Fetching order data from API for orderId:", orderId);
+      
+      const response = await fetch(`/api/order-success?orderId=${orderId}`);
+      const result = await response.json();
+
+      if (result.success && result.order) {
+        const order = result.order;
+        console.log("📥 Received order data from API:", order);
+        
+        // Set order number
+        setOrderNumber(order.id);
+        
+        // Convert order items to the expected format
+        const items: OrderItem[] = order.order_items?.map((item: any) => ({
+          id: item.id || 0,
+          name: item.product_name || "Unknown Product",
+          price: item.price || 0,
+          quantity: item.quantity || 1,
+          image: "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop", // Default image
+        })) || [];
+
+        setOrderItems(items);
+        
+        // Set customer info
+        setCustomerInfo({
+          name: order.customer_name || "Unknown Customer",
+          phone: order.customer_phone || "",
+          address: order.branch || "",
+          email: order.customer_email || "",
+          paymentMethod: order.payment_method || "online",
+          city: order.city || "",
+          warehouse: order.branch || "",
+        });
+
+        // Clear cart after successful order
+        localStorage.removeItem("cart");
+        console.log("🧹 Cart cleared after successful order");
+      } else {
+        console.error("Failed to fetch order data:", result.error);
+        loadFallbackData();
+      }
+    } catch (error) {
+      console.error("Error fetching order from API:", error);
+      loadFallbackData();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Get order data from URL params or localStorage
     const orderData = searchParams.get("orderData");
     const orderNum = searchParams.get("orderNumber");
+    const orderId = searchParams.get("orderId");
+
+    // If we have orderId (from LiqPay redirect), fetch order data from API
+    if (orderId) {
+      fetchOrderFromAPI(orderId);
+      return;
+    }
 
     if (orderData) {
       try {
@@ -144,6 +204,32 @@ function OrderSuccessContent() {
       0
     );
   };
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container py-8 sm:py-12">
+          <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-blue-100 rounded-full flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600">
+                  Завантаження замовлення...
+                </h1>
+                <p className="text-sm sm:text-base text-muted-foreground">
+                  Отримуємо дані вашого замовлення
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="container py-8 sm:py-12">

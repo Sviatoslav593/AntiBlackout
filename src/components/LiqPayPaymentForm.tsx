@@ -3,7 +3,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard, Loader2, Shield, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  CreditCard,
+  Loader2,
+  Shield,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 
 interface LiqPayPaymentFormProps {
   amount: number;
@@ -67,12 +73,17 @@ export default function LiqPayPaymentForm({
       const result: LiqPayResponse = await response.json();
 
       if (!result.success || !result.data || !result.signature) {
-        throw new Error(result.error || "Failed to generate payment data");
+        const errorMessage = result.error || "Failed to generate payment data";
+        const details = result.details || "";
+        throw new Error(`${errorMessage}${details ? ` - ${details}` : ""}`);
       }
 
       // Store order data temporarily in localStorage
       if (result.orderData) {
-        localStorage.setItem(`order_${orderId}`, JSON.stringify(result.orderData));
+        localStorage.setItem(
+          `order_${orderId}`,
+          JSON.stringify(result.orderData)
+        );
       }
 
       setPaymentData({
@@ -105,7 +116,10 @@ export default function LiqPayPaymentForm({
       console.log("💳 LiqPay payment form submitted for order:", orderId);
     } catch (error) {
       console.error("❌ Error initiating LiqPay payment:", error);
-      const errorMessage = error instanceof Error ? error.message : "Payment initialization failed";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Payment initialization failed";
       setError(errorMessage);
       onPaymentError?.(errorMessage);
     } finally {
@@ -170,7 +184,10 @@ export default function LiqPayPaymentForm({
         </div>
 
         <div className="text-xs text-muted-foreground space-y-1">
-          <p>• Після натискання кнопки ви будете перенаправлені на сторінку LiqPay</p>
+          <p>
+            • Після натискання кнопки ви будете перенаправлені на сторінку
+            LiqPay
+          </p>
           <p>• Оплата обробляється безпечно через LiqPay</p>
           <p>• Після успішної оплати ви повернетеся на сайт</p>
           <p>• Замовлення буде створено тільки після успішної оплати</p>

@@ -24,6 +24,8 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     NEXT_PUBLIC_SITE_URL: "https://antiblackout.shop",
+    LIQPAY_PUBLIC_KEY: process.env.LIQPAY_PUBLIC_KEY,
+    LIQPAY_PRIVATE_KEY: process.env.LIQPAY_PRIVATE_KEY,
   },
   // Redirects for old Vercel domain
   async redirects() {

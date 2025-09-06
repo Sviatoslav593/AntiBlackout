@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { createServerSupabaseClient } from "@/lib/supabase";
 
 interface PaymentPrepareRequest {
   amount: number;
@@ -26,12 +27,22 @@ interface LiqPayData {
 export async function POST(request: NextRequest) {
   try {
     const body: PaymentPrepareRequest = await request.json();
-    const { amount, description, orderId, currency = "UAH", customerData, items } = body;
+    const {
+      amount,
+      description,
+      orderId,
+      currency = "UAH",
+      customerData,
+      items,
+    } = body;
 
     // Validate required fields
     if (!amount || !description || !orderId || !customerData || !items) {
       return NextResponse.json(
-        { error: "Missing required fields: amount, description, orderId, customerData, items" },
+        {
+          error:
+            "Missing required fields: amount, description, orderId, customerData, items",
+        },
         { status: 400 }
       );
     }
@@ -41,15 +52,50 @@ export async function POST(request: NextRequest) {
     const privateKey = process.env.LIQPAY_PRIVATE_KEY;
 
     if (!publicKey || !privateKey) {
-      console.error("❌ LiqPay keys not configured");
+      console.error("❌ LiqPay keys not configured:", {
+        publicKey: publicKey ? "✅ Set" : "❌ Missing",
+        privateKey: privateKey ? "✅ Set" : "❌ Missing",
+      });
       return NextResponse.json(
-        { error: "Payment service not configured" },
+        {
+          error:
+            "Payment service not configured. Please check LIQPAY_PUBLIC_KEY and LIQPAY_PRIVATE_KEY environment variables.",
+          details:
+            "Missing LiqPay configuration. See LIQPAY_ENV_SETUP.md for setup instructions.",
+        },
         { status: 500 }
       );
     }
 
+    // Store order data in Supabase for later retrieval
+    try {
+      const supabase = createServerSupabaseClient();
+      
+      const { error: insertError } = await supabase
+        .from("pending_orders")
+        .insert({
+          id: orderId,
+          customer_data: customerData,
+          items: items,
+          amount: amount,
+          description: description,
+          created_at: new Date().toISOString(),
+        });
+
+      if (insertError) {
+        console.error("❌ Error storing pending order:", insertError);
+        // Continue anyway - this is not critical
+      } else {
+        console.log(`✅ Pending order stored: ${orderId}`);
+      }
+    } catch (error) {
+      console.error("❌ Error storing pending order:", error);
+      // Continue anyway - this is not critical
+    }
+
     // Get site URL for callbacks
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://antiblackout.shop";
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL || "https://antiblackout.shop";
 
     // Prepare LiqPay data
     const liqpayData: LiqPayData = {

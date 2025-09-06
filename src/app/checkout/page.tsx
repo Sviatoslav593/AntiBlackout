@@ -69,10 +69,12 @@ export default function CheckoutPage() {
   const onSubmit = async (data: CheckoutFormData) => {
     try {
       setIsSubmitting(true);
-      
+
       // Generate unique order ID
-      const orderId = `AB-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
+      const orderId = `AB-${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+
       const customerData = {
         name: `${data.firstName} ${data.lastName}`,
         firstName: data.firstName,
@@ -100,20 +102,25 @@ export default function CheckoutPage() {
         image: item.image,
       }));
 
-      console.log("Preparing order:", { orderId, customerData, items, total: state.total });
+      console.log("Preparing order:", {
+        orderId,
+        customerData,
+        items,
+        total: state.total,
+      });
 
       // If payment method is online, show LiqPay form
       if (data.paymentMethod === "online") {
         setOrderId(orderId);
         setShowLiqPayForm(true);
-        
+
         // Smooth scroll to payment form
         setTimeout(() => {
-          const paymentForm = document.getElementById('liqpay-payment-form');
+          const paymentForm = document.getElementById("liqpay-payment-form");
           if (paymentForm) {
-            paymentForm.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'start' 
+            paymentForm.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
             });
           }
         }, 100);
@@ -149,7 +156,7 @@ export default function CheckoutPage() {
 
         // Clear cart and redirect to success page
         clearCart();
-        
+
         // Encode order data for URL
         const orderSuccessData = {
           orderId: result.orderId || orderId,
@@ -164,7 +171,9 @@ export default function CheckoutPage() {
             : "",
         };
 
-        const encodedData = encodeURIComponent(JSON.stringify(orderSuccessData));
+        const encodedData = encodeURIComponent(
+          JSON.stringify(orderSuccessData)
+        );
         console.log("📤 Sending order success data:", orderSuccessData);
 
         // Save to localStorage as backup
@@ -435,7 +444,8 @@ export default function CheckoutPage() {
                   Оплата замовлення
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Будь ласка, завершіть оплату, щоб оформити замовлення #{orderId}.
+                  Будь ласка, завершіть оплату, щоб оформити замовлення #
+                  {orderId}.
                 </p>
               </CardHeader>
               <CardContent>

@@ -93,7 +93,9 @@ export async function POST(request: NextRequest) {
 
 async function processPaymentCallback(callbackData: LiqPayCallbackData) {
   try {
-    console.log(`🔄 Processing payment callback for order ${callbackData.order_id}`);
+    console.log(
+      `🔄 Processing payment callback for order ${callbackData.order_id}`
+    );
 
     if (callbackData.status === "success") {
       // Payment successful - create the order in Supabase
@@ -113,20 +115,56 @@ async function processPaymentCallback(callbackData: LiqPayCallbackData) {
 
 async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
   try {
-    // In a real implementation, you would retrieve the order data from a temporary store
-    // For now, we'll create a basic order structure
-    // In production, store order data in Redis or database during payment preparation
+    // Get stored order data from pending_orders table
+    const supabase = createServerSupabaseClient();
     
-    // Try to get order data from the callback data or use defaults
+    const { data: pendingOrder, error: pendingError } = await supabase
+      .from("pending_orders")
+      .select("*")
+      .eq("id", callbackData.order_id)
+      .single();
+
+    if (pendingError || !pendingOrder) {
+      console.error("❌ Error retrieving pending order:", pendingError);
+      // Fallback to basic order data
+      const orderData = {
+        customer_name: callbackData.sender_phone
+          ? `Customer ${callbackData.sender_phone}`
+          : "Customer",
+        customer_email: "customer@example.com",
+        customer_phone: callbackData.sender_phone || "+380000000000",
+        city: "Київ",
+        branch: "Відділення №1",
+        payment_method: "online",
+        total_amount: callbackData.amount || 0,
+        items: [],
+        status: "paid",
+        payment_status: callbackData.status,
+        payment_id: callbackData.payment_id || callbackData.transaction_id,
+      };
+
+      const order = await OrderService.createOrder(orderData);
+      console.log(`✅ Order created with fallback data: ${order.id}`);
+      return;
+    }
+
+    // Use stored order data
+    const customerData = pendingOrder.customer_data;
+    const items = pendingOrder.items;
+
     const orderData = {
-      customer_name: callbackData.sender_phone ? `Customer ${callbackData.sender_phone}` : "Customer",
-      customer_email: "customer@example.com", // This should come from stored order data
-      customer_phone: callbackData.sender_phone || "+380000000000",
-      city: "Київ", // This should come from stored order data
-      branch: "Відділення №1", // This should come from stored order data
+      customer_name: customerData.name || "Customer",
+      customer_email: customerData.email || "customer@example.com",
+      customer_phone: customerData.phone || callbackData.sender_phone || "+380000000000",
+      city: customerData.city || "Київ",
+      branch: customerData.warehouse || customerData.address || "Відділення №1",
       payment_method: "online",
-      total_amount: callbackData.amount || 0,
-      items: [], // This should come from stored order data
+      total_amount: pendingOrder.amount || callbackData.amount || 0,
+      items: items.map((item: any) => ({
+        product_name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+      })),
       status: "paid",
       payment_status: callbackData.status,
       payment_id: callbackData.payment_id || callbackData.transaction_id,
@@ -136,6 +174,17 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
     const order = await OrderService.createOrder(orderData);
 
     console.log(`✅ Order created successfully after payment: ${order.id}`);
+
+    // Clean up pending order
+    try {
+      await supabase
+        .from("pending_orders")
+        .delete()
+        .eq("id", callbackData.order_id);
+      console.log(`🧹 Pending order cleaned up: ${callbackData.order_id}`);
+    } catch (cleanupError) {
+      console.error("⚠️ Error cleaning up pending order:", cleanupError);
+    }
 
     // Send confirmation emails
     try {
@@ -154,7 +203,6 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
       transactionId: callbackData.transaction_id,
       orderId: order.id,
     });
-
   } catch (error) {
     console.error("❌ Error creating order after payment:", error);
     throw error;
