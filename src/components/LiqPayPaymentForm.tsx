@@ -97,7 +97,7 @@ export default function LiqPayPaymentForm({
         orderId,
         customerData,
         items,
-        total: amount
+        total: amount,
       });
 
       setPaymentData({

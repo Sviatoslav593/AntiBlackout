@@ -1,6 +1,7 @@
 # LiqPay Correct Payment Flow - Fixed Timing Issues
 
 ## 🎯 **Problems Fixed:**
+
 - ❌ Email was sent before payment completion
 - ❌ Cart was not cleared after successful payment
 - ✅ Order data was displayed correctly
@@ -8,6 +9,7 @@
 ## 🔧 **Correct Payment Flow:**
 
 ### **1. Payment Preparation (LiqPayPaymentForm):**
+
 - ✅ **Store order data** in localStorage for later processing
 - ✅ **Generate LiqPay data** and signature
 - ✅ **Submit to LiqPay** for payment
@@ -16,6 +18,7 @@
 - ❌ **NO immediate cart clearing**
 
 ### **2. Payment Processing (LiqPay):**
+
 - ✅ User completes payment on LiqPay
 - ✅ LiqPay calls `/api/payment-callback`
 - ✅ **Order created** in Supabase
@@ -23,6 +26,7 @@
 - ✅ **Payment confirmed**
 
 ### **3. Order Success Page:**
+
 - ✅ **Check payment status** via `/api/check-payment-status`
 - ✅ **Display order data** from Supabase
 - ✅ **Clear cart** only after payment confirmation
@@ -31,6 +35,7 @@
 ## 🚀 **How It Works Now:**
 
 ### **Step 1: Payment Preparation**
+
 ```typescript
 // LiqPayPaymentForm.tsx
 // Store order data for later processing
@@ -39,6 +44,7 @@ localStorage.setItem(`pending_order_${orderId}`, JSON.stringify(orderData));
 ```
 
 ### **Step 2: Payment Callback**
+
 ```typescript
 // /api/payment-callback
 // Only after successful payment:
@@ -48,6 +54,7 @@ localStorage.setItem(`pending_order_${orderId}`, JSON.stringify(orderData));
 ```
 
 ### **Step 3: Order Success Page**
+
 ```typescript
 // order-success/page.tsx
 // 1. Check if payment confirmed
@@ -58,17 +65,20 @@ localStorage.setItem(`pending_order_${orderId}`, JSON.stringify(orderData));
 ## 🧪 **Testing Steps:**
 
 ### **1. Test Payment Flow:**
+
 ```bash
 npm run dev
 node test-payment-flow.js
 ```
 
 ### **2. Test Manual Cart Clearing:**
+
 1. Go to order success page
 2. Click "Очистити кошик (Debug)" button
 3. Check console for confirmation
 
 ### **3. Test Full Payment Flow:**
+
 1. Go to checkout page
 2. Select "Оплата карткою онлайн"
 3. Fill in customer details
@@ -83,11 +93,13 @@ node test-payment-flow.js
 ## 📊 **Expected Results:**
 
 ### **Before Payment Completion:**
+
 - ❌ **No email sent** (correct)
 - ❌ **Cart not cleared** (correct)
 - ✅ **Order data stored** in localStorage
 
 ### **After Payment Completion:**
+
 - ✅ **Email sent** to customer and admin
 - ✅ **Order created** in Supabase
 - ✅ **Cart cleared** automatically
@@ -96,6 +108,7 @@ node test-payment-flow.js
 ## 🔍 **Debug Information:**
 
 ### **Console Logs to Check:**
+
 - `💾 Order data stored for payment processing` - Data stored
 - `📞 LiqPay callback received` - Callback triggered
 - `✅ Payment successful, creating order` - Payment confirmed
@@ -103,6 +116,7 @@ node test-payment-flow.js
 - `🧹 Cart cleared after payment confirmation` - Cart cleared
 
 ### **API Endpoints:**
+
 - `/api/check-payment-status` - Check if payment confirmed
 - `/api/payment-callback` - Handle LiqPay callback
 - `/api/order-success` - Get order data
@@ -110,16 +124,19 @@ node test-payment-flow.js
 ## 🚀 **Benefits of Correct Flow:**
 
 ### **1. Proper Timing:**
+
 - ✅ Email sent only after payment
 - ✅ Cart cleared only after payment
 - ✅ Order created only after payment
 
 ### **2. Reliability:**
+
 - ✅ No false positives
 - ✅ Payment confirmation required
 - ✅ Proper error handling
 
 ### **3. User Experience:**
+
 - ✅ Clear payment status
 - ✅ Debug tools available
 - ✅ Consistent behavior

@@ -28,12 +28,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: false,
         exists: false,
-        message: "Order not found"
+        message: "Order not found",
       });
     }
 
     console.log(`✅ Order found: ${order.id}, status: ${order.status}`);
-    
+
     return NextResponse.json({
       success: true,
       exists: true,
@@ -43,8 +43,8 @@ export async function GET(request: NextRequest) {
         payment_status: order.payment_status,
         customer_name: order.customer_name,
         total_amount: order.total_amount,
-        created_at: order.created_at
-      }
+        created_at: order.created_at,
+      },
     });
   } catch (error) {
     console.error("❌ Error checking payment status:", error);

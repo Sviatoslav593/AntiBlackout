@@ -44,6 +44,12 @@ function OrderSuccessContent() {
   const [orderNumber, setOrderNumber] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const clearCart = () => {
+    localStorage.removeItem("cart");
+    console.log("🧹 Cart manually cleared");
+    alert("Кошик очищено!");
+  };
+
   const fetchOrderFromAPI = async (orderId: string) => {
     try {
       setIsLoading(true);
@@ -252,12 +258,6 @@ function OrderSuccessContent() {
         warehouse: "Відділення №1: вул. Хрещатик, 1",
       });
     }
-
-    const clearCart = () => {
-      localStorage.removeItem("cart");
-      console.log("🧹 Cart manually cleared");
-      alert("Кошик очищено!");
-    };
 
     if (orderNum) {
       setOrderNumber(orderNum);
@@ -581,7 +581,7 @@ function OrderSuccessContent() {
             <br />
             📧 antiblackoutsupp@gmail.com | 💬 @antiblackout_support
           </div>
-          
+
           {/* Debug: Clear Cart Button */}
           <div className="text-center mt-4">
             <button
