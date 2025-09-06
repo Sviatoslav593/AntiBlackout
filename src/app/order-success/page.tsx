@@ -46,8 +46,7 @@ function OrderSuccessContent() {
 
   const clearCart = () => {
     localStorage.removeItem("cart");
-    console.log("🧹 Cart manually cleared");
-    alert("Кошик очищено!");
+    console.log("🧹 Cart automatically cleared after successful payment");
   };
 
   const fetchOrderFromAPI = async (orderId: string) => {
@@ -93,14 +92,8 @@ function OrderSuccessContent() {
             warehouse: orderData.customerData?.warehouse || "",
           });
 
-          // Clear cart after successful order (if not already cleared)
-          const currentCart = localStorage.getItem("cart");
-          if (currentCart) {
-            localStorage.removeItem("cart");
-            console.log("🧹 Cart cleared after successful order");
-          } else {
-            console.log("🧹 Cart already cleared");
-          }
+          // Clear cart after successful order
+          clearCart();
 
           localStorage.removeItem(`pending_order_${orderId}`);
           localStorage.removeItem(`order_${orderId}`);
@@ -151,17 +144,8 @@ function OrderSuccessContent() {
           warehouse: order.branch || "",
         });
 
-        // Clear cart after successful order (if not already cleared)
-        const currentCart = localStorage.getItem("cart");
-        if (currentCart) {
-          localStorage.removeItem("cart");
-          console.log("🧹 Cart cleared after successful order (API)");
-        } else {
-          console.log("🧹 Cart already cleared (API)");
-        }
-        console.log("🧹 localStorage cleared:", {
-          cart: localStorage.getItem("cart"),
-        });
+        // Clear cart after successful order
+        clearCart();
       } else {
         console.error("Failed to fetch order data:", result.error);
         loadFallbackData();
@@ -580,16 +564,6 @@ function OrderSuccessContent() {
             Маєте питання? Зв'яжіться з нами:
             <br />
             📧 antiblackoutsupp@gmail.com | 💬 @antiblackout_support
-          </div>
-
-          {/* Debug: Clear Cart Button */}
-          <div className="text-center mt-4">
-            <button
-              onClick={clearCart}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-            >
-              Очистити кошик (Debug)
-            </button>
           </div>
         </div>
       </div>
