@@ -57,11 +57,11 @@ export function generateStructuredData(productId: string) {
 
   // Generate breadcrumb data
   const breadcrumbs = [
-    { name: "Головна", url: "https://anti-blackout.vercel.app" },
-    { name: "Товари", url: "https://anti-blackout.vercel.app/#products" },
+    { name: "Головна", url: "https://antiblackout.shop" },
+    { name: "Товари", url: "https://antiblackout.shop/#products" },
     {
       name: seoProduct.name,
-      url: `https://anti-blackout.vercel.app/product/${seoProduct.id}`,
+      url: `https://antiblackout.shop/product/${seoProduct.id}`,
     },
   ];
 

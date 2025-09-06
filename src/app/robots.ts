@@ -8,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/admin/", "/api/", "/cart", "/checkout", "/order-success"],
     },
-    sitemap: "https://anti-blackout.vercel.app/sitemap.xml",
+    sitemap: "https://antiblackout.shop/sitemap.xml",
   };
 }

@@ -5,9 +5,9 @@ export const SITE_CONFIG = {
   name: "AntiBlackout",
   description:
     "Енергетичні рішення для надзвичайних ситуацій. Павербанки, зарядні пристрої та аксесуари для забезпечення енергії під час блекаутів.",
-  url: "https://anti-blackout.vercel.app", // Replace with your actual domain
-  ogImage: "https://anti-blackout.vercel.app/og-image.jpg",
-  twitterHandle: "@antiblackout", // Replace with your actual Twitter handle
+  url: "https://antiblackout.shop",
+  ogImage: "https://antiblackout.shop/og-image.jpg",
+  twitterHandle: "@antiblackout",
   locale: "uk_UA",
   type: "website",
 } as const;

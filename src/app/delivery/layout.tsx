@@ -10,11 +10,11 @@ export const metadata: Metadata = {
     title: "Доставка | AntiBlackout",
     description:
       "Умови доставки в магазині AntiBlackout. Нова Пошта, кур'єр, самовивіз. Безкоштовна доставка від 2000 грн.",
-    url: "https://anti-blackout.vercel.app/delivery",
+    url: "https://antiblackout.shop/delivery",
     siteName: "AntiBlackout",
     images: [
       {
-        url: "https://anti-blackout.vercel.app/og-image.jpg",
+        url: "https://antiblackout.shop/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "AntiBlackout - Доставка",

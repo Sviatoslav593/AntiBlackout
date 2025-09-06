@@ -10,11 +10,11 @@ export const metadata: Metadata = {
     title: "Контакти | AntiBlackout",
     description:
       "Зв'яжіться з AntiBlackout. Email: antiblackoutsupp@gmail.com, Telegram: @antiblackout_support. Адреса: вул. Івана Франка, 41, м. Львів.",
-    url: "https://anti-blackout.vercel.app/contacts",
+    url: "https://antiblackout.shop/contacts",
     siteName: "AntiBlackout",
     images: [
       {
-        url: "https://anti-blackout.vercel.app/og-image.jpg",
+        url: "https://antiblackout.shop/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "AntiBlackout - Контакти",

@@ -10,11 +10,11 @@ export const metadata: Metadata = {
     title: "Часті питання | AntiBlackout",
     description:
       "Відповіді на часті питання про замовлення, оплату, доставку та гарантії в магазині AntiBlackout.",
-    url: "https://anti-blackout.vercel.app/faq", // Replace with actual domain
+    url: "https://antiblackout.shop/faq",
     siteName: "AntiBlackout",
     images: [
       {
-        url: "https://anti-blackout.vercel.app/og-image.jpg", // Replace with actual OG image
+        url: "https://antiblackout.shop/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "AntiBlackout - Часті питання",
