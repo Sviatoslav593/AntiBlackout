@@ -70,92 +70,91 @@ export default function CheckoutPage() {
     try {
       setIsSubmitting(true);
       
-      const orderData = {
-        customer: {
-          name: `${data.firstName} ${data.lastName}`,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          phone: data.phone,
-          email: data.email,
-          address: data.warehouse
-            ? getWarehouseDisplayName(data.warehouse)
-            : data.customAddress || "",
-          paymentMethod: data.paymentMethod,
-          city: data.city?.Description || "",
-          cityRef: data.city?.Ref || "",
-          warehouse: data.warehouse
-            ? getWarehouseDisplayName(data.warehouse)
-            : "",
-          warehouseRef: data.warehouse?.Ref || "",
-          customAddress: data.customAddress || "",
-        },
-        items: state.items.map((item) => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image,
-        })),
-        total: state.total,
-        subtotal: state.total,
-        orderDate: new Date().toISOString(),
+      // Generate unique order ID
+      const orderId = `AB-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      const customerData = {
+        name: `${data.firstName} ${data.lastName}`,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        email: data.email,
+        address: data.warehouse
+          ? getWarehouseDisplayName(data.warehouse)
+          : data.customAddress || "",
+        paymentMethod: data.paymentMethod,
+        city: data.city?.Description || "",
+        cityRef: data.city?.Ref || "",
+        warehouse: data.warehouse
+          ? getWarehouseDisplayName(data.warehouse)
+          : "",
+        warehouseRef: data.warehouse?.Ref || "",
+        customAddress: data.customAddress || "",
       };
 
-      console.log("Submitting order:", orderData);
+      const items = state.items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+      }));
 
-      const response = await fetch("/api/order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.error || `HTTP error! status: ${response.status}`
-        );
-      }
-
-      const result = await response.json();
-      console.log("Order submitted successfully:", result);
-
-      // Store order ID for LiqPay payment
-      setOrderId(result.orderId);
+      console.log("Preparing order:", { orderId, customerData, items, total: state.total });
 
       // If payment method is online, show LiqPay form
       if (data.paymentMethod === "online") {
+        setOrderId(orderId);
         setShowLiqPayForm(true);
+        
+        // Smooth scroll to payment form
+        setTimeout(() => {
+          const paymentForm = document.getElementById('liqpay-payment-form');
+          if (paymentForm) {
+            paymentForm.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'start' 
+            });
+          }
+        }, 100);
       } else {
-        // For cash on delivery, redirect to success page
+        // For cash on delivery, create order immediately
+        const orderData = {
+          customer: customerData,
+          items: items,
+          total: state.total,
+          subtotal: state.total,
+          orderDate: new Date().toISOString(),
+        };
+
+        console.log("Creating cash on delivery order:", orderData);
+
+        const response = await fetch("/api/order", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(orderData),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(
+            errorData.error || `HTTP error! status: ${response.status}`
+          );
+        }
+
+        const result = await response.json();
+        console.log("Order submitted successfully:", result);
+
+        // Clear cart and redirect to success page
         clearCart();
         
         // Encode order data for URL
         const orderSuccessData = {
-          orderId: result.orderId || Date.now().toString(),
-          items: state.items.map((item) => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image,
-          })),
-          customerInfo: {
-            name: `${data.firstName} ${data.lastName}`,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            phone: data.phone,
-            email: data.email,
-            address: data.warehouse
-              ? getWarehouseDisplayName(data.warehouse)
-              : data.customAddress || "",
-            paymentMethod: data.paymentMethod,
-            city: data.city?.Description || "",
-            warehouse: data.warehouse
-              ? getWarehouseDisplayName(data.warehouse)
-              : "",
-          },
+          orderId: result.orderId || orderId,
+          items: items,
+          customerInfo: customerData,
           total: state.total,
           subtotal: state.total,
           paymentMethod: data.paymentMethod,
@@ -428,7 +427,7 @@ export default function CheckoutPage() {
 
         {/* LiqPay Payment Form */}
         {showLiqPayForm && orderId && (
-          <div className="max-w-6xl mx-auto mt-8">
+          <div id="liqpay-payment-form" className="max-w-6xl mx-auto mt-8">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -436,7 +435,7 @@ export default function CheckoutPage() {
                   Оплата замовлення
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Замовлення #{orderId} успішно створено. Тепер ви можете оплатити його онлайн.
+                  Будь ласка, завершіть оплату, щоб оформити замовлення #{orderId}.
                 </p>
               </CardHeader>
               <CardContent>
@@ -444,11 +443,39 @@ export default function CheckoutPage() {
                   amount={state.total}
                   description={`Замовлення #${orderId} - AntiBlackout`}
                   orderId={orderId}
+                  customerData={{
+                    name: `${firstName} ${lastName}`,
+                    firstName,
+                    lastName,
+                    phone,
+                    email,
+                    address: warehouse
+                      ? getWarehouseDisplayName(warehouse)
+                      : customAddress || "",
+                    paymentMethod: "online",
+                    city: city?.Description || "",
+                    warehouse: warehouse
+                      ? getWarehouseDisplayName(warehouse)
+                      : "",
+                  }}
+                  items={state.items.map((item) => ({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    image: item.image,
+                  }))}
                   onPaymentInitiated={() => {
-                    console.log("💳 LiqPay payment initiated for order:", orderId);
+                    console.log(
+                      "💳 LiqPay payment initiated for order:",
+                      orderId
+                    );
                   }}
                   onPaymentSuccess={() => {
-                    console.log("✅ LiqPay payment successful for order:", orderId);
+                    console.log(
+                      "✅ LiqPay payment successful for order:",
+                      orderId
+                    );
                     clearCart();
                     router.push(`/order-success?orderId=${orderId}`);
                   }}

@@ -19,9 +19,11 @@ LIQPAY_PRIVATE_KEY=sandbox_i4PTRrU9ZfD0KCglN0QwJLfcJmbkoj1OJaHnRuWg
 ### 2. API Endpoints
 
 #### `/api/payment` (POST)
+
 Генерує LiqPay data та signature для платежу.
 
 **Request:**
+
 ```json
 {
   "amount": 1000,
@@ -32,6 +34,7 @@ LIQPAY_PRIVATE_KEY=sandbox_i4PTRrU9ZfD0KCglN0QwJLfcJmbkoj1OJaHnRuWg
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -42,18 +45,22 @@ LIQPAY_PRIVATE_KEY=sandbox_i4PTRrU9ZfD0KCglN0QwJLfcJmbkoj1OJaHnRuWg
 ```
 
 #### `/api/payment-callback` (POST)
+
 Webhook endpoint для обробки статусів платежів від LiqPay.
 
 **LiqPay Callback Data:**
+
 - `data` - base64 encoded JSON з даними платежу
 - `signature` - SHA1 signature для верифікації
 
 ### 3. Frontend Components
 
 #### `LiqPayPaymentForm`
+
 React компонент для відображення форми оплати LiqPay.
 
 **Props:**
+
 - `amount` - сума до сплати
 - `description` - опис платежу
 - `orderId` - ID замовлення
@@ -89,20 +96,24 @@ payment_method VARCHAR(50) DEFAULT 'cash_on_delivery'
 ## 🔒 Security Features
 
 ### 1. Signature Verification
+
 - Всі callback'и від LiqPay верифікуються через SHA1 signature
 - Приватний ключ ніколи не передається на frontend
 
 ### 2. Environment Variables
+
 - Ключі зберігаються в environment variables
 - Різні ключі для sandbox та production
 
 ### 3. Error Handling
+
 - Graceful обробка помилок платежів
 - Логування всіх операцій для debugging
 
 ## 🚀 Usage
 
 ### 1. Setup Environment
+
 ```bash
 # Add to .env.local
 LIQPAY_PUBLIC_KEY=your_public_key
@@ -110,11 +121,13 @@ LIQPAY_PRIVATE_KEY=your_private_key
 ```
 
 ### 2. Update Database Schema
+
 ```bash
 npm run ts-node scripts/update-orders-payment-schema.ts
 ```
 
 ### 3. Test Integration
+
 1. Виберіть "Оплата карткою онлайн" на checkout
 2. Заповніть форму замовлення
 3. Натисніть "Оплатити" в LiqPay формі
@@ -123,11 +136,13 @@ npm run ts-node scripts/update-orders-payment-schema.ts
 ## 📱 LiqPay Sandbox Testing
 
 ### Test Cards
+
 - **Success:** 4242424242424242
 - **Failure:** 4000000000000002
 - **3D Secure:** 4000000000003220
 
 ### Test Data
+
 - **CVV:** будь-які 3 цифри
 - **Expiry:** будь-яка майбутня дата
 - **Name:** будь-яке ім'я
@@ -139,6 +154,7 @@ pending → success/failure/error/reversed
 ```
 
 ### Status Mapping
+
 - `success` → `paid`
 - `failure` → `failed`
 - `error` → `error`
@@ -147,18 +163,22 @@ pending → success/failure/error/reversed
 ## 📊 Monitoring
 
 ### Logs
+
 Всі операції логуються в консоль:
+
 - 💳 Payment data generation
 - 📞 LiqPay callbacks
 - ✅ Successful payments
 - ❌ Payment errors
 
 ### Database Updates
+
 Статус замовлення автоматично оновлюється в Supabase при отриманні callback'у.
 
 ## 🛠️ Production Setup
 
 ### 1. Replace Sandbox Keys
+
 ```bash
 # In .env.local
 LIQPAY_PUBLIC_KEY=your_production_public_key
@@ -166,12 +186,16 @@ LIQPAY_PRIVATE_KEY=your_production_private_key
 ```
 
 ### 2. Update Vercel Environment
+
 Додайте змінні в Vercel Dashboard:
+
 - `LIQPAY_PUBLIC_KEY`
 - `LIQPAY_PRIVATE_KEY`
 
 ### 3. Configure Webhook URL
+
 В LiqPay Merchant Panel встановіть:
+
 - **Server URL:** `https://antiblackout.shop/api/payment-callback`
 - **Result URL:** `https://antiblackout.shop/order-success`
 
@@ -189,6 +213,7 @@ LIQPAY_PRIVATE_KEY=your_production_private_key
 ## 🎉 Result
 
 Повнофункціональна інтеграція LiqPay з:
+
 - Безпечною обробкою платежів
 - Автоматичним оновленням статусів
 - User-friendly інтерфейсом

@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 
-interface PaymentRequest {
+interface PaymentPrepareRequest {
   amount: number;
   description: string;
   orderId: string;
   currency?: string;
+  customerData: any;
+  items: any[];
 }
 
 interface LiqPayData {
@@ -23,13 +25,13 @@ interface LiqPayData {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: PaymentRequest = await request.json();
-    const { amount, description, orderId, currency = "UAH" } = body;
+    const body: PaymentPrepareRequest = await request.json();
+    const { amount, description, orderId, currency = "UAH", customerData, items } = body;
 
     // Validate required fields
-    if (!amount || !description || !orderId) {
+    if (!amount || !description || !orderId || !customerData || !items) {
       return NextResponse.json(
-        { error: "Missing required fields: amount, description, orderId" },
+        { error: "Missing required fields: amount, description, orderId, customerData, items" },
         { status: 400 }
       );
     }
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
     const privateKey = process.env.LIQPAY_PRIVATE_KEY;
 
     if (!publicKey || !privateKey) {
-      console.error("LiqPay keys not configured");
+      console.error("❌ LiqPay keys not configured");
       return NextResponse.json(
         { error: "Payment service not configured" },
         { status: 500 }
@@ -47,8 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get site URL for callbacks
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL || "https://antiblackout.shop";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://antiblackout.shop";
 
     // Prepare LiqPay data
     const liqpayData: LiqPayData = {
@@ -75,6 +76,18 @@ export async function POST(request: NextRequest) {
       .update(signatureString)
       .digest("base64");
 
+    // Store order data temporarily (in production, use Redis or database)
+    // For now, we'll pass it back to frontend to store in localStorage
+    const orderData = {
+      orderId,
+      customerData,
+      items,
+      amount,
+      description,
+      paymentData: { data, signature },
+      createdAt: new Date().toISOString(),
+    };
+
     console.log(`💳 LiqPay payment data generated for order ${orderId}:`, {
       amount,
       currency,
@@ -87,6 +100,7 @@ export async function POST(request: NextRequest) {
       data,
       signature,
       orderId,
+      orderData, // Temporary data for frontend
     });
   } catch (error) {
     console.error("❌ Error generating LiqPay payment data:", error);

@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard, Loader2, Shield, CheckCircle } from "lucide-react";
+import { CreditCard, Loader2, Shield, CheckCircle, AlertCircle } from "lucide-react";
 
 interface LiqPayPaymentFormProps {
   amount: number;
   description: string;
   orderId: string;
+  customerData: any;
+  items: any[];
   onPaymentInitiated?: () => void;
   onPaymentSuccess?: () => void;
   onPaymentError?: (error: string) => void;
@@ -19,6 +21,7 @@ interface LiqPayResponse {
   data?: string;
   signature?: string;
   orderId?: string;
+  orderData?: any;
   error?: string;
 }
 
@@ -26,6 +29,8 @@ export default function LiqPayPaymentForm({
   amount,
   description,
   orderId,
+  customerData,
+  items,
   onPaymentInitiated,
   onPaymentSuccess,
   onPaymentError,
@@ -35,14 +40,16 @@ export default function LiqPayPaymentForm({
     data: string;
     signature: string;
   } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handlePayment = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       onPaymentInitiated?.();
 
       // Call our API to get LiqPay data and signature
-      const response = await fetch("/api/payment", {
+      const response = await fetch("/api/payment-prepare", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -52,6 +59,8 @@ export default function LiqPayPaymentForm({
           description,
           orderId,
           currency: "UAH",
+          customerData,
+          items,
         }),
       });
 
@@ -59,6 +68,11 @@ export default function LiqPayPaymentForm({
 
       if (!result.success || !result.data || !result.signature) {
         throw new Error(result.error || "Failed to generate payment data");
+      }
+
+      // Store order data temporarily in localStorage
+      if (result.orderData) {
+        localStorage.setItem(`order_${orderId}`, JSON.stringify(result.orderData));
       }
 
       setPaymentData({
@@ -91,9 +105,9 @@ export default function LiqPayPaymentForm({
       console.log("💳 LiqPay payment form submitted for order:", orderId);
     } catch (error) {
       console.error("❌ Error initiating LiqPay payment:", error);
-      onPaymentError?.(
-        error instanceof Error ? error.message : "Payment initialization failed"
-      );
+      const errorMessage = error instanceof Error ? error.message : "Payment initialization failed";
+      setError(errorMessage);
+      onPaymentError?.(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -124,6 +138,16 @@ export default function LiqPayPaymentForm({
           </div>
         </div>
 
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-2 text-red-700">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm font-medium">Помилка оплати</span>
+            </div>
+            <p className="text-xs text-red-600 mt-1">{error}</p>
+          </div>
+        )}
+
         <div className="pt-4">
           <Button
             onClick={handlePayment}
@@ -149,6 +173,7 @@ export default function LiqPayPaymentForm({
           <p>• Після натискання кнопки ви будете перенаправлені на сторінку LiqPay</p>
           <p>• Оплата обробляється безпечно через LiqPay</p>
           <p>• Після успішної оплати ви повернетеся на сайт</p>
+          <p>• Замовлення буде створено тільки після успішної оплати</p>
         </div>
 
         {paymentData && (

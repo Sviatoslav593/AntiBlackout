@@ -71,10 +71,11 @@ async function updateOrdersSchema() {
     } else {
       console.log("🔍 Schema verification:");
       columns?.forEach((col) => {
-        console.log(`  - ${col.column_name}: ${col.data_type} (default: ${col.column_default})`);
+        console.log(
+          `  - ${col.column_name}: ${col.data_type} (default: ${col.column_default})`
+        );
       });
     }
-
   } catch (error) {
     console.error("❌ Failed to update orders schema:", error);
     process.exit(1);

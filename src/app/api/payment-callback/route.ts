@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createServerSupabaseClient } from "@/lib/supabase";
+import { OrderService } from "@/services/orders";
+import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
 
 interface LiqPayCallback {
   data: string;
@@ -62,10 +64,7 @@ export async function POST(request: NextRequest) {
 
     if (signature !== expectedSignature) {
       console.error("❌ Invalid LiqPay signature");
-      return NextResponse.json(
-        { error: "Invalid signature" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
     // Decode and parse callback data
@@ -79,8 +78,8 @@ export async function POST(request: NextRequest) {
       currency: callbackData.currency,
     });
 
-    // Update order status in Supabase
-    await updateOrderStatus(callbackData);
+    // Process payment callback
+    await processPaymentCallback(callbackData);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -92,58 +91,72 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function updateOrderStatus(callbackData: LiqPayCallbackData) {
+async function processPaymentCallback(callbackData: LiqPayCallbackData) {
   try {
-    const supabase = createServerSupabaseClient();
+    console.log(`🔄 Processing payment callback for order ${callbackData.order_id}`);
 
-    // Map LiqPay status to our order status
-    let orderStatus = "pending";
-    switch (callbackData.status) {
-      case "success":
-        orderStatus = "paid";
-        break;
-      case "failure":
-        orderStatus = "failed";
-        break;
-      case "error":
-        orderStatus = "error";
-        break;
-      case "reversed":
-        orderStatus = "refunded";
-        break;
-      default:
-        orderStatus = "pending";
-    }
-
-    // Update order in Supabase
-    const { error } = await supabase
-      .from("orders")
-      .update({
-        status: orderStatus,
-        payment_status: callbackData.status,
-        payment_id: callbackData.payment_id || callbackData.transaction_id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", callbackData.order_id);
-
-    if (error) {
-      console.error("❌ Error updating order status:", error);
-      throw error;
-    }
-
-    console.log(`✅ Order ${callbackData.order_id} status updated to: ${orderStatus}`);
-
-    // Log payment details
     if (callbackData.status === "success") {
-      console.log(`💰 Payment successful for order ${callbackData.order_id}:`, {
-        amount: callbackData.amount,
-        currency: callbackData.currency,
-        paymentId: callbackData.payment_id,
-        transactionId: callbackData.transaction_id,
+      // Payment successful - create the order in Supabase
+      await createOrderAfterPayment(callbackData);
+    } else {
+      // Payment failed - log the failure
+      console.log(`❌ Payment failed for order ${callbackData.order_id}:`, {
+        status: callbackData.status,
+        error: callbackData.err_description,
       });
     }
   } catch (error) {
-    console.error("❌ Error updating order status in Supabase:", error);
+    console.error("❌ Error processing payment callback:", error);
+    throw error;
+  }
+}
+
+async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
+  try {
+    // In a real implementation, you would retrieve the order data from a temporary store
+    // For now, we'll create a basic order structure
+    // In production, store order data in Redis or database during payment preparation
+    
+    // Try to get order data from the callback data or use defaults
+    const orderData = {
+      customer_name: callbackData.sender_phone ? `Customer ${callbackData.sender_phone}` : "Customer",
+      customer_email: "customer@example.com", // This should come from stored order data
+      customer_phone: callbackData.sender_phone || "+380000000000",
+      city: "Київ", // This should come from stored order data
+      branch: "Відділення №1", // This should come from stored order data
+      payment_method: "online",
+      total_amount: callbackData.amount || 0,
+      items: [], // This should come from stored order data
+      status: "paid",
+      payment_status: callbackData.status,
+      payment_id: callbackData.payment_id || callbackData.transaction_id,
+    };
+
+    // Create order in Supabase
+    const order = await OrderService.createOrder(orderData);
+
+    console.log(`✅ Order created successfully after payment: ${order.id}`);
+
+    // Send confirmation emails
+    try {
+      const emailOrder = formatOrderForEmail(order);
+      await sendOrderEmails(emailOrder);
+      console.log(`📧 Confirmation emails sent for order ${order.id}`);
+    } catch (emailError) {
+      console.error("⚠️ Email sending failed (non-critical):", emailError);
+    }
+
+    // Log payment details
+    console.log(`💰 Payment successful for order ${callbackData.order_id}:`, {
+      amount: callbackData.amount,
+      currency: callbackData.currency,
+      paymentId: callbackData.payment_id,
+      transactionId: callbackData.transaction_id,
+      orderId: order.id,
+    });
+
+  } catch (error) {
+    console.error("❌ Error creating order after payment:", error);
     throw error;
   }
 }

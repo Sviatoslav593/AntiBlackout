@@ -24,6 +24,7 @@ LIQPAY_PRIVATE_KEY=sandbox_i4PTRrU9ZfD0KCglN0QwJLfcJmbkoj1OJaHnRuWg
 ## Production Keys
 
 Коли будете готові до продакшну, замініть sandbox ключі на реальні:
+
 - Отримайте ключі з LiqPay Merchant Panel
 - Замініть `sandbox_` префікси на реальні ключі
 - Оновіть environment variables
