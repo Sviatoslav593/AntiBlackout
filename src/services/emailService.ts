@@ -363,6 +363,13 @@ function createAdminNotificationHTML(
             margin: 20px 0;
             border-radius: 0 8px 8px 0;
         }
+        .delivery-details {
+            background: #fff5e6;
+            border-left: 4px solid #f6ad55;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
         .items-table {
             width: 100%;
             border-collapse: collapse;
@@ -462,6 +469,19 @@ function createAdminNotificationHTML(
                       }</p>`
                     : ""
                 }
+            </div>
+            
+            <div class="delivery-details">
+                <h3>🚚 Деталі доставки</h3>
+                <p><strong>Місто:</strong> ${adminOrder.city || "Не вказано"}</p>
+                <p><strong>Адреса доставки:</strong> ${adminOrder.address || "Не вказано"}</p>
+                <p><strong>Спосіб оплати:</strong> ${
+                  adminOrder.paymentMethod === "online"
+                    ? "💳 Онлайн оплата"
+                    : adminOrder.paymentMethod === "cash_on_delivery"
+                    ? "💰 Накладений платіж"
+                    : "Не вказано"
+                }</p>
             </div>
             
             <h3>🛍️ Товари в замовленні</h3>
@@ -607,24 +627,25 @@ export async function sendAdminNotificationEmail(
     const html = createAdminNotificationHTML(adminOrder);
 
     // Create plain text version
-    const text = `НОВЕ ЗАМОВЛЕННЯ #${adminOrder.orderId}
+    const text = `🚨 НОВЕ ЗАМОВЛЕННЯ #${adminOrder.orderId}
 
-Клієнт: ${adminOrder.customerName}
+📋 ДАНІ КЛІЄНТА:
+Ім'я: ${adminOrder.customerName}
 Email: ${adminOrder.customerEmail}
 ${adminOrder.customerPhone ? `Телефон: ${adminOrder.customerPhone}` : ""}
-${adminOrder.city ? `Місто: ${adminOrder.city}` : ""}
-${adminOrder.address ? `Адреса: ${adminOrder.address}` : ""}
-${
-  adminOrder.paymentMethod
-    ? `Спосіб оплати: ${
-        adminOrder.paymentMethod === "online"
-          ? "Онлайн оплата"
-          : "Накладений платіж"
-      }`
-    : ""
+
+🚚 ДЕТАЛІ ДОСТАВКИ:
+Місто: ${adminOrder.city || "Не вказано"}
+Адреса: ${adminOrder.address || "Не вказано"}
+Спосіб оплати: ${
+  adminOrder.paymentMethod === "online"
+    ? "💳 Онлайн оплата"
+    : adminOrder.paymentMethod === "cash_on_delivery"
+    ? "💰 Накладений платіж"
+    : "Не вказано"
 }
 
-Товари:
+🛍️ ТОВАРИ:
 ${adminOrder.items
   .map(
     (item) =>
@@ -765,6 +786,10 @@ export function formatOrderForEmail(orderData: SupabaseOrderData): Order {
     id: orderData.id,
     customerName: orderData.customer_name,
     customerEmail: orderData.customer_email,
+    customerPhone: orderData.customer_phone,
+    address: orderData.branch, // branch contains the delivery address
+    paymentMethod: orderData.payment_method,
+    city: orderData.city,
     items:
       orderData.order_items?.map((item: SupabaseOrderItem) => ({
         productName: item.product_name || "Unknown Product",
