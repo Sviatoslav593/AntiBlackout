@@ -52,7 +52,7 @@ export const checkoutSchema = z
       .nullable()
       .refine((val) => val !== null, "Будь ласка, оберіть населений пункт"),
 
-    warehouse: z.any().nullable().optional(), // Flexible for NovaPoshtaWarehouse
+    warehouse: z.unknown().nullable().optional(), // Flexible for NovaPoshtaWarehouse
 
     customAddress: z.string().optional(),
   })

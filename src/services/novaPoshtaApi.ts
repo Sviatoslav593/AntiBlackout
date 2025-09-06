@@ -126,7 +126,7 @@ class NovaPoshtaApiService {
   private makeRequest = async <T>(
     modelName: string,
     calledMethod: string,
-    methodProperties: Record<string, any> = {}
+    methodProperties: Record<string, unknown> = {}
   ): Promise<NovaPoshtaApiResponse<T>> => {
     try {
       const response = await fetch(API_BASE_URL, {
@@ -164,7 +164,7 @@ class NovaPoshtaApiService {
     limit = 50
   ): Promise<NovaPoshtaCity[]> => {
     try {
-      const methodProperties: Record<string, any> = {
+      const methodProperties: Record<string, string> = {
         FindByString:
           cityName && cityName.trim().length > 0 ? cityName.trim() : "",
       };
@@ -197,7 +197,7 @@ class NovaPoshtaApiService {
     warehouseType?: string
   ): Promise<NovaPoshtaWarehouse[]> => {
     try {
-      const methodProperties: Record<string, any> = {
+      const methodProperties: Record<string, string> = {
         CityRef: cityRef,
       };
 
@@ -255,17 +255,17 @@ export const formatWarehouseName = (warehouse: NovaPoshtaWarehouse): string => {
 
 // Cache for better performance
 class CacheManager {
-  private cache = new Map<string, { data: any; timestamp: number }>();
+  private cache = new Map<string, { data: unknown; timestamp: number }>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-  set(key: string, data: any): void {
+  set<T>(key: string, data: T): void {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
     });
   }
 
-  get(key: string): any | null {
+  get<T>(key: string): T | null {
     const item = this.cache.get(key);
     if (!item) return null;
 
@@ -274,7 +274,7 @@ class CacheManager {
       return null;
     }
 
-    return item.data;
+    return item.data as T;
   }
 
   clear(): void {

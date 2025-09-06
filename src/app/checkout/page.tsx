@@ -177,10 +177,10 @@ export default function CheckoutPage() {
     return `${prefix} №${number}: ${address}`;
   };
 
-  const getErrorMessage = (error: any): string => {
+  const getErrorMessage = (error: unknown): string => {
     if (typeof error === "string") return error;
     if (error && typeof error === "object" && "message" in error) {
-      return error.message;
+      return (error as { message: string }).message;
     }
     return "Помилка валідації";
   };

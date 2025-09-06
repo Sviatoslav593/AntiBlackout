@@ -9,7 +9,7 @@ interface RadioOption {
   icon?: React.ReactNode;
 }
 
-interface FormRadioGroupProps<T extends Record<string, any>> {
+interface FormRadioGroupProps<T extends Record<string, unknown>> {
   label: string;
   required?: boolean;
   register: UseFormRegister<T>;
@@ -22,7 +22,7 @@ interface FormRadioGroupProps<T extends Record<string, any>> {
   disabled?: boolean;
 }
 
-export function FormRadioGroup<T extends Record<string, any>>({
+export function FormRadioGroup<T extends Record<string, unknown>>({
   label,
   required = false,
   register,

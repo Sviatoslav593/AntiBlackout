@@ -354,14 +354,29 @@ antiblackoutsupp@gmail.com
   }
 }
 
+// Interface for order data from Supabase
+interface SupabaseOrderData {
+  id: string;
+  customer_name: string;
+  customer_email: string;
+  total_amount: number;
+  order_items?: SupabaseOrderItem[];
+}
+
+interface SupabaseOrderItem {
+  product_name?: string;
+  quantity: number;
+  price: number;
+}
+
 // Helper function to format order data for email
-export function formatOrderForEmail(orderData: any): Order {
+export function formatOrderForEmail(orderData: SupabaseOrderData): Order {
   return {
     id: orderData.id,
     customerName: orderData.customer_name,
     customerEmail: orderData.customer_email,
     items:
-      orderData.order_items?.map((item: any) => ({
+      orderData.order_items?.map((item: SupabaseOrderItem) => ({
         productName: item.product_name || "Unknown Product",
         quantity: item.quantity,
         price: item.price,

@@ -3,7 +3,7 @@ import { FieldError, UseFormRegister, Path } from "react-hook-form";
 import { Input } from "./input";
 import { cn } from "@/lib/utils";
 
-interface FormInputProps<T extends Record<string, any>> {
+interface FormInputProps<T extends Record<string, unknown>> {
   label: string;
   placeholder?: string;
   type?: string;
@@ -20,7 +20,7 @@ interface FormInputProps<T extends Record<string, any>> {
   disabled?: boolean;
 }
 
-export function FormInput<T extends Record<string, any>>({
+export function FormInput<T extends Record<string, unknown>>({
   label,
   placeholder,
   type = "text",

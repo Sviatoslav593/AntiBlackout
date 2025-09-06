@@ -5,8 +5,16 @@ import { useState } from "react";
 const API_BASE_URL = "https://api.novaposhta.ua/v2.0/json/";
 const API_KEY = "c8be07eac251641182e5575f8ee0da40";
 
+interface ApiTestResult {
+  success: boolean;
+  data: unknown[];
+  errors: string[];
+  warnings: string[];
+  info: string[];
+}
+
 export default function ApiTestPage() {
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<ApiTestResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -40,13 +48,15 @@ export default function ApiTestPage() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as ApiTestResult;
       console.log("API Response:", data);
 
       setResult(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("API Error:", err);
-      setError(err.message);
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error occurred";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -73,13 +83,15 @@ export default function ApiTestPage() {
         }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as ApiTestResult;
       console.log("API Response (no search):", data);
 
       setResult(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("API Error:", err);
-      setError(err.message);
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error occurred";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

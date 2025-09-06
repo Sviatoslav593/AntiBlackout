@@ -3,7 +3,7 @@ import { FieldError, UseFormRegister, Path } from "react-hook-form";
 import { Input } from "./input";
 import { cn } from "@/lib/utils";
 
-interface PhoneInputProps<T extends Record<string, any>> {
+interface PhoneInputProps<T extends Record<string, unknown>> {
   label: string;
   placeholder?: string;
   required?: boolean;
@@ -17,7 +17,7 @@ interface PhoneInputProps<T extends Record<string, any>> {
   disabled?: boolean;
 }
 
-export function PhoneInput<T extends Record<string, any>>({
+export function PhoneInput<T extends Record<string, unknown>>({
   label,
   placeholder,
   required = false,

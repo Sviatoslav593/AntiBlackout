@@ -8,12 +8,13 @@ import WarehouseAutocomplete from "@/components/WarehouseAutocomplete";
 
 export default function TestNovaPoshtaPage() {
   const [cityQuery, setCityQuery] = useState("");
-  const [cities, setCities] = useState<any[]>([]);
-  const [warehouses, setWarehouses] = useState<any[]>([]);
-  const [selectedCity, setSelectedCity] = useState<any>(null);
+  const [cities, setCities] = useState<NovaPoshtaCity[]>([]);
+  const [warehouses, setWarehouses] = useState<NovaPoshtaWarehouse[]>([]);
+  const [selectedCity, setSelectedCity] = useState<NovaPoshtaCity | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [selectedWarehouse, setSelectedWarehouse] = useState<any>(null);
+  const [selectedWarehouse, setSelectedWarehouse] =
+    useState<NovaPoshtaWarehouse | null>(null);
   const [customAddress, setCustomAddress] = useState("");
 
   const testCitySearch = async () => {
@@ -34,7 +35,7 @@ export default function TestNovaPoshtaPage() {
     }
   };
 
-  const testWarehouseSearch = async (city: any) => {
+  const testWarehouseSearch = async (city: NovaPoshtaCity) => {
     setLoading(true);
     setError("");
     try {
