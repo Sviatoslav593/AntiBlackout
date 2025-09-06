@@ -45,10 +45,8 @@ export default function Header() {
 
     // If there's a search query, scroll to products
     if (query.trim()) {
-      // Scroll to products section with a small delay to allow filtering to complete
-      setTimeout(() => {
-        scrollToProducts();
-      }, 100);
+      // Scroll to products section - delay is handled in SearchContext
+      scrollToProducts();
     }
   };
 
@@ -67,9 +65,7 @@ export default function Header() {
       searchInputRef.current?.blur();
       // Scroll to products section when user presses Enter
       if (searchQuery.trim()) {
-        setTimeout(() => {
-          scrollToProducts();
-        }, 100);
+        scrollToProducts();
       }
     } else if (e.key === "Escape") {
       // Close search field when Escape is pressed

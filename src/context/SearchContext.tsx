@@ -29,21 +29,42 @@ export function SearchProvider({ children }: SearchProviderProps) {
   };
 
   const scrollToProducts = () => {
-    const productsSection = document.getElementById("products");
-    if (productsSection) {
-      // Get header height to offset scroll position
-      const header = document.querySelector("header");
-      const headerHeight = header ? header.offsetHeight : 80; // fallback to 80px
+    // Add a small delay to allow DOM to update after search
+    setTimeout(() => {
+      const productsSection = document.getElementById("products");
+      if (productsSection) {
+        // Get header height to offset scroll position
+        const header = document.querySelector("header");
+        const headerHeight = header ? header.offsetHeight : 80; // fallback to 80px
 
-      // Calculate position accounting for fixed header
-      const elementPosition = productsSection.offsetTop;
-      const offsetPosition = elementPosition - headerHeight - 20; // 20px extra padding
+        // Find the search results text element within the products section
+        const searchResultsText = productsSection.querySelector(
+          'p[class*="text-blue-600"]'
+        );
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
-    }
+        let targetElement = productsSection;
+        let additionalOffset = 0;
+
+        if (searchResultsText) {
+          // If search results text exists, scroll to it instead of the section start
+          targetElement = searchResultsText as HTMLElement;
+          additionalOffset = -20; // Small offset to show the text nicely
+        } else {
+          // If no search results text, scroll to the section with more offset
+          additionalOffset = 60; // More offset to show the "Знайдено X товарів" text
+        }
+
+        // Calculate position accounting for fixed header
+        const elementPosition = targetElement.offsetTop;
+        const offsetPosition =
+          elementPosition - headerHeight + additionalOffset;
+
+        window.scrollTo({
+          top: Math.max(0, offsetPosition), // Ensure we don't scroll to negative position
+          behavior: "smooth",
+        });
+      }
+    }, 150); // Small delay to allow DOM updates
   };
 
   const value = useMemo(
