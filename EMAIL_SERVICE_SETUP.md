@@ -105,7 +105,7 @@ curl -X POST http://localhost:3000/api/order \
 В `src/services/emailService.ts`:
 
 ```typescript
-from: "AntiBlackout <noreply@antiblackout.com>";
+from: "AntiBlackout <no-reply@antiblackout.shop>";
 ```
 
 ### Зміна дизайну email

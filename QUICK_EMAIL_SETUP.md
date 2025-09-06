@@ -61,7 +61,7 @@ node test-email-service.js
 В `src/services/emailService.ts`:
 
 ```typescript
-from: "AntiBlackout <noreply@antiblackout.com>";
+from: "AntiBlackout <no-reply@antiblackout.shop>";
 ```
 
 ### Зміна дизайну

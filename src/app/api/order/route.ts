@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { OrderService } from "@/services/orders";
-import {
-  sendOrderConfirmationEmail,
-  formatOrderForEmail,
-} from "@/services/emailService";
+import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
 
 interface OrderData {
   customer: {
@@ -86,28 +83,40 @@ export async function POST(request: NextRequest) {
     console.log("Total:", order.total_amount, "₴");
     console.log("Full Order:", JSON.stringify(order, null, 2));
 
-    // Send confirmation email if customer has email
+    // Send confirmation emails (customer + admin) if customer has email
+    let emailResults = {
+      customerEmail: { success: false },
+      adminEmail: { success: false },
+    };
+
     if (order.customer_email) {
       try {
-        console.log("📧 Sending confirmation email...");
+        console.log("📧 Sending confirmation emails (customer + admin)...");
 
         const emailOrder = formatOrderForEmail(order);
-        const emailResult = await sendOrderConfirmationEmail(emailOrder);
+        emailResults = await sendOrderEmails(emailOrder);
 
-        if (emailResult.success) {
-          console.log("✅ Confirmation email sent successfully");
+        // Log detailed results
+        if (emailResults.customerEmail.success) {
+          console.log("✅ Customer confirmation email sent successfully");
         } else {
           console.log(
-            "⚠️ Failed to send confirmation email:",
-            emailResult.error
+            "⚠️ Customer email failed:",
+            emailResults.customerEmail.error
           );
+        }
+
+        if (emailResults.adminEmail.success) {
+          console.log("✅ Admin notification email sent successfully");
+        } else {
+          console.log("⚠️ Admin email failed:", emailResults.adminEmail.error);
         }
       } catch (emailError) {
         console.log("⚠️ Email sending error (non-critical):", emailError);
         // Don't fail the order if email fails
       }
     } else {
-      console.log("ℹ️ No email provided, skipping confirmation email");
+      console.log("ℹ️ No email provided, skipping confirmation emails");
     }
 
     return NextResponse.json({
@@ -116,6 +125,10 @@ export async function POST(request: NextRequest) {
       message: "Замовлення успішно оформлено",
       estimatedDelivery: "1-2 робочих дні",
       emailSent: !!order.customer_email,
+      emailStatus: {
+        customer: emailResults.customerEmail.success,
+        admin: emailResults.adminEmail.success,
+      },
     });
   } catch (error) {
     console.error("Error processing order:", error);
