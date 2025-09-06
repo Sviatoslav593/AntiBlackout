@@ -34,9 +34,13 @@ interface LiqPayCallbackData {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("📞 LiqPay callback received");
+    
     const formData = await request.formData();
     const data = formData.get("data") as string;
     const signature = formData.get("signature") as string;
+
+    console.log("📞 Callback data:", { data: data?.substring(0, 50) + "...", signature: signature?.substring(0, 20) + "..." });
 
     if (!data || !signature) {
       console.error("❌ Missing data or signature in LiqPay callback");
@@ -99,6 +103,7 @@ async function processPaymentCallback(callbackData: LiqPayCallbackData) {
 
     if (callbackData.status === "success") {
       // Payment successful - create the order in Supabase
+      console.log(`✅ Payment successful, creating order for ${callbackData.order_id}`);
       await createOrderAfterPayment(callbackData);
     } else {
       // Payment failed - log the failure
@@ -115,6 +120,7 @@ async function processPaymentCallback(callbackData: LiqPayCallbackData) {
 
 async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
   try {
+    console.log(`🔄 Creating order after payment for ${callbackData.order_id}`);
     // Get stored order data from pending_orders table
     const supabase = createServerSupabaseClient();
 
@@ -125,7 +131,9 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
       .single();
 
     if (pendingError || !pendingOrder) {
-      console.log("⚠️ Pending orders table not available or order not found, using fallback data");
+      console.log(
+        "⚠️ Pending orders table not available or order not found, using fallback data"
+      );
       // Fallback to basic order data
       const orderData = {
         customer_name: callbackData.sender_phone
@@ -145,7 +153,7 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
 
       const order = await OrderService.createOrder(orderData);
       console.log(`✅ Order created with fallback data: ${order.id}`);
-      
+
       // Send confirmation emails
       try {
         const emailOrder = formatOrderForEmail(order);

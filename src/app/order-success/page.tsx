@@ -48,28 +48,34 @@ function OrderSuccessContent() {
     try {
       setIsLoading(true);
       console.log("🔄 Fetching order data for orderId:", orderId);
-      
+
       // First, try to get data from localStorage
       const storedOrderData = localStorage.getItem(`pending_order_${orderId}`);
       if (storedOrderData) {
         try {
           const orderData = JSON.parse(storedOrderData);
-          console.log("📥 Using stored order data from localStorage:", orderData);
-          
+          console.log(
+            "📥 Using stored order data from localStorage:",
+            orderData
+          );
+
           // Set order number
           setOrderNumber(orderId);
-          
+
           // Convert order items to the expected format
-          const items: OrderItem[] = orderData.items?.map((item: any) => ({
-            id: item.id || 0,
-            name: item.name || "Unknown Product",
-            price: item.price || 0,
-            quantity: item.quantity || 1,
-            image: item.image || "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
-          })) || [];
+          const items: OrderItem[] =
+            orderData.items?.map((item: any) => ({
+              id: item.id || 0,
+              name: item.name || "Unknown Product",
+              price: item.price || 0,
+              quantity: item.quantity || 1,
+              image:
+                item.image ||
+                "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
+            })) || [];
 
           setOrderItems(items);
-          
+
           // Set customer info
           setCustomerInfo({
             name: orderData.customerData?.name || "Unknown Customer",
@@ -86,12 +92,17 @@ function OrderSuccessContent() {
           localStorage.removeItem(`pending_order_${orderId}`);
           localStorage.removeItem(`order_${orderId}`);
           console.log("🧹 Cart cleared after successful order");
+          console.log("🧹 localStorage cleared:", {
+            cart: localStorage.getItem("cart"),
+            pendingOrder: localStorage.getItem(`pending_order_${orderId}`),
+            order: localStorage.getItem(`order_${orderId}`)
+          });
           return;
         } catch (parseError) {
           console.error("Error parsing stored order data:", parseError);
         }
       }
-      
+
       // If no localStorage data, try API
       console.log("🔄 No localStorage data, trying API...");
       const response = await fetch(`/api/order-success?orderId=${orderId}`);
@@ -100,21 +111,23 @@ function OrderSuccessContent() {
       if (result.success && result.order) {
         const order = result.order;
         console.log("📥 Received order data from API:", order);
-        
+
         // Set order number
         setOrderNumber(order.id);
-        
+
         // Convert order items to the expected format
-        const items: OrderItem[] = order.order_items?.map((item: any) => ({
-          id: item.id || 0,
-          name: item.product_name || "Unknown Product",
-          price: item.price || 0,
-          quantity: item.quantity || 1,
-          image: "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop", // Default image
-        })) || [];
+        const items: OrderItem[] =
+          order.order_items?.map((item: any) => ({
+            id: item.id || 0,
+            name: item.product_name || "Unknown Product",
+            price: item.price || 0,
+            quantity: item.quantity || 1,
+            image:
+              "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop", // Default image
+          })) || [];
 
         setOrderItems(items);
-        
+
         // Set customer info
         setCustomerInfo({
           name: order.customer_name || "Unknown Customer",
@@ -128,7 +141,10 @@ function OrderSuccessContent() {
 
         // Clear cart after successful order
         localStorage.removeItem("cart");
-        console.log("🧹 Cart cleared after successful order");
+        console.log("🧹 Cart cleared after successful order (API)");
+        console.log("🧹 localStorage cleared:", {
+          cart: localStorage.getItem("cart")
+        });
       } else {
         console.error("Failed to fetch order data:", result.error);
         loadFallbackData();
