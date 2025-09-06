@@ -473,8 +473,12 @@ function createAdminNotificationHTML(
             
             <div class="delivery-details">
                 <h3>🚚 Деталі доставки</h3>
-                <p><strong>Місто:</strong> ${adminOrder.city || "Не вказано"}</p>
-                <p><strong>Адреса доставки:</strong> ${adminOrder.address || "Не вказано"}</p>
+                <p><strong>Місто:</strong> ${
+                  adminOrder.city || "Не вказано"
+                }</p>
+                <p><strong>Адреса доставки:</strong> ${
+                  adminOrder.address || "Не вказано"
+                }</p>
                 <p><strong>Спосіб оплати:</strong> ${
                   adminOrder.paymentMethod === "online"
                     ? "💳 Онлайн оплата"
@@ -638,12 +642,12 @@ ${adminOrder.customerPhone ? `Телефон: ${adminOrder.customerPhone}` : ""}
 Місто: ${adminOrder.city || "Не вказано"}
 Адреса: ${adminOrder.address || "Не вказано"}
 Спосіб оплати: ${
-  adminOrder.paymentMethod === "online"
-    ? "💳 Онлайн оплата"
-    : adminOrder.paymentMethod === "cash_on_delivery"
-    ? "💰 Накладений платіж"
-    : "Не вказано"
-}
+      adminOrder.paymentMethod === "online"
+        ? "💳 Онлайн оплата"
+        : adminOrder.paymentMethod === "cash_on_delivery"
+        ? "💰 Накладений платіж"
+        : "Не вказано"
+    }
 
 🛍️ ТОВАРИ:
 ${adminOrder.items

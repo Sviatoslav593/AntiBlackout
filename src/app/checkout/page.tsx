@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Layout from "@/components/Layout";
@@ -17,10 +18,14 @@ import { FormInput } from "@/components/ui/form-input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { FormRadioGroup } from "@/components/ui/form-radio-group";
 import { CheckoutFormData } from "@/lib/validations";
+import LiqPayPaymentForm from "@/components/LiqPayPaymentForm";
 
 export default function CheckoutPage() {
   const { state, clearCart } = useCart();
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showLiqPayForm, setShowLiqPayForm] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
   const {
     form,
     formState,
@@ -63,6 +68,8 @@ export default function CheckoutPage() {
 
   const onSubmit = async (data: CheckoutFormData) => {
     try {
+      setIsSubmitting(true);
+      
       const orderData = {
         customer: {
           name: `${data.firstName} ${data.lastName}`,
@@ -114,55 +121,65 @@ export default function CheckoutPage() {
       const result = await response.json();
       console.log("Order submitted successfully:", result);
 
-      // Clear cart and redirect to success page
-      clearCart();
+      // Store order ID for LiqPay payment
+      setOrderId(result.orderId);
 
-      // Encode order data for URL
-      const orderSuccessData = {
-        orderId: result.orderId || Date.now().toString(),
-        items: state.items.map((item) => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image,
-        })),
-        customerInfo: {
-          name: `${data.firstName} ${data.lastName}`,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          phone: data.phone,
-          email: data.email,
-          address: data.warehouse
-            ? getWarehouseDisplayName(data.warehouse)
-            : data.customAddress || "",
+      // If payment method is online, show LiqPay form
+      if (data.paymentMethod === "online") {
+        setShowLiqPayForm(true);
+      } else {
+        // For cash on delivery, redirect to success page
+        clearCart();
+        
+        // Encode order data for URL
+        const orderSuccessData = {
+          orderId: result.orderId || Date.now().toString(),
+          items: state.items.map((item) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+          })),
+          customerInfo: {
+            name: `${data.firstName} ${data.lastName}`,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            phone: data.phone,
+            email: data.email,
+            address: data.warehouse
+              ? getWarehouseDisplayName(data.warehouse)
+              : data.customAddress || "",
+            paymentMethod: data.paymentMethod,
+            city: data.city?.Description || "",
+            warehouse: data.warehouse
+              ? getWarehouseDisplayName(data.warehouse)
+              : "",
+          },
+          total: state.total,
+          subtotal: state.total,
           paymentMethod: data.paymentMethod,
           city: data.city?.Description || "",
           warehouse: data.warehouse
             ? getWarehouseDisplayName(data.warehouse)
             : "",
-        },
-        total: state.total,
-        subtotal: state.total,
-        paymentMethod: data.paymentMethod,
-        city: data.city?.Description || "",
-        warehouse: data.warehouse
-          ? getWarehouseDisplayName(data.warehouse)
-          : "",
-      };
+        };
 
-      const encodedData = encodeURIComponent(JSON.stringify(orderSuccessData));
-      console.log("📤 Sending order success data:", orderSuccessData);
+        const encodedData = encodeURIComponent(JSON.stringify(orderSuccessData));
+        console.log("📤 Sending order success data:", orderSuccessData);
 
-      // Save to localStorage as backup
-      localStorage.setItem("lastOrderData", JSON.stringify(orderSuccessData));
+        // Save to localStorage as backup
+        localStorage.setItem("lastOrderData", JSON.stringify(orderSuccessData));
 
-      router.push(
-        `/order-success?orderData=${encodedData}&orderNumber=${orderSuccessData.orderId}`
-      );
+        router.push(
+          `/order-success?orderData=${encodedData}&orderNumber=${orderSuccessData.orderId}`
+        );
+      }
     } catch (error) {
       console.error("Failed to submit order:", error);
       alert("Помилка при оформленні замовлення. Спробуйте ще раз.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -408,6 +425,42 @@ export default function CheckoutPage() {
             </Card>
           </div>
         </div>
+
+        {/* LiqPay Payment Form */}
+        {showLiqPayForm && orderId && (
+          <div className="max-w-6xl mx-auto mt-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Оплата замовлення
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Замовлення #{orderId} успішно створено. Тепер ви можете оплатити його онлайн.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <LiqPayPaymentForm
+                  amount={state.total}
+                  description={`Замовлення #${orderId} - AntiBlackout`}
+                  orderId={orderId}
+                  onPaymentInitiated={() => {
+                    console.log("💳 LiqPay payment initiated for order:", orderId);
+                  }}
+                  onPaymentSuccess={() => {
+                    console.log("✅ LiqPay payment successful for order:", orderId);
+                    clearCart();
+                    router.push(`/order-success?orderId=${orderId}`);
+                  }}
+                  onPaymentError={(error) => {
+                    console.error("❌ LiqPay payment error:", error);
+                    alert(`Помилка оплати: ${error}`);
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </Layout>
   );
