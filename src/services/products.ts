@@ -1,8 +1,9 @@
-import { supabase, Product } from "@/lib/supabase";
+import { createServerSupabaseClient, Product } from "@/lib/supabase";
 
 export class ProductService {
   // Get all products
   static async getAllProducts(): Promise<Product[]> {
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("products")
       .select("*")
@@ -18,6 +19,7 @@ export class ProductService {
 
   // Get product by ID
   static async getProductById(id: string): Promise<Product | null> {
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("products")
       .select("*")
@@ -36,6 +38,7 @@ export class ProductService {
   static async createProduct(
     product: Omit<Product, "id" | "created_at">
   ): Promise<Product> {
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("products")
       .insert([product])
@@ -55,6 +58,7 @@ export class ProductService {
     id: string,
     updates: Partial<Omit<Product, "id" | "created_at">>
   ): Promise<Product> {
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("products")
       .update(updates)
@@ -72,6 +76,7 @@ export class ProductService {
 
   // Delete product
   static async deleteProduct(id: string): Promise<void> {
+    const supabase = createServerSupabaseClient();
     const { error } = await supabase.from("products").delete().eq("id", id);
 
     if (error) {
@@ -82,6 +87,7 @@ export class ProductService {
 
   // Update product stock
   static async updateStock(id: string, quantity: number): Promise<void> {
+    const supabase = createServerSupabaseClient();
     const { error } = await supabase
       .from("products")
       .update({ stock: quantity })
@@ -95,6 +101,7 @@ export class ProductService {
 
   // Search products
   static async searchProducts(query: string): Promise<Product[]> {
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("products")
       .select("*")

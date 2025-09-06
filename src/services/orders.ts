@@ -1,4 +1,8 @@
-import { supabase, Order, OrderWithItems } from "@/lib/supabase";
+import {
+  createServerSupabaseClient,
+  Order,
+  OrderWithItems,
+} from "@/lib/supabase";
 
 export interface CreateOrderData {
   customer_name: string;
@@ -22,6 +26,7 @@ export class OrderService {
   static async createOrder(
     orderData: CreateOrderData
   ): Promise<OrderWithItems> {
+    const supabase = createServerSupabaseClient();
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert([
@@ -72,6 +77,7 @@ export class OrderService {
 
   // Get order by ID with items
   static async getOrderById(id: string): Promise<OrderWithItems | null> {
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("orders")
       .select(
@@ -93,6 +99,7 @@ export class OrderService {
 
   // Get all orders
   static async getAllOrders(): Promise<OrderWithItems[]> {
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("orders")
       .select(
@@ -116,6 +123,7 @@ export class OrderService {
     id: string,
     status: Order["status"]
   ): Promise<Order> {
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("orders")
       .update({ status })
@@ -135,6 +143,7 @@ export class OrderService {
   static async getOrdersByStatus(
     status: Order["status"]
   ): Promise<OrderWithItems[]> {
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("orders")
       .select(
@@ -156,6 +165,7 @@ export class OrderService {
 
   // Delete order (and its items due to cascade)
   static async deleteOrder(id: string): Promise<void> {
+    const supabase = createServerSupabaseClient();
     const { error } = await supabase.from("orders").delete().eq("id", id);
 
     if (error) {
@@ -173,6 +183,7 @@ export class OrderService {
     delivered_orders: number;
     total_revenue: number;
   }> {
+    const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from("orders")
       .select("status, total_amount");
