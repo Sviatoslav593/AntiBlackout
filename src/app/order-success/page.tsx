@@ -50,8 +50,8 @@ function OrderSuccessContent() {
       console.log("🧹 Cart automatically cleared after successful payment");
       console.log("🧹 Cart after clearing:", localStorage.getItem("cart"));
       
-      // Force page reload to update cart UI
-      window.location.reload();
+      // Dispatch custom event to notify other components about cart clearing
+      window.dispatchEvent(new CustomEvent('cartCleared'));
     } catch (error) {
       console.error("❌ Error clearing cart:", error);
     }
@@ -234,8 +234,6 @@ function OrderSuccessContent() {
 
     // If we have orderId (from LiqPay redirect), fetch order data from API
     if (orderId) {
-      // Clear cart immediately when we have orderId (from successful payment)
-      clearCart();
       fetchOrderFromAPI(orderId);
       return;
     }
@@ -244,7 +242,7 @@ function OrderSuccessContent() {
       try {
         // Clear cart when we have orderData (from successful payment)
         clearCart();
-        
+
         const parsedData = JSON.parse(decodeURIComponent(orderData));
         console.log("📥 Received order success data:", parsedData);
         setOrderItems(parsedData.items || []);
@@ -286,9 +284,6 @@ function OrderSuccessContent() {
     }
 
     function loadFallbackData() {
-      // Clear cart in fallback too
-      clearCart();
-      
       // Fallback to sample data for demonstration
       setOrderItems([
         {

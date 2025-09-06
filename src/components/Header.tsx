@@ -104,6 +104,18 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [searchQuery]);
 
+  // Handle cart clearing event from order success page
+  useEffect(() => {
+    const handleCartCleared = () => {
+      console.log("🔄 Cart cleared event received, updating UI...");
+      // Force re-render by updating a dummy state
+      // The cart context will handle the actual state update
+    };
+
+    window.addEventListener('cartCleared', handleCartCleared);
+    return () => window.removeEventListener('cartCleared', handleCartCleared);
+  }, []);
+
   const navigation = [
     { name: "Головна", href: "/" },
     { name: "Товари", href: "/#products" },

@@ -179,6 +179,17 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     localStorage.setItem("antiblackout-cart", JSON.stringify(state.items));
   }, [state.items]);
 
+  // Listen for cart clearing events from order success page
+  useEffect(() => {
+    const handleCartCleared = () => {
+      console.log("🔄 Cart cleared event received, clearing cart state...");
+      dispatch({ type: "CLEAR_CART" });
+    };
+
+    window.addEventListener('cartCleared', handleCartCleared);
+    return () => window.removeEventListener('cartCleared', handleCartCleared);
+  }, []);
+
   const triggerCartAnimation = () => {
     setIsCartAnimating(true);
     setTimeout(() => setIsCartAnimating(false), 600);
