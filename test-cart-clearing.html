@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cart Clearing</title>
+</head>
+<body>
+    <h1>Test Cart Clearing</h1>
+    
+    <div>
+        <h2>Current Cart:</h2>
+        <pre id="cart-display"></pre>
+    </div>
+    
+    <div>
+        <button onclick="addToCart()">Add Item to Cart</button>
+        <button onclick="clearCart()">Clear Cart</button>
+        <button onclick="testOrderSuccess()">Test Order Success Page</button>
+    </div>
+    
+    <div>
+        <h2>Test Results:</h2>
+        <pre id="test-results"></pre>
+    </div>
+
+    <script>
+        function updateCartDisplay() {
+            const cart = localStorage.getItem("cart");
+            document.getElementById("cart-display").textContent = cart || "Cart is empty";
+        }
+
+        function addToCart() {
+            const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+            cart.push({
+                id: Date.now(),
+                name: "Test Product",
+                price: 1000,
+                quantity: 1
+            });
+            localStorage.setItem("cart", JSON.stringify(cart));
+            updateCartDisplay();
+            log("✅ Added item to cart");
+        }
+
+        function clearCart() {
+            localStorage.removeItem("cart");
+            updateCartDisplay();
+            log("🧹 Cart cleared");
+        }
+
+        function testOrderSuccess() {
+            // Simulate order success page behavior
+            log("🔄 Testing order success page...");
+            
+            // Add some items to cart first
+            addToCart();
+            addToCart();
+            
+            log("📦 Cart before clearing: " + localStorage.getItem("cart"));
+            
+            // Clear cart (simulate order success page)
+            clearCart();
+            
+            log("📦 Cart after clearing: " + localStorage.getItem("cart"));
+            
+            // Test with orderId parameter
+            const orderId = "test-" + Date.now();
+            log("🔄 Testing with orderId: " + orderId);
+            
+            // Simulate localStorage data
+            localStorage.setItem(`pending_order_${orderId}`, JSON.stringify({
+                customerData: { name: "Test Customer" },
+                items: [{ id: 1, name: "Test Product", price: 1000, quantity: 1 }],
+                amount: 1000
+            }));
+            
+            // Clear cart again
+            clearCart();
+            
+            log("✅ Order success test completed");
+        }
+
+        function log(message) {
+            const results = document.getElementById("test-results");
+            results.textContent += new Date().toLocaleTimeString() + ": " + message + "\n";
+        }
+
+        // Initialize
+        updateCartDisplay();
+        log("🚀 Cart clearing test initialized");
+    </script>
+</body>
+</html>

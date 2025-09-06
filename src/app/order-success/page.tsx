@@ -45,14 +45,22 @@ function OrderSuccessContent() {
   const [isLoading, setIsLoading] = useState(false);
 
   const clearCart = () => {
-    localStorage.removeItem("cart");
-    console.log("🧹 Cart automatically cleared after successful payment");
+    try {
+      localStorage.removeItem("cart");
+      console.log("🧹 Cart automatically cleared after successful payment");
+      console.log("🧹 Cart after clearing:", localStorage.getItem("cart"));
+      
+      // Force page reload to update cart UI
+      window.location.reload();
+    } catch (error) {
+      console.error("❌ Error clearing cart:", error);
+    }
   };
 
   const sendOrderEmails = async (orderData: any) => {
     try {
       console.log("📧 Sending order confirmation emails...");
-      
+
       const response = await fetch("/api/create-order-after-payment", {
         method: "POST",
         headers: {
@@ -125,7 +133,7 @@ function OrderSuccessContent() {
 
           // Clear cart after successful order
           clearCart();
-          
+
           // Send order confirmation emails
           await sendOrderEmails(orderData);
 
@@ -180,13 +188,13 @@ function OrderSuccessContent() {
 
         // Clear cart after successful order
         clearCart();
-        
+
         // Send order confirmation emails
         await sendOrderEmails({
           customerData: {
             name: order.customer_name || "Unknown Customer",
-            firstName: order.customer_name?.split(' ')[0] || "Unknown",
-            lastName: order.customer_name?.split(' ')[1] || "Customer",
+            firstName: order.customer_name?.split(" ")[0] || "Unknown",
+            lastName: order.customer_name?.split(" ")[1] || "Customer",
             phone: order.customer_phone || "",
             email: order.customer_email || "",
             address: order.branch || "",
@@ -194,13 +202,15 @@ function OrderSuccessContent() {
             city: order.city || "",
             warehouse: order.branch || "",
           },
-          items: order.order_items?.map((item: any) => ({
-            id: item.id || 0,
-            name: item.product_name || "Unknown Product",
-            price: item.price || 0,
-            quantity: item.quantity || 1,
-            image: "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
-          })) || [],
+          items:
+            order.order_items?.map((item: any) => ({
+              id: item.id || 0,
+              name: item.product_name || "Unknown Product",
+              price: item.price || 0,
+              quantity: item.quantity || 1,
+              image:
+                "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
+            })) || [],
           amount: order.total_amount || 0,
           orderId: order.id,
         });
@@ -224,12 +234,17 @@ function OrderSuccessContent() {
 
     // If we have orderId (from LiqPay redirect), fetch order data from API
     if (orderId) {
+      // Clear cart immediately when we have orderId (from successful payment)
+      clearCart();
       fetchOrderFromAPI(orderId);
       return;
     }
 
     if (orderData) {
       try {
+        // Clear cart when we have orderData (from successful payment)
+        clearCart();
+        
         const parsedData = JSON.parse(decodeURIComponent(orderData));
         console.log("📥 Received order success data:", parsedData);
         setOrderItems(parsedData.items || []);
@@ -271,6 +286,9 @@ function OrderSuccessContent() {
     }
 
     function loadFallbackData() {
+      // Clear cart in fallback too
+      clearCart();
+      
       // Fallback to sample data for demonstration
       setOrderItems([
         {
