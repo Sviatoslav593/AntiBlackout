@@ -92,6 +92,36 @@ export default function LiqPayPaymentForm({
         console.log("💾 Order data stored in localStorage:", result.orderData);
       }
 
+      // Create order and send emails immediately after payment preparation
+      try {
+        console.log("🔄 Creating order and sending emails immediately...");
+        const orderResponse = await fetch("/api/create-order-after-payment", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            customerData,
+            items,
+            total: amount,
+            orderId,
+          }),
+        });
+
+        if (orderResponse.ok) {
+          const orderResult = await orderResponse.json();
+          console.log("✅ Order created and emails sent:", orderResult);
+          
+          // Clear cart immediately
+          localStorage.removeItem("cart");
+          console.log("🧹 Cart cleared immediately after payment preparation");
+        } else {
+          console.error("❌ Failed to create order after payment preparation");
+        }
+      } catch (orderError) {
+        console.error("❌ Error creating order after payment preparation:", orderError);
+      }
+
       setPaymentData({
         data: result.data,
         signature: result.signature,

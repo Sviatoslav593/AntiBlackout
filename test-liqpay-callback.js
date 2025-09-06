@@ -2,18 +2,20 @@
 const testLiqPayCallback = async () => {
   try {
     console.log("🧪 Testing LiqPay callback...");
-    
+
     // Simulate LiqPay callback data
     const callbackData = {
-      data: Buffer.from(JSON.stringify({
-        order_id: "AB-1234567890-test",
-        status: "success",
-        amount: 1000,
-        currency: "UAH",
-        transaction_id: "test-txn-123",
-        payment_id: "test-payment-123"
-      })).toString("base64"),
-      signature: "test-signature"
+      data: Buffer.from(
+        JSON.stringify({
+          order_id: "AB-1234567890-test",
+          status: "success",
+          amount: 1000,
+          currency: "UAH",
+          transaction_id: "test-txn-123",
+          payment_id: "test-payment-123",
+        })
+      ).toString("base64"),
+      signature: "test-signature",
     };
 
     const formData = new FormData();
@@ -26,7 +28,7 @@ const testLiqPayCallback = async () => {
     });
 
     const result = await response.json();
-    
+
     if (result.success) {
       console.log("✅ LiqPay callback test successful:", result);
     } else {

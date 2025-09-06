@@ -6,7 +6,7 @@ import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
 export async function POST(request: NextRequest) {
   try {
     console.log("🧪 Testing callback functionality...");
-    
+
     // Test order data
     const testOrderData = {
       customer_name: "Test Customer",
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
           product_name: "Test Product",
           quantity: 1,
           price: 1000,
-        }
+        },
       ],
       status: "paid",
       payment_status: "success",
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     };
 
     console.log("🧪 Creating test order...");
-    
+
     // Create order in Supabase
     const order = await OrderService.createOrder(testOrderData);
     console.log(`✅ Test order created: ${order.id}`);

@@ -2,13 +2,16 @@
 
 ## 🧪 Testing Cart Clearing & Email Notifications
 
-### **Problem**: 
+### **Problem**:
+
 After successful online payment:
+
 - ❌ Cart was not cleared
 - ❌ Email notifications were not sent
 - ✅ Order data was displayed correctly
 
 ### **Solution Implemented**:
+
 - Enhanced logging in payment callback
 - Improved cart clearing in order success page
 - Added test endpoints for debugging
@@ -16,6 +19,7 @@ After successful online payment:
 ## 🔧 Testing Steps
 
 ### **1. Test Callback Functionality**
+
 ```bash
 # Start the development server
 npm run dev
@@ -25,12 +29,14 @@ node test-callback.js
 ```
 
 ### **2. Test LiqPay Callback**
+
 ```bash
 # Test LiqPay callback simulation
 node test-liqpay-callback.js
 ```
 
 ### **3. Test Full Payment Flow**
+
 1. Go to checkout page
 2. Select "Оплата карткою онлайн"
 3. Fill in customer details
@@ -44,6 +50,7 @@ node test-liqpay-callback.js
 ## 📊 Debug Information
 
 ### **Console Logs to Check**:
+
 - `📞 LiqPay callback received` - Callback is triggered
 - `✅ Payment successful, creating order` - Payment processed
 - `🔄 Creating order after payment` - Order creation started
@@ -52,6 +59,7 @@ node test-liqpay-callback.js
 - `🧹 Cart cleared after successful order` - Cart cleared
 
 ### **localStorage Keys to Check**:
+
 - `cart` - Should be null after successful order
 - `pending_order_${orderId}` - Should be cleared after display
 - `order_${orderId}` - Should be cleared after display
@@ -59,16 +67,19 @@ node test-liqpay-callback.js
 ## 🐛 Troubleshooting
 
 ### **If Cart is Not Cleared**:
+
 1. Check console logs for "🧹 Cart cleared"
 2. Verify localStorage keys are removed
 3. Check if order success page is reached
 
 ### **If Emails are Not Sent**:
+
 1. Check console logs for "📧 Confirmation emails sent"
 2. Verify Supabase order creation
 3. Check email service configuration
 
 ### **If Order Data is Not Displayed**:
+
 1. Check localStorage for `pending_order_${orderId}`
 2. Verify API endpoint `/api/order-success`
 3. Check console logs for data retrieval
@@ -76,11 +87,13 @@ node test-liqpay-callback.js
 ## 🚀 Production Testing
 
 ### **LiqPay Sandbox**:
+
 - Use test cards: `4242424242424242`
 - Test different payment scenarios
 - Verify callback handling
 
 ### **Email Testing**:
+
 - Check customer email inbox
 - Check admin email inbox
 - Verify email content and formatting
@@ -88,6 +101,7 @@ node test-liqpay-callback.js
 ## ✅ Expected Results
 
 After successful online payment:
+
 - ✅ Cart should be cleared
 - ✅ Email notifications should be sent
 - ✅ Order data should be displayed

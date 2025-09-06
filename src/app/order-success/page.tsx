@@ -87,15 +87,21 @@ function OrderSuccessContent() {
             warehouse: orderData.customerData?.warehouse || "",
           });
 
-          // Clear cart after successful order
-          localStorage.removeItem("cart");
+          // Clear cart after successful order (if not already cleared)
+          const currentCart = localStorage.getItem("cart");
+          if (currentCart) {
+            localStorage.removeItem("cart");
+            console.log("🧹 Cart cleared after successful order");
+          } else {
+            console.log("🧹 Cart already cleared");
+          }
+          
           localStorage.removeItem(`pending_order_${orderId}`);
           localStorage.removeItem(`order_${orderId}`);
-          console.log("🧹 Cart cleared after successful order");
           console.log("🧹 localStorage cleared:", {
             cart: localStorage.getItem("cart"),
             pendingOrder: localStorage.getItem(`pending_order_${orderId}`),
-            order: localStorage.getItem(`order_${orderId}`)
+            order: localStorage.getItem(`order_${orderId}`),
           });
           return;
         } catch (parseError) {
@@ -139,11 +145,16 @@ function OrderSuccessContent() {
           warehouse: order.branch || "",
         });
 
-        // Clear cart after successful order
-        localStorage.removeItem("cart");
-        console.log("🧹 Cart cleared after successful order (API)");
+        // Clear cart after successful order (if not already cleared)
+        const currentCart = localStorage.getItem("cart");
+        if (currentCart) {
+          localStorage.removeItem("cart");
+          console.log("🧹 Cart cleared after successful order (API)");
+        } else {
+          console.log("🧹 Cart already cleared (API)");
+        }
         console.log("🧹 localStorage cleared:", {
-          cart: localStorage.getItem("cart")
+          cart: localStorage.getItem("cart"),
         });
       } else {
         console.error("Failed to fetch order data:", result.error);
