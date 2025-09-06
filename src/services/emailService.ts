@@ -647,7 +647,7 @@ ${adminOrder.items
       },
       body: JSON.stringify({
         from: "AntiBlackout <no-reply@antiblackout.shop>",
-        to: ["orders@antiblackout.shop"],
+        to: ["potsvatik@gmail.com"],
         subject: subject,
         html: html,
         text: text,
