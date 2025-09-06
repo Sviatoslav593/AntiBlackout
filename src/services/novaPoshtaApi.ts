@@ -2,7 +2,9 @@
 // Documentation: https://devcenter.novaposhta.ua/docs/services/
 
 const API_BASE_URL = "https://api.novaposhta.ua/v2.0/json/";
-const API_KEY = "c8be07eac251641182e5575f8ee0da40";
+const API_KEY =
+  process.env.NEXT_PUBLIC_NOVA_POSHTA_API_KEY ||
+  "c8be07eac251641182e5575f8ee0da40";
 
 export interface NovaPoshtaCity {
   Description: string;
@@ -129,20 +131,28 @@ class NovaPoshtaApiService {
     methodProperties: Record<string, unknown> = {}
   ): Promise<NovaPoshtaApiResponse<T>> => {
     try {
+      const requestBody = {
+        apiKey: API_KEY,
+        modelName,
+        calledMethod,
+        methodProperties,
+      };
+
       const response = await fetch(API_BASE_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          apiKey: API_KEY,
-          modelName,
-          calledMethod,
-          methodProperties,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Nova Poshta API HTTP error:", {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText,
+        });
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -230,7 +240,8 @@ class NovaPoshtaApiService {
       return [];
     }
 
-    return this.getCities(query.trim(), 20);
+    const result = await this.getCities(query.trim());
+    return result;
   };
 }
 

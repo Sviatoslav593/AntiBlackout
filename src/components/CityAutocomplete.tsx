@@ -54,7 +54,6 @@ export default function CityAutocomplete({
         setSelectedIndex(-1);
       } catch (error) {
         console.error("Error searching cities:", error);
-        console.error("Search query was:", searchQuery);
         setCities([]);
         setIsOpen(false);
       } finally {
@@ -66,6 +65,7 @@ export default function CityAutocomplete({
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
+    console.log("Input changed:", newQuery);
     setQuery(newQuery);
     debouncedSearch(newQuery);
 
@@ -132,7 +132,7 @@ export default function CityAutocomplete({
     if (value !== query) {
       setQuery(value);
     }
-  }, [value, query]);
+  }, [value]);
 
   // Cleanup debounce on unmount
   useEffect(() => {
@@ -242,6 +242,27 @@ export default function CityAutocomplete({
             <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">Населений пункт не знайдено</p>
             <p className="text-xs mt-1">Спробуйте змінити запит</p>
+          </div>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-border rounded-lg shadow-lg p-4 text-center">
+          <div className="text-muted-foreground">
+            <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" />
+            <p className="text-sm">Пошук населених пунктів...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {!isLoading && query.length >= 2 && cities.length === 0 && (
+        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-red-50 border border-red-200 rounded-lg shadow-lg p-4 text-center">
+          <div className="text-red-600">
+            <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">Помилка пошуку</p>
+            <p className="text-xs mt-1">Не знайдено результатів</p>
           </div>
         </div>
       )}

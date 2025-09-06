@@ -289,7 +289,7 @@ export default function CheckoutPage() {
                         Населений пункт *
                       </label>
                       <CityAutocomplete
-                        value={city ? city.Description : ""}
+                        value=""
                         onChange={handleCitySelect}
                         placeholder="Введіть назву населеного пункту"
                         error={formState.errors.city?.message}
@@ -412,4 +412,4 @@ export default function CheckoutPage() {
     </Layout>
   );
 }
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
