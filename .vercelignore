@@ -1,3 +1,6 @@
 # Vercel Build Cache Cleanup
 .next
 node_modules/.cache
+*.tmp
+*.log
+.DS_Store
