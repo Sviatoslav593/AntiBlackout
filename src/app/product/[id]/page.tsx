@@ -24,6 +24,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
 import products from "@/data/products.json";
+import { generateStructuredData } from "./metadata";
 
 interface Product {
   id: number;
@@ -46,7 +47,7 @@ interface Product {
 export default function ProductPage() {
   const params = useParams();
   const router = useRouter();
-  const productId = parseInt(params.id as string);
+  const productId = parseInt((params?.id as string) || "0");
   const { addItem, getItemQuantity } = useCart();
   const { showToast } = useToast();
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
@@ -74,6 +75,11 @@ export default function ProductPage() {
       setSimilarProducts(similar);
     }
   }, [productId]);
+
+  // Generate structured data
+  const structuredData = product
+    ? generateStructuredData(productId.toString())
+    : null;
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -111,22 +117,7 @@ export default function ProductPage() {
         description: `${product.name} видалено з обраних товарів`,
       });
     } else {
-      addToFavorites({
-        id: product.id.toString(),
-        name: product.name,
-        price: product.price,
-        image: product.image,
-        description: product.description,
-        rating: product.rating,
-        reviewCount: product.reviewCount,
-        inStock: product.inStock,
-        badge: product.badge,
-        capacity: product.capacity,
-        brand: product.brand,
-        popularity: product.popularity,
-        createdAt: product.createdAt,
-        category: product.category,
-      });
+      addToFavorites(product);
       showToast({
         title: "Додано до обраних!",
         description: `${product.name} додано до обраних товарів`,
@@ -197,6 +188,24 @@ export default function ProductPage() {
 
   return (
     <Layout>
+      {/* Structured Data */}
+      {structuredData && (
+        <>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.product),
+            }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(structuredData.breadcrumbs),
+            }}
+          />
+        </>
+      )}
+
       <div className="container py-8">
         {/* Back Button */}
         <Button
@@ -470,4 +479,4 @@ export default function ProductPage() {
     </Layout>
   );
 }
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";

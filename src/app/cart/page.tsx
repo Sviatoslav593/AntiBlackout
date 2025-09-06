@@ -1,10 +1,8 @@
 import Layout from "@/components/Layout";
 import Cart from "@/components/Cart";
+import { generateCartMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Кошик покупок - AntiBlackout",
-  description: "Переглядайте товари у вашому кошику та оформляйте замовлення",
-};
+export const metadata = generateCartMetadata();
 
 export default function CartPage() {
   return (
@@ -13,4 +11,4 @@ export default function CartPage() {
     </Layout>
   );
 }
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";

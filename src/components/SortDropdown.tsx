@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowUpDown } from "lucide-react";
+import { Product } from "@/types/product";
 
 export type SortOption =
   | "popularity-desc"
@@ -74,17 +75,6 @@ export default function SortDropdown({
       </Select>
     </div>
   );
-}
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  popularity: number;
-  inStock: boolean;
-  brand: string;
-  capacity: number;
-  image: string;
 }
 
 export const sortProducts = (products: Product[], sortBy: SortOption) => {

@@ -186,6 +186,9 @@ export default function Header() {
                       onChange={handleSearchChange}
                       onKeyPress={handleSearchKeyPress}
                       className="w-full pr-8 h-9 text-sm border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                      aria-label="Пошук товарів"
+                      aria-expanded={isSearchExpanded}
+                      role="searchbox"
                     />
                     {searchQuery && (
                       <Button
@@ -219,6 +222,8 @@ export default function Header() {
               onClick={handleSearchToggle}
               data-search-button
               className="md:hidden h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
+              aria-label="Відкрити пошук товарів"
+              title="Відкрити пошук товарів"
             >
               <Search className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
@@ -229,6 +234,8 @@ export default function Header() {
                 variant="ghost"
                 size="icon"
                 className="relative h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
+                aria-label={`Улюблені товари (${favoritesCount} товарів)`}
+                title="Перейти до улюблених товарів"
               >
                 <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
                 {favoritesCount > 0 && (
@@ -249,6 +256,8 @@ export default function Header() {
               size="icon"
               className="relative h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
               onClick={() => setIsCartDrawerOpen(true)}
+              aria-label={`Кошик покупок (${state.itemCount} товарів)`}
+              title="Відкрити кошик покупок"
             >
               <motion.div
                 animate={
@@ -324,6 +333,9 @@ export default function Header() {
                     onChange={handleSearchChange}
                     onKeyPress={handleSearchKeyPress}
                     className="w-full pr-8 h-10 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    aria-label="Пошук товарів"
+                    aria-expanded={isSearchExpanded}
+                    role="searchbox"
                   />
                   {searchQuery && (
                     <Button

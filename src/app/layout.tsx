@@ -5,6 +5,8 @@ import { CartProvider } from "@/context/CartContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { SearchProvider } from "@/context/SearchContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
+import { SITE_CONFIG, generateOrganizationStructuredData } from "@/lib/seo";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,12 +16,77 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap", // Optimize font loading
 });
 
 export const metadata: Metadata = {
-  title: "AntiBlackout - Енергетичні Рішення для Надзвичайних Ситуацій",
-  description:
-    "Купуйте павербанки, зарядні пристрої та аксесуари, щоб залишатися на зв'язку під час блекаутів. Надійні енергетичні рішення для надзвичайних ситуацій та повсякденного використання.",
+  title: {
+    default: SITE_CONFIG.name,
+    template: `%s | ${SITE_CONFIG.name}`,
+  },
+  description: SITE_CONFIG.description,
+  keywords: [
+    "павербанк",
+    "зарядний пристрій",
+    "енергія",
+    "блекаут",
+    "Україна",
+    "купити онлайн",
+    "електроенергія",
+    "зарядка телефону",
+    "портативна батарея",
+    "швидка зарядка",
+    "USB-C",
+    "Lightning",
+    "Qi зарядка",
+    "бездротова зарядка",
+  ],
+  authors: [{ name: SITE_CONFIG.name }],
+  creator: SITE_CONFIG.name,
+  publisher: SITE_CONFIG.name,
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL(SITE_CONFIG.url),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: SITE_CONFIG.type,
+    locale: SITE_CONFIG.locale,
+    url: SITE_CONFIG.url,
+    title: SITE_CONFIG.name,
+    description: SITE_CONFIG.description,
+    siteName: SITE_CONFIG.name,
+    images: [
+      {
+        url: SITE_CONFIG.ogImage,
+        width: 1200,
+        height: 630,
+        alt: SITE_CONFIG.name,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_CONFIG.name,
+    description: SITE_CONFIG.description,
+    images: [SITE_CONFIG.ogImage],
+    creator: SITE_CONFIG.twitterHandle,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   icons: {
     icon: [
       {
@@ -45,6 +112,11 @@ export const metadata: Metadata = {
     shortcut: "/favicon.svg",
   },
   manifest: "/site.webmanifest",
+  verification: {
+    // Add your verification codes here
+    // google: "your-google-verification-code",
+    // yandex: "your-yandex-verification-code",
+  },
 };
 
 export default function RootLayout({
@@ -52,8 +124,39 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const organizationStructuredData = generateOrganizationStructuredData();
+
   return (
     <html lang="uk">
+      <head>
+        {/* Preload critical fonts */}
+        <link
+          rel="preload"
+          href="/fonts/geist-sans.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/geist-mono.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+
+        {/* Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationStructuredData),
+          }}
+        />
+
+        {/* Preconnect to external domains */}
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -64,6 +167,20 @@ export default function RootLayout({
             </FavoritesProvider>
           </SearchProvider>
         </ToastProvider>
+
+        {/* Performance monitoring script */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"
+          strategy="lazyOnload"
+        />
+        <Script id="google-analytics" strategy="lazyOnload">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'GA_MEASUREMENT_ID');
+          `}
+        </Script>
       </body>
     </html>
   );

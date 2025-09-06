@@ -12,6 +12,7 @@ import { Battery, Zap, Shield, Truck } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useSearch } from "@/context/SearchContext";
 import productsData from "@/data/products.json";
+import { SITE_CONFIG } from "@/lib/seo";
 
 const features = [
   {
@@ -38,8 +39,12 @@ const features = [
 ];
 
 export default function Home() {
-  // Cast the imported JSON data to Product[]
-  const allProducts = productsData as Product[];
+  // Cast the imported JSON data to Product[] with proper type handling
+  const allProducts = productsData.map((product) => ({
+    ...product,
+    originalPrice: product.originalPrice || undefined,
+    badge: product.badge || undefined,
+  })) as Product[];
 
   // Search context
   const { searchQuery, clearSearch } = useSearch();
@@ -152,6 +157,28 @@ export default function Home() {
 
   return (
     <Layout>
+      {/* Structured Data for Homepage */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: SITE_CONFIG.name,
+            description: SITE_CONFIG.description,
+            url: SITE_CONFIG.url,
+            potentialAction: {
+              "@type": "SearchAction",
+              target: {
+                "@type": "EntryPoint",
+                urlTemplate: `${SITE_CONFIG.url}/?search={search_term_string}`,
+              },
+              "query-input": "required name=search_term_string",
+            },
+          }),
+        }}
+      />
+
       {/* Hero Section */}
       <section className="relative hero-gradient text-white overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
@@ -248,7 +275,7 @@ export default function Home() {
               {/* Products Grid */}
               {sortedProducts.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                  {sortedProducts.map((product, index) => (
+                  {sortedProducts.map((product: Product, index) => (
                     <div
                       key={product.id}
                       className="animate-slide-up"
