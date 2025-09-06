@@ -49,6 +49,37 @@ function OrderSuccessContent() {
     console.log("🧹 Cart automatically cleared after successful payment");
   };
 
+  const sendOrderEmails = async (orderData: any) => {
+    try {
+      console.log("📧 Sending order confirmation emails...");
+      
+      const response = await fetch("/api/create-order-after-payment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customerData: orderData.customerData,
+          items: orderData.items,
+          total: orderData.amount,
+          orderId: orderData.orderId,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("✅ Order created and emails sent:", result);
+        return true;
+      } else {
+        console.error("❌ Failed to send emails:", await response.text());
+        return false;
+      }
+    } catch (error) {
+      console.error("❌ Error sending emails:", error);
+      return false;
+    }
+  };
+
   const fetchOrderFromAPI = async (orderId: string) => {
     try {
       setIsLoading(true);
@@ -94,6 +125,9 @@ function OrderSuccessContent() {
 
           // Clear cart after successful order
           clearCart();
+          
+          // Send order confirmation emails
+          await sendOrderEmails(orderData);
 
           localStorage.removeItem(`pending_order_${orderId}`);
           localStorage.removeItem(`order_${orderId}`);
@@ -146,6 +180,30 @@ function OrderSuccessContent() {
 
         // Clear cart after successful order
         clearCart();
+        
+        // Send order confirmation emails
+        await sendOrderEmails({
+          customerData: {
+            name: order.customer_name || "Unknown Customer",
+            firstName: order.customer_name?.split(' ')[0] || "Unknown",
+            lastName: order.customer_name?.split(' ')[1] || "Customer",
+            phone: order.customer_phone || "",
+            email: order.customer_email || "",
+            address: order.branch || "",
+            paymentMethod: order.payment_method || "online",
+            city: order.city || "",
+            warehouse: order.branch || "",
+          },
+          items: order.order_items?.map((item: any) => ({
+            id: item.id || 0,
+            name: item.product_name || "Unknown Product",
+            price: item.price || 0,
+            quantity: item.quantity || 1,
+            image: "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
+          })) || [],
+          amount: order.total_amount || 0,
+          orderId: order.id,
+        });
       } else {
         console.error("Failed to fetch order data:", result.error);
         loadFallbackData();

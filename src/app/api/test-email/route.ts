@@ -4,7 +4,7 @@ import { sendOrderEmails } from "@/services/emailService";
 export async function POST(request: NextRequest) {
   try {
     console.log("🧪 Testing email sending...");
-    
+
     const testOrder = {
       id: "test-order-" + Date.now(),
       customerName: "Test Customer",
@@ -18,20 +18,20 @@ export async function POST(request: NextRequest) {
           productName: "Test Product",
           quantity: 1,
           price: 1000,
-        }
+        },
       ],
       total: 1000,
     };
 
     console.log("📧 Sending test emails...");
     const result = await sendOrderEmails(testOrder);
-    
+
     console.log("📧 Email result:", result);
-    
+
     return NextResponse.json({
       success: true,
       message: "Test emails sent",
-      result: result
+      result: result,
     });
   } catch (error) {
     console.error("❌ Test email error:", error);

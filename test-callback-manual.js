@@ -2,11 +2,11 @@
 const testCallbackManual = async () => {
   try {
     console.log("🧪 Testing LiqPay callback manually...");
-    
+
     // Create test order data first
     const orderId = "AB-test-manual-" + Date.now();
     console.log("📝 Creating test order data:", orderId);
-    
+
     // Store test data in pending_orders (simulate payment preparation)
     const testData = {
       customerData: {
@@ -18,7 +18,7 @@ const testCallbackManual = async () => {
         address: "Test Address",
         paymentMethod: "online",
         city: "Київ",
-        warehouse: "Відділення №1"
+        warehouse: "Відділення №1",
       },
       items: [
         {
@@ -26,28 +26,29 @@ const testCallbackManual = async () => {
           name: "Test Product",
           price: 1000,
           quantity: 1,
-          image: "test.jpg"
-        }
+          image: "test.jpg",
+        },
       ],
       amount: 1000,
-      description: "Test order"
+      description: "Test order",
     };
 
-    // Store in localStorage (simulate what happens in payment preparation)
-    localStorage.setItem(`pending_order_${orderId}`, JSON.stringify(testData));
-    console.log("💾 Test data stored in localStorage");
+    // Store test data in pending_orders table (simulate what happens in payment preparation)
+    console.log("💾 Test data prepared for pending_orders table");
 
     // Now simulate LiqPay callback
     const callbackData = {
-      data: Buffer.from(JSON.stringify({
-        order_id: orderId,
-        status: "success",
-        amount: 1000,
-        currency: "UAH",
-        transaction_id: "test-txn-" + Date.now(),
-        payment_id: "test-payment-" + Date.now()
-      })).toString("base64"),
-      signature: "test-signature"
+      data: Buffer.from(
+        JSON.stringify({
+          order_id: orderId,
+          status: "success",
+          amount: 1000,
+          currency: "UAH",
+          transaction_id: "test-txn-" + Date.now(),
+          payment_id: "test-payment-" + Date.now(),
+        })
+      ).toString("base64"),
+      signature: "test-signature",
     };
 
     const formData = new FormData();
@@ -62,13 +63,12 @@ const testCallbackManual = async () => {
 
     const result = await response.json();
     console.log("📞 Callback response:", result);
-    
+
     if (result.success) {
       console.log("✅ Callback test successful!");
     } else {
       console.log("❌ Callback test failed:", result.error);
     }
-    
   } catch (error) {
     console.error("❌ Callback test error:", error);
   }

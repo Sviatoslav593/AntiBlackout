@@ -1,6 +1,7 @@
 # Email Testing Guide - LiqPay Integration
 
 ## 🎯 **Current Status:**
+
 - ✅ Debug button removed
 - ✅ Automatic cart clearing implemented
 - 🔄 Email notifications need testing
@@ -8,6 +9,7 @@
 ## 🧪 **Email Testing Steps:**
 
 ### **1. Test Email Service Directly:**
+
 ```bash
 # Start dev server
 npm run dev
@@ -17,12 +19,14 @@ node test-email-simple.js
 ```
 
 ### **2. Test LiqPay Callback:**
+
 ```bash
 # Test callback manually
 node test-callback-manual.js
 ```
 
 ### **3. Test Full Payment Flow:**
+
 1. Go to checkout page
 2. Select "Оплата карткою онлайн"
 3. Fill in customer details
@@ -36,6 +40,7 @@ node test-callback-manual.js
 ## 🔍 **Debug Information:**
 
 ### **Console Logs to Check:**
+
 - `📧 Sending test emails...` - Email service working
 - `📞 LiqPay callback received` - Callback triggered
 - `✅ Order created successfully` - Order created
@@ -43,6 +48,7 @@ node test-callback-manual.js
 - `🧹 Cart automatically cleared` - Cart cleared
 
 ### **API Endpoints for Testing:**
+
 - `/api/test-email` - Test email service directly
 - `/api/payment-callback` - Test LiqPay callback
 - `/api/create-order-after-payment` - Test order creation
@@ -50,6 +56,7 @@ node test-callback-manual.js
 ## 🚀 **Expected Results:**
 
 ### **After Successful Payment:**
+
 - ✅ **Cart cleared automatically** (no manual button needed)
 - ✅ **Email sent to customer** (confirmation)
 - ✅ **Email sent to admin** (notification)
@@ -57,6 +64,7 @@ node test-callback-manual.js
 - ✅ **Order data displayed correctly**
 
 ### **Console Output:**
+
 ```
 🧹 Cart automatically cleared after successful payment
 📧 Confirmation emails sent for order [orderId]
@@ -66,17 +74,20 @@ node test-callback-manual.js
 ## 🐛 **Troubleshooting:**
 
 ### **If Emails Not Sent:**
+
 1. Check console logs for email errors
 2. Verify Resend API key is correct
 3. Test with `/api/test-email` endpoint
 4. Check email service configuration
 
 ### **If Cart Not Cleared:**
+
 1. Check console logs for cart clearing
 2. Verify order success page loads
 3. Check localStorage in browser dev tools
 
 ### **If Order Not Created:**
+
 1. Check console logs for order creation
 2. Verify Supabase connection
 3. Test with `/api/create-order-after-payment`
