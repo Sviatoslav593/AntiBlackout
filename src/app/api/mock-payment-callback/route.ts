@@ -17,7 +17,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`🧪 Mock LiqPay callback for order ${orderId} with status ${status}`);
+    console.log(
+      `🧪 Mock LiqPay callback for order ${orderId} with status ${status}`
+    );
 
     // Simulate LiqPay callback data
     const callbackData = {
@@ -61,8 +63,10 @@ export async function POST(request: NextRequest) {
       .digest("base64");
 
     // Send to our actual callback endpoint
-    const callbackUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/payment/callback`;
-    
+    const callbackUrl = `${
+      process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+    }/api/payment/callback`;
+
     const formData = new FormData();
     formData.append("data", data);
     formData.append("signature", signature);

@@ -3,18 +3,22 @@
 ## 🎯 **Problems Fixed:**
 
 ### **1. Email Timing Issue:**
+
 - ❌ **Before:** Email sent only after clicking "Return to site" button
 - ✅ **After:** Email sent immediately after successful payment via server-side callback
 
 ### **2. Order Data Persistence:**
+
 - ❌ **Before:** Order details disappeared after page refresh
 - ✅ **After:** Order data persists in database and loads correctly on refresh
 
 ### **3. Cart Clearing Timing:**
+
 - ❌ **Before:** Cart cleared before payment confirmation
 - ✅ **After:** Cart cleared only after successful payment confirmation
 
 ### **4. Sandbox Testing:**
+
 - ❌ **Before:** No way to test callback in sandbox mode
 - ✅ **After:** Mock callback simulation for local testing
 
@@ -49,7 +53,7 @@ const orderData = {
   branch: customerData.warehouse,
   payment_method: "online",
   total_amount: amount,
-  items: items.map(item => ({
+  items: items.map((item) => ({
     product_name: item.name,
     quantity: item.quantity,
     price: item.price,
@@ -150,6 +154,7 @@ node test-liqpay-integration.js
 ### **2. Manual Testing:**
 
 #### **Test LiqPay Payment:**
+
 1. Go to checkout page
 2. Select "Оплата карткою онлайн"
 3. Fill customer details
@@ -159,6 +164,7 @@ node test-liqpay-integration.js
 7. **Expected:** Email sent immediately, order created, cart cleared
 
 #### **Test Mock Callback:**
+
 ```bash
 # Test mock callback manually
 curl -X POST http://localhost:3000/api/mock-payment-callback \
@@ -167,6 +173,7 @@ curl -X POST http://localhost:3000/api/mock-payment-callback \
 ```
 
 #### **Test Order Persistence:**
+
 1. Complete LiqPay payment
 2. Go to order success page
 3. Refresh the page
@@ -195,6 +202,7 @@ curl http://localhost:3000/api/check-cart-clearing?orderId=AB-123
 ## 📊 **Database Schema:**
 
 ### **Orders Table:**
+
 ```sql
 CREATE TABLE orders (
   id TEXT PRIMARY KEY,
@@ -214,6 +222,7 @@ CREATE TABLE orders (
 ```
 
 ### **Pending Orders Table:**
+
 ```sql
 CREATE TABLE pending_orders (
   id TEXT PRIMARY KEY,
@@ -226,6 +235,7 @@ CREATE TABLE pending_orders (
 ```
 
 ### **Cart Clearing Events Table:**
+
 ```sql
 CREATE TABLE cart_clearing_events (
   id SERIAL PRIMARY KEY,
@@ -238,46 +248,55 @@ CREATE TABLE cart_clearing_events (
 ## 🔍 **API Endpoints:**
 
 ### **`POST /api/payment-prepare`**
+
 - **Purpose:** Prepare LiqPay payment
 - **Action:** Creates order with "pending" status, returns LiqPay data
 - **Body:** `{ amount, description, orderId, customerData, items }`
 
 ### **`POST /api/payment/callback`**
+
 - **Purpose:** LiqPay server callback
 - **Action:** Updates order to "paid", sends email, clears cart
 - **Security:** Signature verification required
 
 ### **`POST /api/mock-payment-callback`**
+
 - **Purpose:** Mock callback for testing
 - **Action:** Simulates LiqPay callback
 - **Body:** `{ orderId, status }`
 
 ### **`GET /api/order-success?orderId={id}`**
+
 - **Purpose:** Fetch order details
 - **Returns:** Order data with items and customer info
 
 ### **`GET /api/check-cart-clearing?orderId={id}`**
+
 - **Purpose:** Check if cart should be cleared
 - **Returns:** `{ shouldClear: boolean, clearingEvent: object }`
 
 ## ✅ **Benefits:**
 
 ### **1. Security:**
+
 - ✅ Server-side payment verification
 - ✅ Proper signature validation
 - ✅ No sensitive data on frontend
 
 ### **2. Reliability:**
+
 - ✅ Email sent only after payment confirmation
 - ✅ Order data persists in database
 - ✅ Cart cleared only after successful payment
 
 ### **3. User Experience:**
+
 - ✅ Immediate email delivery
 - ✅ Order data survives page refresh
 - ✅ Proper payment flow
 
 ### **4. Testing:**
+
 - ✅ Mock callback for sandbox testing
 - ✅ Complete test suite
 - ✅ Easy debugging

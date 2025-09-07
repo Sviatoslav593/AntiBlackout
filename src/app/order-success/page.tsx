@@ -111,7 +111,9 @@ function OrderSuccessContent() {
 
       // First, try to fetch order from database
       try {
-        const orderResponse = await fetch(`/api/order-success?orderId=${orderId}`);
+        const orderResponse = await fetch(
+          `/api/order-success?orderId=${orderId}`
+        );
         if (orderResponse.ok) {
           const orderResult = await orderResponse.json();
           if (orderResult.success && orderResult.order) {
@@ -122,13 +124,15 @@ function OrderSuccessContent() {
             setOrderNumber(order.id);
 
             // Convert order items to the expected format
-            const items: OrderItem[] = order.order_items?.map((item: any) => ({
-              id: item.id || 0,
-              name: item.product_name || "Unknown Product",
-              price: item.price || 0,
-              quantity: item.quantity || 1,
-              image: "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
-            })) || [];
+            const items: OrderItem[] =
+              order.order_items?.map((item: any) => ({
+                id: item.id || 0,
+                name: item.product_name || "Unknown Product",
+                price: item.price || 0,
+                quantity: item.quantity || 1,
+                image:
+                  "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
+              })) || [];
 
             setOrderItems(items);
 
@@ -138,7 +142,7 @@ function OrderSuccessContent() {
               phone: order.customer_phone || "",
               address: order.branch || "",
               email: order.customer_email || "",
-              paymentMethod: order.payment_method || "online",
+              paymentMethod: order.payment_method === "online" ? "online" : "cash_on_delivery",
               city: order.city || "",
               warehouse: order.branch || "",
             });

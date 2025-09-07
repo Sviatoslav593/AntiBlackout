@@ -70,11 +70,6 @@ export default function CheckoutPage() {
     try {
       setIsSubmitting(true);
 
-      // Generate unique order ID
-      const orderId = `AB-${Date.now()}-${Math.random()
-        .toString(36)
-        .substr(2, 9)}`;
-
       const customerData = {
         name: `${data.firstName} ${data.lastName}`,
         firstName: data.firstName,
@@ -84,7 +79,7 @@ export default function CheckoutPage() {
         address: data.warehouse
           ? getWarehouseDisplayName(data.warehouse)
           : data.customAddress || "",
-        paymentMethod: data.paymentMethod,
+        paymentMethod: data.paymentMethod === "online" ? "liqpay" : "cod",
         city: data.city?.Description || "",
         cityRef: data.city?.Ref || "",
         warehouse: data.warehouse
@@ -102,16 +97,39 @@ export default function CheckoutPage() {
         image: item.image,
       }));
 
-      console.log("Preparing order:", {
-        orderId,
+      console.log("Creating order:", {
         customerData,
         items,
         total: state.total,
+        paymentMethod: customerData.paymentMethod,
       });
 
-      // If payment method is online, show LiqPay form
-      if (data.paymentMethod === "online") {
-        setOrderId(orderId);
+      // Create order using new API
+      const response = await fetch("/api/order/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customerData,
+          items,
+          totalAmount: state.total,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const result = await response.json();
+      console.log("Order created successfully:", result);
+
+      if (result.paymentMethod === "liqpay") {
+        // For LiqPay, show payment form
+        setOrderId(result.orderId);
         setShowLiqPayForm(true);
 
         // Smooth scroll to payment form
@@ -125,41 +143,13 @@ export default function CheckoutPage() {
           }
         }, 100);
       } else {
-        // For cash on delivery, create order immediately
-        const orderData = {
-          customer: customerData,
-          items: items,
-          total: state.total,
-          subtotal: state.total,
-          orderDate: new Date().toISOString(),
-        };
-
-        console.log("Creating cash on delivery order:", orderData);
-
-        const response = await fetch("/api/order", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(orderData),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            errorData.error || `HTTP error! status: ${response.status}`
-          );
-        }
-
-        const result = await response.json();
-        console.log("Order submitted successfully:", result);
-
+        // For COD, order is already paid and email sent
         // Clear cart and redirect to success page
         clearCart();
 
         // Encode order data for URL
         const orderSuccessData = {
-          orderId: result.orderId || orderId,
+          orderId: result.orderId,
           items: items,
           customerInfo: customerData,
           total: state.total,
@@ -184,8 +174,8 @@ export default function CheckoutPage() {
         );
       }
     } catch (error) {
-      console.error("Failed to submit order:", error);
-      alert("Помилка при оформленні замовлення. Спробуйте ще раз.");
+      console.error("Failed to create order:", error);
+      setError(getErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }

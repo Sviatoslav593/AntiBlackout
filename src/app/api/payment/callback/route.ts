@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createServerSupabaseClient } from "@/lib/supabase";
-import { OrderService } from "@/services/orders";
 import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
 
 interface LiqPayCallbackData {
@@ -106,11 +105,12 @@ async function processPaymentCallback(callbackData: LiqPayCallbackData) {
       );
       await handleSuccessfulPayment(callbackData);
     } else {
-      // Payment failed - log the failure
+      // Payment failed - update order status to failed
       console.log(`❌ Payment failed for order ${callbackData.order_id}:`, {
         status: callbackData.status,
         error: callbackData.err_description,
       });
+      await handleFailedPayment(callbackData);
     }
   } catch (error) {
     console.error("❌ Error processing payment callback:", error);
@@ -124,113 +124,17 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
     
     const supabase = createServerSupabaseClient();
 
-    // First, try to get the pending order from pending_orders table
-    const { data: pendingOrder, error: pendingError } = await supabase
-      .from("pending_orders")
+    // Find existing order in orders table
+    const { data: existingOrder, error: orderError } = await supabase
+      .from("orders")
       .select("*")
       .eq("id", callbackData.order_id)
       .single();
 
-    if (pendingError || !pendingOrder) {
-      console.log(
-        "⚠️ Pending order not found, trying to find existing order"
-      );
-      
-      // Try to find existing order in orders table
-      const { data: existingOrder, error: orderError } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("id", callbackData.order_id)
-        .single();
-
-      if (existingOrder) {
-        // Update existing order status
-        await updateOrderStatus(existingOrder, callbackData);
-        return;
-      } else {
-        console.error("❌ No pending or existing order found for:", callbackData.order_id);
-        return;
-      }
+    if (orderError || !existingOrder) {
+      console.error("❌ Order not found for:", callbackData.order_id);
+      return;
     }
-
-    // Use pending order data to create final order
-    const customerData = pendingOrder.customer_data;
-    const items = pendingOrder.items;
-
-    const orderData = {
-      customer_name: customerData.name || "Customer",
-      customer_email: customerData.email || "customer@example.com",
-      customer_phone: customerData.phone || callbackData.sender_phone || "+380000000000",
-      city: customerData.city || "Київ",
-      branch: customerData.warehouse || customerData.address || "Відділення №1",
-      payment_method: "online",
-      total_amount: pendingOrder.amount || callbackData.amount || 0,
-      items: items.map((item: any) => ({
-        product_name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-      })),
-      status: "paid",
-      payment_status: callbackData.status,
-      payment_id: callbackData.payment_id || callbackData.transaction_id,
-    };
-
-    // Create final order in Supabase
-    const order = await OrderService.createOrder(orderData);
-    console.log(`✅ Final order created: ${order.id}`);
-
-    // Clean up pending order
-    try {
-      await supabase
-        .from("pending_orders")
-        .delete()
-        .eq("id", callbackData.order_id);
-      console.log(`🧹 Pending order cleaned up: ${callbackData.order_id}`);
-    } catch (cleanupError) {
-      console.error("⚠️ Error cleaning up pending order:", cleanupError);
-    }
-
-    // Send confirmation emails
-    try {
-      const emailOrder = formatOrderForEmail(order);
-      await sendOrderEmails(emailOrder);
-      console.log(`📧 Confirmation emails sent for order ${order.id}`);
-    } catch (emailError) {
-      console.error("⚠️ Email sending failed (non-critical):", emailError);
-    }
-
-    // Create cart clearing event
-    try {
-      await supabase
-        .from("cart_clearing_events")
-        .insert({
-          order_id: callbackData.order_id,
-          cleared_at: new Date().toISOString(),
-        });
-      console.log(`🧹 Cart clearing event created for order ${callbackData.order_id}`);
-    } catch (clearError) {
-      console.error("⚠️ Error creating cart clearing event:", clearError);
-    }
-
-    // Log payment details
-    console.log(`💰 Payment successful for order ${callbackData.order_id}:`, {
-      amount: callbackData.amount,
-      currency: callbackData.currency,
-      paymentId: callbackData.payment_id,
-      transactionId: callbackData.transaction_id,
-      orderId: order.id,
-    });
-  } catch (error) {
-    console.error("❌ Error handling successful payment:", error);
-    throw error;
-  }
-}
-
-async function updateOrderStatus(existingOrder: any, callbackData: LiqPayCallbackData) {
-  try {
-    console.log(`🔄 Updating existing order status for ${callbackData.order_id}`);
-    
-    const supabase = createServerSupabaseClient();
 
     // Update order status to paid
     const { error: updateError } = await supabase
@@ -254,7 +158,7 @@ async function updateOrderStatus(existingOrder: any, callbackData: LiqPayCallbac
     try {
       const emailOrder = formatOrderForEmail(existingOrder);
       await sendOrderEmails(emailOrder);
-      console.log(`📧 Confirmation emails sent for existing order ${callbackData.order_id}`);
+      console.log(`📧 Confirmation emails sent for order ${callbackData.order_id}`);
     } catch (emailError) {
       console.error("⚠️ Email sending failed (non-critical):", emailError);
     }
@@ -267,12 +171,55 @@ async function updateOrderStatus(existingOrder: any, callbackData: LiqPayCallbac
           order_id: callbackData.order_id,
           cleared_at: new Date().toISOString(),
         });
-      console.log(`🧹 Cart clearing event created for existing order ${callbackData.order_id}`);
+      console.log(`🧹 Cart clearing event created for order ${callbackData.order_id}`);
     } catch (clearError) {
       console.error("⚠️ Error creating cart clearing event:", clearError);
     }
+
+    // Log payment details
+    console.log(`💰 Payment successful for order ${callbackData.order_id}:`, {
+      amount: callbackData.amount,
+      currency: callbackData.currency,
+      paymentId: callbackData.payment_id,
+      transactionId: callbackData.transaction_id,
+    });
   } catch (error) {
-    console.error("❌ Error updating order status:", error);
+    console.error("❌ Error handling successful payment:", error);
+    throw error;
+  }
+}
+
+async function handleFailedPayment(callbackData: LiqPayCallbackData) {
+  try {
+    console.log(`🔄 Handling failed payment for ${callbackData.order_id}`);
+    
+    const supabase = createServerSupabaseClient();
+
+    // Update order status to failed
+    const { error: updateError } = await supabase
+      .from("orders")
+      .update({
+        status: "failed",
+        payment_status: callbackData.status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", callbackData.order_id);
+
+    if (updateError) {
+      console.error("❌ Error updating order status to failed:", updateError);
+      return;
+    }
+
+    console.log(`❌ Order status updated to failed for ${callbackData.order_id}`);
+
+    // Log failure details
+    console.log(`💸 Payment failed for order ${callbackData.order_id}:`, {
+      status: callbackData.status,
+      error: callbackData.err_description,
+      errorCode: callbackData.err_code,
+    });
+  } catch (error) {
+    console.error("❌ Error handling failed payment:", error);
     throw error;
   }
 }
