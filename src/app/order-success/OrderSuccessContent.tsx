@@ -62,7 +62,7 @@ export default function OrderSuccessContent() {
 
   useEffect(() => {
     if (!searchParams) return;
-    
+
     const orderId = searchParams.get("orderId");
 
     if (!orderId) {
@@ -104,6 +104,16 @@ export default function OrderSuccessContent() {
         throw new Error("Invalid order data received");
       }
 
+      // Log items for debugging
+      if (orderData.items) {
+        console.log("🖼️ API items with images:", orderData.items.map((item: any) => ({
+          id: item.id,
+          name: item.product_name,
+          image: item.product_image,
+          hasImage: !!item.product_image
+        })));
+      }
+
       setOrder(orderData);
 
       // Clear cart for online payments with status "paid"
@@ -119,14 +129,14 @@ export default function OrderSuccessContent() {
       localStorageUtils.clearPendingOrder();
     } catch (error) {
       console.error("❌ Error fetching order from API:", error);
-      
+
       // Try to load from localStorage as fallback
       console.log("🔄 Attempting to load order from localStorage...");
       const orderData = localStorageUtils.consumePendingOrder(orderId);
-      
+
       if (orderData) {
         console.log("✅ Order loaded from localStorage:", orderData);
-        
+
         // Transform localStorage data to match API format
         const transformedOrder: Order = {
           id: orderData.orderId,
@@ -140,19 +150,27 @@ export default function OrderSuccessContent() {
           total_amount: orderData.totalAmount,
           created_at: orderData.createdAt,
           updated_at: orderData.createdAt,
-          items: orderData.items.map((item: any) => ({
-            id: item.id,
-            product_name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-            subtotal: item.price * item.quantity,
-            product_image: item.image_url,
-          })),
+          items: orderData.items.map((item: any) => {
+            console.log("🖼️ Processing item for display:", {
+              id: item.id,
+              name: item.name,
+              image_url: item.image_url,
+              hasImage: !!item.image_url
+            });
+            return {
+              id: item.id,
+              product_name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              subtotal: item.price * item.quantity,
+              product_image: item.image_url,
+            };
+          }),
         };
-        
+
         setOrder(transformedOrder);
         setError(null);
-        
+
         // Clear cart for localStorage fallback (online payment)
         console.log("🧹 Online payment fallback - clearing cart");
         clearCart();
@@ -183,23 +201,43 @@ export default function OrderSuccessContent() {
   }
 
   if (error) {
+    const orderId = searchParams?.get("orderId");
+    
     return (
       <Layout>
         <div className="container py-8 sm:py-12">
           <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
             <div className="text-center">
-              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                <Package className="w-8 h-8 text-red-600" />
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-4">
-                Помилка завантаження замовлення
+                Дякуємо за ваше замовлення!
               </h1>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto mt-2">
-                {error}
+              {orderId && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block mt-4">
+                  <p className="text-blue-800 font-medium">
+                    Номер замовлення: <span className="font-bold">{orderId}</span>
+                  </p>
+                </div>
+              )}
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto mt-4">
+                Ваше замовлення успішно прийнято та обробляється. 
+                Детальна інформація про замовлення буде надіслана на вашу електронну пошту 
+                протягом найближчих хвилин.
               </p>
-              <div className="mt-6">
-                <Button asChild>
-                  <Link href="/">Повернутися на головну</Link>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-6 max-w-2xl mx-auto">
+                <p className="text-amber-800 text-sm">
+                  <strong>Що далі?</strong> Наші менеджери оброблять ваше замовлення протягом 1-2 робочих днів. 
+                  Ви отримаєте SMS-повідомлення з номером накладної для відстеження доставки.
+                </p>
+              </div>
+              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                <Button asChild className="w-full sm:w-auto">
+                  <Link href="/">Продовжити покупки</Link>
+                </Button>
+                <Button variant="outline" asChild className="w-full sm:w-auto">
+                  <Link href="/contacts">Зв'язатися з нами</Link>
                 </Button>
               </div>
             </div>
@@ -210,23 +248,43 @@ export default function OrderSuccessContent() {
   }
 
   if (!order) {
+    const orderId = searchParams?.get("orderId");
+    
     return (
       <Layout>
         <div className="container py-8 sm:py-12">
           <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
             <div className="text-center">
-              <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                <Package className="w-8 h-8 text-gray-600" />
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-4">
-                Замовлення не знайдено
+                Дякуємо за ваше замовлення!
               </h1>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto mt-2">
-                Замовлення з таким ID не існує або було видалено.
+              {orderId && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block mt-4">
+                  <p className="text-blue-800 font-medium">
+                    Номер замовлення: <span className="font-bold">{orderId}</span>
+                  </p>
+                </div>
+              )}
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto mt-4">
+                Ваше замовлення успішно прийнято та обробляється. 
+                Детальна інформація про замовлення буде надіслана на вашу електронну пошту 
+                протягом найближчих хвилин.
               </p>
-              <div className="mt-6">
-                <Button asChild>
-                  <Link href="/">Повернутися на головну</Link>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-6 max-w-2xl mx-auto">
+                <p className="text-amber-800 text-sm">
+                  <strong>Що далі?</strong> Наші менеджери оброблять ваше замовлення протягом 1-2 робочих днів. 
+                  Ви отримаєте SMS-повідомлення з номером накладної для відстеження доставки.
+                </p>
+              </div>
+              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                <Button asChild className="w-full sm:w-auto">
+                  <Link href="/">Продовжити покупки</Link>
+                </Button>
+                <Button variant="outline" asChild className="w-full sm:w-auto">
+                  <Link href="/contacts">Зв'язатися з нами</Link>
                 </Button>
               </div>
             </div>
