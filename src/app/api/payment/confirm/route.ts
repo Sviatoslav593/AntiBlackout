@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 export async function POST(request: NextRequest) {
   try {
     console.log("🔄 Confirming payment...");
-    
+
     const body = await request.json();
     const { orderId, paymentData } = body;
 
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       .update({
         status: "paid",
         payment_status: "success",
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq("id", orderId)
       .select()
@@ -38,10 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!orderData) {
-      return NextResponse.json(
-        { error: "Order not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
     console.log("✅ Payment confirmed for order:", orderData.id);
@@ -52,7 +49,6 @@ export async function POST(request: NextRequest) {
       status: orderData.status,
       message: "Payment confirmed successfully",
     });
-
   } catch (error) {
     console.error("❌ Error confirming payment:", error);
     return NextResponse.json(

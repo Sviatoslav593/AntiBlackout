@@ -119,6 +119,9 @@ export default function CheckoutPage() {
             throw new Error(result.error || "Failed to create payment session");
           }
 
+          console.log("✅ LiqPay session created:", result);
+          console.log("📋 OrderId from LiqPay:", result.orderId);
+
           // Then create pending order in database
           const pendingResponse = await fetch("/api/order/create-pending", {
             method: "POST",
@@ -133,9 +136,14 @@ export default function CheckoutPage() {
             }),
           });
 
+          console.log("📋 Pending order response status:", pendingResponse.status);
+
           if (!pendingResponse.ok) {
             const pendingError = await pendingResponse.json();
-            throw new Error(pendingError.error || "Failed to create pending order");
+            console.error("❌ Pending order creation failed:", pendingError);
+            throw new Error(
+              pendingError.error || "Failed to create pending order"
+            );
           }
 
           console.log("✅ Pending order created in database");

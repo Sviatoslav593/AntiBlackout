@@ -7,7 +7,7 @@ import { validateProductExists } from "@/services/productMapping";
 export async function POST(request: NextRequest) {
   try {
     console.log("🔄 Creating order after successful payment...");
-    
+
     const body = await request.json();
     const { orderId, customerData, items, totalAmount } = body;
 
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       orderId,
       customerName: customerData.name,
       totalAmount,
-      itemsCount: items.length
+      itemsCount: items.length,
     });
 
     // Check if order already exists
@@ -34,14 +34,14 @@ export async function POST(request: NextRequest) {
 
     if (existingOrder) {
       console.log("⚠️ Order already exists, updating status...");
-      
+
       // Update order status to paid
       const { error: updateError } = await supabaseAdmin
         .from("orders")
         .update({
           status: "paid",
           payment_status: "success",
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq("id", orderId);
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Create new order
       console.log("🔄 Creating new order...");
-      
+
       const { data: orderData, error: orderError } = await supabaseAdmin
         .from("orders")
         .insert([
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
 
       // Create order items
       console.log("🔄 Creating order items...");
-      
+
       const orderItems = [];
       for (const item of items) {
         const productUUID = getProductUUID(item);
@@ -179,7 +179,10 @@ export async function POST(request: NextRequest) {
       });
       console.log("🧹 Cart clearing event created");
     } catch (clearError) {
-      console.error("⚠️ Cart clearing event failed (non-critical):", clearError);
+      console.error(
+        "⚠️ Cart clearing event failed (non-critical):",
+        clearError
+      );
     }
 
     return NextResponse.json({
@@ -187,7 +190,6 @@ export async function POST(request: NextRequest) {
       orderId,
       message: "Order created and confirmed successfully",
     });
-
   } catch (error) {
     console.error("❌ Error in create-after-payment:", error);
     return NextResponse.json(

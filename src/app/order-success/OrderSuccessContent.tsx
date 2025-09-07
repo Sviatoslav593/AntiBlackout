@@ -134,7 +134,9 @@ export default function OrderSuccessContent() {
       console.error("❌ Error fetching order from API:", error);
 
       // Try to load from localStorage and confirm payment
-      console.log("🔄 Attempting to load order from localStorage and confirm payment...");
+      console.log(
+        "🔄 Attempting to load order from localStorage and confirm payment..."
+      );
       const orderData = localStorageUtils.consumePendingOrder(orderId);
 
       if (orderData) {
@@ -142,23 +144,28 @@ export default function OrderSuccessContent() {
 
         // Confirm payment and create order in database
         try {
-          console.log("🔄 Confirming payment and creating order in database...");
-          const confirmResponse = await fetch("/api/order/create-after-payment", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              orderId: orderData.orderId,
-              customerData: orderData.customerData,
-              items: orderData.items,
-              totalAmount: orderData.totalAmount,
-            }),
-          });
+          console.log(
+            "🔄 Confirming payment and creating order in database..."
+          );
+          const confirmResponse = await fetch(
+            "/api/order/create-after-payment",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                orderId: orderData.orderId,
+                customerData: orderData.customerData,
+                items: orderData.items,
+                totalAmount: orderData.totalAmount,
+              }),
+            }
+          );
 
           if (confirmResponse.ok) {
             console.log("✅ Payment confirmed and order created in database");
-            
+
             // Now fetch the order from database
             const dbResponse = await fetch(
               `/api/order/get?orderId=${orderId}`,
@@ -179,7 +186,10 @@ export default function OrderSuccessContent() {
               return;
             }
           } else {
-            console.error("❌ Failed to confirm payment:", await confirmResponse.json());
+            console.error(
+              "❌ Failed to confirm payment:",
+              await confirmResponse.json()
+            );
           }
         } catch (confirmError) {
           console.error("❌ Error confirming payment:", confirmError);
