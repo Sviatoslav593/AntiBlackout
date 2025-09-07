@@ -7,9 +7,12 @@ export async function POST(request: NextRequest) {
     console.log("🔄 Confirming payment...");
 
     const body = await request.json();
+    console.log("📋 Payment confirm request body:", body);
+    
     const { orderId, paymentData } = body;
 
     if (!orderId) {
+      console.error("❌ No orderId provided in request");
       return NextResponse.json(
         { error: "Order ID is required" },
         { status: 400 }

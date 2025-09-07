@@ -139,10 +139,10 @@ export default function OrderSuccessContent() {
           if (updateResponse.ok) {
             console.log("✅ Order status updated to paid");
           } else {
-            console.error(
-              "❌ Failed to update order status:",
-              await updateResponse.json()
-            );
+            const errorData = await updateResponse.json();
+            console.error("❌ Failed to update order status:", errorData);
+            console.error("❌ Response status:", updateResponse.status);
+            console.error("❌ Response headers:", Object.fromEntries(updateResponse.headers.entries()));
           }
         } catch (updateError) {
           console.error("❌ Error updating order status:", updateError);

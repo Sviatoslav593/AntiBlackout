@@ -377,8 +377,22 @@ export async function POST(request: NextRequest) {
           total: totalAmount,
         };
 
-        await sendOrderEmails(emailOrder);
-        console.log("✅ Online order confirmation emails sent successfully");
+        console.log("📧 Sending email with order data:", JSON.stringify(emailOrder, null, 2));
+        
+        const emailResult = await sendOrderEmails(emailOrder);
+        console.log("📧 Email sending result:", emailResult);
+        
+        if (emailResult.customerEmail.success) {
+          console.log("✅ Online order confirmation emails sent successfully");
+        } else {
+          console.error("❌ Customer email failed:", emailResult.customerEmail.error);
+        }
+        
+        if (emailResult.adminEmail.success) {
+          console.log("✅ Admin email sent successfully");
+        } else {
+          console.error("❌ Admin email failed:", emailResult.adminEmail.error);
+        }
 
         // Create cart clearing event
         console.log("🧹 Creating cart clearing event for online order...");
