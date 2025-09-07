@@ -26,7 +26,23 @@ export async function GET(req: NextRequest) {
 
     if (orderErr) {
       console.error("[/api/order/get] order error:", orderErr);
-      return new Response(JSON.stringify({ error: "Order not found" }), {
+      console.error("[/api/order/get] orderId searched:", orderId);
+      console.error("[/api/order/get] orderId type:", typeof orderId);
+      
+      // Try to find any orders with similar ID
+      const { data: similarOrders } = await supabaseAdmin
+        .from("orders")
+        .select("id, customer_name, status, payment_method")
+        .limit(5);
+      
+      console.error("[/api/order/get] Available orders:", similarOrders);
+      
+      return new Response(JSON.stringify({ 
+        error: "Order not found", 
+        details: orderErr.message,
+        searchedId: orderId,
+        availableOrders: similarOrders?.map(o => ({ id: o.id, status: o.status, payment_method: o.payment_method }))
+      }), {
         status: 404,
       });
     }
