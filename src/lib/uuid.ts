@@ -21,13 +21,15 @@ export function isValidUUID(uuid: string): boolean {
  */
 export function numericIdToUUID(numericId: number): string {
   const databaseId = getProductDatabaseId(numericId);
-  
+
   if (databaseId) {
     return databaseId;
   }
-  
+
   // Fallback: generate new UUID if no mapping found
-  console.warn(`⚠️ No database mapping found for product ID ${numericId}, generating new UUID`);
+  console.warn(
+    `⚠️ No database mapping found for product ID ${numericId}, generating new UUID`
+  );
   return generateUUID();
 }
 

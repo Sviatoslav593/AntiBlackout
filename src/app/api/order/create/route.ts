@@ -191,19 +191,23 @@ export async function POST(request: NextRequest) {
 
     // 2) Validate and prepare order items
     console.log("🔍 Validating product IDs before inserting order items...");
-    
+
     const itemsInsert = [];
     for (const item of items) {
       // Convert numeric ID to UUID if needed
       const productUUID = getProductUUID(item);
-      
-      console.log(`🔄 Converting product ID ${item.id} to UUID: ${productUUID}`);
-      
+
+      console.log(
+        `🔄 Converting product ID ${item.id} to UUID: ${productUUID}`
+      );
+
       // Validate that the product exists in the database
       const productExists = await validateProductExists(productUUID);
-      
+
       if (!productExists) {
-        console.error(`❌ Product with ID ${productUUID} does not exist in database`);
+        console.error(
+          `❌ Product with ID ${productUUID} does not exist in database`
+        );
         return NextResponse.json(
           {
             error: "Invalid product",
@@ -212,9 +216,9 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      
+
       console.log(`✅ Product ${item.id} validated successfully`);
-      
+
       itemsInsert.push({
         order_id: orderData.id,
         product_id: productUUID,
@@ -222,6 +226,7 @@ export async function POST(request: NextRequest) {
         price: item.price, // if "price" column exists
         product_price: item.price, // if only "product_price" exists
         quantity: item.quantity,
+        product_image: item.image || null, // Store product image
       });
     }
 
@@ -274,7 +279,7 @@ export async function POST(request: NextRequest) {
           console.log("📧 Sending COD confirmation emails...");
           const emailOrder = formatOrderForEmail({
             ...orderData,
-            items: items.map((item) => ({
+            order_items: items.map((item) => ({
               product_name: item.name,
               quantity: item.quantity,
               price: item.price,

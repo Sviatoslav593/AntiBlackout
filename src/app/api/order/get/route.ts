@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     // 2) Fetch items from order_items
     const { data: itemsData, error: itemsErr } = await supabaseAdmin
       .from("order_items")
-      .select("id, product_name, quantity, price, product_price")
+      .select("id, product_name, quantity, price, product_price, product_image")
       .eq("order_id", orderId)
       .order("created_at", { ascending: true });
 
@@ -51,6 +51,7 @@ export async function GET(req: NextRequest) {
         quantity: i.quantity,
         price: Number(unitPrice),
         subtotal: Number(unitPrice) * Number(i.quantity),
+        product_image: i.product_image || null, // Include product image
       };
     });
 

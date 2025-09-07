@@ -24,6 +24,7 @@ interface OrderItem {
   quantity: number;
   price: number;
   subtotal: number;
+  product_image?: string;
 }
 
 interface Order {
@@ -287,8 +288,18 @@ function OrderContent() {
                       key={item.id || index}
                       className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                     >
-                      <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-200 rounded-md flex items-center justify-center">
-                        <Package className="h-6 w-6 text-gray-500" />
+                      <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-200 rounded-md overflow-hidden">
+                        {item.product_image ? (
+                          <img
+                            src={item.product_image}
+                            alt={item.product_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="h-6 w-6 text-gray-500" />
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm sm:text-base truncate">

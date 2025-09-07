@@ -94,57 +94,17 @@ export default function CheckoutPage() {
         image: item.image,
       }));
 
-      console.log("Creating order:", {
-        customerData,
-        items,
-        total: state.total,
-        paymentMethod: customerData.paymentMethod,
-      });
-
-      // Create order using new API
-      const response = await fetch("/api/order/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      if (customerData.paymentMethod === "online") {
+        // For online payment, don't create order yet - just show payment form
+        // Store order data in localStorage for later creation after payment
+        const orderData = {
           customerData,
           items,
           totalAmount: state.total,
-        }),
-      });
-
-      if (!response.ok) {
-        let errorData;
-        try {
-          errorData = await response.json();
-        } catch (parseError) {
-          console.error("Failed to parse error response:", parseError);
-          errorData = { error: `HTTP error! status: ${response.status}` };
-        }
-
-        const errorMessage =
-          errorData.details ||
-          errorData.error ||
-          `HTTP error! status: ${response.status}`;
-        console.error("Order creation failed:", {
-          status: response.status,
-          error: errorData.error,
-          details: errorData.details,
-          missing: errorData.missing,
-        });
-        throw new Error(errorMessage);
-      }
-
-      const result = await response.json();
-      console.log("Order created successfully:", result);
-
-      // Store orderId in localStorage for backup
-      localStorage.setItem("lastOrderId", result.orderId);
-
-      if (result.paymentMethod === "online") {
-        // For online payment, show payment form
-        setOrderId(result.orderId);
+        };
+        
+        localStorage.setItem("pendingOrderData", JSON.stringify(orderData));
+        setOrderId("pending"); // Temporary ID for UI
         setShowLiqPayForm(true);
 
         // Smooth scroll to payment form
@@ -158,13 +118,56 @@ export default function CheckoutPage() {
           }
         }, 100);
       } else {
-        // For COD, order is already confirmed and email sent
-        // Clear cart and redirect to order page
-        clearCart();
+        // For COD, create order immediately
+        console.log("Creating COD order:", {
+          customerData,
+          items,
+          total: state.total,
+          paymentMethod: customerData.paymentMethod,
+        });
 
-        // Store order ID in localStorage for backup
+        const response = await fetch("/api/order/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            customerData,
+            items,
+            totalAmount: state.total,
+          }),
+        });
+
+        if (!response.ok) {
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch (parseError) {
+            console.error("Failed to parse error response:", parseError);
+            errorData = { error: `HTTP error! status: ${response.status}` };
+          }
+
+          const errorMessage =
+            errorData.details ||
+            errorData.error ||
+            `HTTP error! status: ${response.status}`;
+          console.error("Order creation failed:", {
+            status: response.status,
+            error: errorData.error,
+            details: errorData.details,
+            missing: errorData.missing,
+          });
+          throw new Error(errorMessage);
+        }
+
+        const result = await response.json();
+        console.log("COD Order created successfully:", result);
+
+        // Store orderId in localStorage for backup
         localStorage.setItem("lastOrderId", result.orderId);
 
+        // Clear cart and redirect to order page
+        clearCart();
         router.push(`/order?orderId=${result.orderId}`);
       }
     } catch (error) {
@@ -489,70 +492,52 @@ export default function CheckoutPage() {
                     );
                   }}
                   onPaymentSuccess={async () => {
-                    console.log(
-                      "✅ LiqPay payment successful for order:",
-                      orderId
-                    );
-
-                    // Finalize the order after successful payment
+                    console.log("✅ LiqPay payment successful, creating order...");
+                    
+                    // Get pending order data from localStorage
+                    const pendingOrderData = localStorage.getItem("pendingOrderData");
+                    
+                    if (!pendingOrderData) {
+                      console.error("❌ No pending order data found");
+                      setError("Помилка: дані замовлення не знайдено");
+                      return;
+                    }
+                    
                     try {
-                      const finalizeResponse = await fetch(
-                        "/api/order/finalize",
-                        {
-                          method: "POST",
-                          headers: {
-                            "Content-Type": "application/json",
-                          },
-                          body: JSON.stringify({
-                            orderId,
-                            customerData: {
-                              name: `${firstName} ${lastName}`,
-                              firstName,
-                              lastName,
-                              phone,
-                              email,
-                              paymentMethod: "liqpay",
-                              city: city?.Description || "",
-                              branch: warehouse
-                                ? getWarehouseDisplayName(warehouse)
-                                : "",
-                            },
-                            items: state.items.map((item) => ({
-                              id: item.id,
-                              name: item.name,
-                              price: item.price,
-                              quantity: item.quantity,
-                              image: item.image,
-                            })),
-                            totalAmount: state.total,
-                          }),
-                        }
-                      );
+                      const orderData = JSON.parse(pendingOrderData);
+                      
+                      // Create order after successful payment
+                      const response = await fetch("/api/order/create", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(orderData),
+                      });
 
-                      const finalizeResult = await finalizeResponse.json();
-
-                      if (finalizeResult.success) {
-                        console.log("✅ Order finalized successfully");
+                      const result = await response.json();
+                      
+                      if (response.ok && result.success) {
+                        console.log("✅ Order created successfully after payment");
+                        
+                        // Clear pending data
+                        localStorage.removeItem("pendingOrderData");
+                        
+                        // Clear cart
                         clearCart();
-
+                        
                         // Store order ID in localStorage for backup
-                        localStorage.setItem("lastOrderId", orderId);
-
-                        router.push(`/order?orderId=${orderId}`);
+                        localStorage.setItem("lastOrderId", result.orderId);
+                        
+                        // Redirect to order page
+                        router.push(`/order?orderId=${result.orderId}`);
                       } else {
-                        console.error(
-                          "❌ Failed to finalize order:",
-                          finalizeResult.error
-                        );
-                        // Still redirect to order page even if finalization failed
-                        clearCart();
-                        router.push(`/order?orderId=${orderId}`);
+                        console.error("❌ Failed to create order:", result.error);
+                        setError(`Помилка створення замовлення: ${result.error}`);
                       }
                     } catch (error) {
-                      console.error("❌ Error finalizing order:", error);
-                      // Still redirect to order page even if finalization failed
-                      clearCart();
-                      router.push(`/order?orderId=${orderId}`);
+                      console.error("❌ Error creating order:", error);
+                      setError("Помилка створення замовлення");
                     }
                   }}
                   onPaymentError={(error) => {
