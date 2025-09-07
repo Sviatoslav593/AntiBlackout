@@ -1,10 +1,18 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Initialize Supabase client with proper error handling
+const getSupabaseClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    console.error("Missing Supabase environment variables");
+    return null;
+  }
+  
+  return createClient(supabaseUrl, supabaseKey);
+};
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,44 +20,44 @@ export async function GET(req: NextRequest) {
     const orderId = searchParams.get("orderId");
     
     if (!orderId) {
-      console.error("[/api/order/get] Missing orderId parameter");
       return new Response(JSON.stringify({ error: "orderId is required" }), { status: 400 });
     }
 
     console.log("[/api/order/get] Fetching order with ID:", orderId);
 
-    // JOIN order_items via PostgREST relational select
-    const { data, error } = await supabase
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return new Response(
+        JSON.stringify({ error: "Database not available" }),
+        { status: 500 }
+      );
+    }
+
+    // Fetch order base
+    const { data: order, error: orderErr } = await supabase
       .from("orders")
-      .select(`
-        id, 
-        customer_name, 
-        customer_email, 
-        customer_phone, 
-        city, 
-        branch, 
-        payment_method, 
-        status, 
-        total_amount, 
-        created_at,
-        updated_at,
-        order_items(id, product_name, quantity, price)
-      `)
+      .select("id, customer_name, customer_email, customer_phone, city, branch, payment_method, status, total_amount, created_at, updated_at")
       .eq("id", orderId)
       .single();
 
-    if (error) {
-      console.error("[/api/order/get] Supabase error:", error);
-      return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    if (orderErr) {
+      console.error("[/api/order/get] order error:", orderErr);
+      return new Response(JSON.stringify({ error: orderErr.message }), { status: 404 });
     }
 
-    if (!data) {
-      console.error("[/api/order/get] Order not found:", orderId);
-      return new Response(JSON.stringify({ error: "Order not found" }), { status: 404 });
+    // Fetch items from order_items
+    const { data: itemsData, error: itemsErr } = await supabase
+      .from("order_items")
+      .select("id, product_name, quantity, price")
+      .eq("order_id", orderId)
+      .order("created_at", { ascending: true });
+
+    if (itemsErr) {
+      console.error("[/api/order/get] items error:", itemsErr);
+      // Still return base order with empty items (never block UI)
     }
 
-    // Normalize to a stable shape: always return `items: [...]`
-    const items = (data?.order_items ?? []).map((i: any) => ({
+    const items = (itemsData ?? []).map((i) => ({
       id: i.id,
       product_name: i.product_name,
       quantity: i.quantity,
@@ -58,17 +66,7 @@ export async function GET(req: NextRequest) {
     }));
 
     const response = {
-      id: data.id,
-      customer_name: data.customer_name,
-      customer_email: data.customer_email,
-      customer_phone: data.customer_phone,
-      city: data.city,
-      branch: data.branch,
-      payment_method: data.payment_method,
-      status: data.status,
-      total_amount: data.total_amount,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
+      ...order,
       items,
     };
 
@@ -81,7 +79,7 @@ export async function GET(req: NextRequest) {
 
     return new Response(JSON.stringify(response), { status: 200 });
   } catch (err: any) {
-    console.error("[/api/order/get] Crash:", err);
+    console.error("[/api/order/get] crash:", err);
     return new Response(JSON.stringify({ error: "Internal Server Error", details: err.message }), { status: 500 });
   }
 }

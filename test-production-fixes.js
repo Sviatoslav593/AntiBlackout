@@ -1,16 +1,16 @@
-// Test script for order management fixes
-const testOrderFixes = async () => {
+// Test script for production-ready order management fixes
+const testProductionFixes = async () => {
   try {
-    console.log("🧪 Testing Order Management Fixes...");
-
+    console.log("🧪 Testing Production-Ready Order Management Fixes...");
+    
     // Test data for order creation
     const orderData = {
       customerData: {
-        name: "Test Fix Customer",
+        name: "Test Production Customer",
         firstName: "Test",
-        lastName: "Fix",
-        phone: "+380000000001",
-        email: "test-fix@example.com",
+        lastName: "Production",
+        phone: "+380000000002",
+        email: "test-production@example.com",
         address: "Test Address",
         paymentMethod: "online",
         city: "Київ",
@@ -35,7 +35,7 @@ const testOrderFixes = async () => {
       totalAmount: 2000, // 600*2 + 800*1
     };
 
-    console.log("\n1️⃣ Creating order with products...");
+    console.log("\n1️⃣ Creating online payment order...");
     console.log("📝 Request data:", JSON.stringify(orderData, null, 2));
 
     const createResponse = await fetch(
@@ -62,7 +62,7 @@ const testOrderFixes = async () => {
     }
 
     const orderId = createResult.orderId;
-    console.log("✅ Order created successfully with ID:", orderId);
+    console.log("✅ Online order created successfully with ID:", orderId);
 
     // Test fetching order details with new API
     console.log("\n2️⃣ Testing /api/order/get endpoint...");
@@ -81,7 +81,7 @@ const testOrderFixes = async () => {
     }
 
     const order = getResult;
-    console.log("✅ Order fetched successfully with new API");
+    console.log("✅ Order fetched successfully from database");
 
     // Verify order structure
     console.log("\n3️⃣ Verifying order structure...");
@@ -97,7 +97,7 @@ const testOrderFixes = async () => {
       "updated_at",
       "items",
     ];
-
+    
     const missingFields = requiredFields.filter((field) => !(field in order));
 
     if (missingFields.length > 0) {
@@ -184,8 +184,33 @@ const testOrderFixes = async () => {
 
     console.log("✅ Cart clearing endpoint works correctly (no 500 errors)");
 
+    // Test cart clearing for online payment
+    console.log("\n7️⃣ Testing cart clearing for online payment...");
+
+    const cartClearResponse = await fetch(
+      "http://localhost:3000/api/cart/clear",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ orderId }),
+      }
+    );
+
+    console.log("📊 Cart Clear Response status:", cartClearResponse.status);
+    const cartClearResult = await cartClearResponse.json();
+    console.log("📝 Cart Clear Response body:", JSON.stringify(cartClearResult, null, 2));
+
+    if (cartClearResponse.ok) {
+      console.log("✅ Cart clearing event created successfully");
+    } else {
+      console.error("❌ Cart clearing event creation failed:", cartClearResult.error);
+      return;
+    }
+
     // Test order success endpoint
-    console.log("\n7️⃣ Testing /api/order-success endpoint...");
+    console.log("\n8️⃣ Testing /api/order-success endpoint...");
 
     const orderSuccessResponse = await fetch(
       `http://localhost:3000/api/order-success?orderId=${orderId}`
@@ -203,7 +228,7 @@ const testOrderFixes = async () => {
 
     if (orderSuccessResult.success) {
       console.log("✅ Order success endpoint works correctly");
-
+      
       // Verify order success response includes items
       if (
         orderSuccessResult.order.order_items &&
@@ -225,7 +250,7 @@ const testOrderFixes = async () => {
     }
 
     // Test total amount calculation
-    console.log("\n8️⃣ Verifying total amount calculation...");
+    console.log("\n9️⃣ Verifying total amount calculation...");
 
     const calculatedTotal = order.items.reduce(
       (sum, item) => sum + item.subtotal,
@@ -244,10 +269,65 @@ const testOrderFixes = async () => {
 
     console.log("✅ Total amount calculation is correct");
 
+    // Test COD order creation
+    console.log("\n🔟 Testing COD order creation...");
+
+    const codOrderData = {
+      ...orderData,
+      customerData: {
+        ...orderData.customerData,
+        paymentMethod: "cod",
+        name: "Test COD Customer",
+        email: "test-cod@example.com",
+      },
+    };
+
+    const codCreateResponse = await fetch(
+      "http://localhost:3000/api/order/create",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(codOrderData),
+      }
+    );
+
+    console.log("📊 COD Create Response status:", codCreateResponse.status);
+    const codCreateResult = await codCreateResponse.json();
+    console.log("📝 COD Create Response body:", JSON.stringify(codCreateResult, null, 2));
+
+    if (!codCreateResult.success) {
+      console.error("❌ COD Order creation failed:", codCreateResult.error);
+      return;
+    }
+
+    const codOrderId = codCreateResult.orderId;
+    console.log("✅ COD order created successfully with ID:", codOrderId);
+
+    // Test COD order fetching
+    console.log("\n1️⃣1️⃣ Testing COD order fetching...");
+
+    const codGetResponse = await fetch(
+      `http://localhost:3000/api/order/get?orderId=${codOrderId}`
+    );
+    console.log("📊 COD Get Response status:", codGetResponse.status);
+
+    const codGetResult = await codGetResponse.json();
+    console.log("📝 COD Get Response body:", JSON.stringify(codGetResult, null, 2));
+
+    if (codGetResponse.status !== 200) {
+      console.error("❌ COD Order fetch failed:", codGetResult.error);
+      return;
+    }
+
+    console.log("✅ COD order fetched successfully from database");
+
     // Display order summary
-    console.log("\n📋 Order Fixes Summary:");
-    console.log("========================");
-    console.log(`Order ID: ${order.id}`);
+    console.log("\n📋 Production Fixes Summary:");
+    console.log("=============================");
+    console.log(`Online Order ID: ${order.id}`);
+    console.log(`COD Order ID: ${codOrderId}`);
     console.log(`Customer: ${order.customer_name}`);
     console.log(`Email: ${order.customer_email}`);
     console.log(`Status: ${order.status}`);
@@ -264,21 +344,25 @@ const testOrderFixes = async () => {
       console.log(`     Subtotal: ₴${item.subtotal.toLocaleString()}`);
     });
 
-    console.log("\n🎉 All order fixes tests completed successfully!");
+    console.log("\n🎉 All production fixes tests completed successfully!");
     console.log("\n📋 Summary:");
-    console.log("- Order creation with products: ✅");
-    console.log("- /api/order/get uses LEFT JOIN with order_items: ✅");
+    console.log("- Online order creation with products: ✅");
+    console.log("- COD order creation with products: ✅");
+    console.log("- /api/order/get loads from database: ✅");
+    console.log("- Items loaded from order_items table: ✅");
     console.log("- API response includes updated_at field: ✅");
     console.log("- Items structure includes subtotal field: ✅");
     console.log("- Subtotal calculation is correct: ✅");
     console.log("- /api/check-cart-clearing never returns 500: ✅");
+    console.log("- Cart clearing event creation works: ✅");
     console.log("- /api/order-success works correctly: ✅");
     console.log("- Total amount calculation is correct: ✅");
-    console.log("- Order management fixes ready: ✅");
+    console.log("- Production-ready order management: ✅");
+
   } catch (error) {
     console.error("❌ Test failed:", error);
   }
 };
 
 // Run the test
-testOrderFixes();
+testProductionFixes();
