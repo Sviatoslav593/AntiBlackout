@@ -106,12 +106,15 @@ export default function OrderSuccessContent() {
 
       // Log items for debugging
       if (orderData.items) {
-        console.log("🖼️ API items with images:", orderData.items.map((item: any) => ({
-          id: item.id,
-          name: item.product_name,
-          image: item.product_image,
-          hasImage: !!item.product_image
-        })));
+        console.log(
+          "🖼️ API items with images:",
+          orderData.items.map((item: any) => ({
+            id: item.id,
+            name: item.product_name,
+            image: item.product_image,
+            hasImage: !!item.product_image,
+          }))
+        );
       }
 
       setOrder(orderData);
@@ -155,7 +158,7 @@ export default function OrderSuccessContent() {
               id: item.id,
               name: item.name,
               image_url: item.image_url,
-              hasImage: !!item.image_url
+              hasImage: !!item.image_url,
             });
             return {
               id: item.id,
@@ -202,7 +205,7 @@ export default function OrderSuccessContent() {
 
   if (error) {
     const orderId = searchParams?.get("orderId");
-    
+
     return (
       <Layout>
         <div className="container py-8 sm:py-12">
@@ -217,19 +220,21 @@ export default function OrderSuccessContent() {
               {orderId && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block mt-4">
                   <p className="text-blue-800 font-medium">
-                    Номер замовлення: <span className="font-bold">{orderId}</span>
+                    Номер замовлення:{" "}
+                    <span className="font-bold">{orderId}</span>
                   </p>
                 </div>
               )}
               <p className="text-lg text-gray-600 max-w-2xl mx-auto mt-4">
-                Ваше замовлення успішно прийнято та обробляється. 
-                Детальна інформація про замовлення буде надіслана на вашу електронну пошту 
-                протягом найближчих хвилин.
+                Ваше замовлення успішно прийнято та обробляється. Детальна
+                інформація про замовлення буде надіслана на вашу електронну
+                пошту протягом найближчих хвилин.
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-6 max-w-2xl mx-auto">
                 <p className="text-amber-800 text-sm">
-                  <strong>Що далі?</strong> Наші менеджери оброблять ваше замовлення протягом 1-2 робочих днів. 
-                  Ви отримаєте SMS-повідомлення з номером накладної для відстеження доставки.
+                  <strong>Що далі?</strong> Наші менеджери оброблять ваше
+                  замовлення протягом 1-2 робочих днів. Ви отримаєте
+                  SMS-повідомлення з номером накладної для відстеження доставки.
                 </p>
               </div>
               <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
@@ -249,7 +254,7 @@ export default function OrderSuccessContent() {
 
   if (!order) {
     const orderId = searchParams?.get("orderId");
-    
+
     return (
       <Layout>
         <div className="container py-8 sm:py-12">
@@ -264,19 +269,21 @@ export default function OrderSuccessContent() {
               {orderId && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block mt-4">
                   <p className="text-blue-800 font-medium">
-                    Номер замовлення: <span className="font-bold">{orderId}</span>
+                    Номер замовлення:{" "}
+                    <span className="font-bold">{orderId}</span>
                   </p>
                 </div>
               )}
               <p className="text-lg text-gray-600 max-w-2xl mx-auto mt-4">
-                Ваше замовлення успішно прийнято та обробляється. 
-                Детальна інформація про замовлення буде надіслана на вашу електронну пошту 
-                протягом найближчих хвилин.
+                Ваше замовлення успішно прийнято та обробляється. Детальна
+                інформація про замовлення буде надіслана на вашу електронну
+                пошту протягом найближчих хвилин.
               </p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-6 max-w-2xl mx-auto">
                 <p className="text-amber-800 text-sm">
-                  <strong>Що далі?</strong> Наші менеджери оброблять ваше замовлення протягом 1-2 робочих днів. 
-                  Ви отримаєте SMS-повідомлення з номером накладної для відстеження доставки.
+                  <strong>Що далі?</strong> Наші менеджери оброблять ваше
+                  замовлення протягом 1-2 робочих днів. Ви отримаєте
+                  SMS-повідомлення з номером накладної для відстеження доставки.
                 </p>
               </div>
               <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
