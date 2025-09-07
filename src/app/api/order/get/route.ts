@@ -31,10 +31,20 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // 2) Fetch items from order_items
+    // 2) Fetch items from order_items with product image via JOIN
     const { data: itemsData, error: itemsErr } = await supabaseAdmin
       .from("order_items")
-      .select("id, product_name, quantity, price, product_price, product_image")
+      .select(`
+        id, 
+        product_name, 
+        quantity, 
+        price, 
+        product_price, 
+        product_image,
+        products:product_id (
+          image_url
+        )
+      `)
       .eq("order_id", orderId)
       .order("created_at", { ascending: true });
 
@@ -51,7 +61,7 @@ export async function GET(req: NextRequest) {
         quantity: i.quantity,
         price: Number(unitPrice),
         subtotal: Number(unitPrice) * Number(i.quantity),
-        product_image: i.product_image || null, // Include product image
+        product_image: i.product_image || i.products?.image_url || null, // Use joined image_url as fallback
       };
     });
 

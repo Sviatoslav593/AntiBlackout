@@ -102,7 +102,7 @@ export default function CheckoutPage() {
           items,
           totalAmount: state.total,
         };
-        
+
         localStorage.setItem("pendingOrderData", JSON.stringify(orderData));
         setOrderId("pending"); // Temporary ID for UI
         setShowLiqPayForm(true);
@@ -492,20 +492,23 @@ export default function CheckoutPage() {
                     );
                   }}
                   onPaymentSuccess={async () => {
-                    console.log("✅ LiqPay payment successful, creating order...");
-                    
+                    console.log(
+                      "✅ LiqPay payment successful, creating order..."
+                    );
+
                     // Get pending order data from localStorage
-                    const pendingOrderData = localStorage.getItem("pendingOrderData");
-                    
+                    const pendingOrderData =
+                      localStorage.getItem("pendingOrderData");
+
                     if (!pendingOrderData) {
                       console.error("❌ No pending order data found");
                       setError("Помилка: дані замовлення не знайдено");
                       return;
                     }
-                    
+
                     try {
                       const orderData = JSON.parse(pendingOrderData);
-                      
+
                       // Create order after successful payment
                       const response = await fetch("/api/order/create", {
                         method: "POST",
@@ -516,24 +519,31 @@ export default function CheckoutPage() {
                       });
 
                       const result = await response.json();
-                      
+
                       if (response.ok && result.success) {
-                        console.log("✅ Order created successfully after payment");
-                        
+                        console.log(
+                          "✅ Order created successfully after payment"
+                        );
+
                         // Clear pending data
                         localStorage.removeItem("pendingOrderData");
-                        
+
                         // Clear cart
                         clearCart();
-                        
+
                         // Store order ID in localStorage for backup
                         localStorage.setItem("lastOrderId", result.orderId);
-                        
+
                         // Redirect to order page
                         router.push(`/order?orderId=${result.orderId}`);
                       } else {
-                        console.error("❌ Failed to create order:", result.error);
-                        setError(`Помилка створення замовлення: ${result.error}`);
+                        console.error(
+                          "❌ Failed to create order:",
+                          result.error
+                        );
+                        setError(
+                          `Помилка створення замовлення: ${result.error}`
+                        );
                       }
                     } catch (error) {
                       console.error("❌ Error creating order:", error);

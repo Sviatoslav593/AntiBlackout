@@ -277,13 +277,28 @@ export async function POST(request: NextRequest) {
         // Send confirmation email for COD
         try {
           console.log("📧 Sending COD confirmation emails...");
+          // Fetch product images for email
+          const itemsWithImages = await Promise.all(
+            items.map(async (item) => {
+              const productUUID = getProductUUID(item);
+              const { data: product } = await supabaseAdmin
+                .from("products")
+                .select("image_url")
+                .eq("id", productUUID)
+                .single();
+              
+              return {
+                product_name: item.name,
+                quantity: item.quantity,
+                price: item.price,
+                image_url: product?.image_url || null,
+              };
+            })
+          );
+          
           const emailOrder = formatOrderForEmail({
             ...orderData,
-            order_items: items.map((item) => ({
-              product_name: item.name,
-              quantity: item.quantity,
-              price: item.price,
-            })),
+            order_items: itemsWithImages,
           });
           await sendOrderEmails(emailOrder);
           console.log(
