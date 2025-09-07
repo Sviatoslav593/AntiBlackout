@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     console.log("📝 Form data received:", {
       hasData: !!data,
       hasSignature: !!signature,
-      dataLength: data?.length || 0
+      dataLength: data?.length || 0,
     });
 
     if (data) {

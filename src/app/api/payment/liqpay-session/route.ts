@@ -103,12 +103,36 @@ export async function POST(request: NextRequest) {
     console.log("📝 Base64 data length:", dataString.length);
     console.log("🔐 Signature length:", signature.length);
 
+    // Prepare order data for localStorage
+    const orderDataForStorage = {
+      orderId,
+      customerData: {
+        name: customerData.name,
+        email: customerData.email,
+        phone: customerData.phone,
+        city: customerData.city,
+        branch: customerData.branch,
+      },
+      items: items.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image_url: item.image_url,
+      })),
+      totalAmount: totalAmount,
+      paymentMethod: "online",
+      status: "pending_payment",
+      createdAt: new Date().toISOString(),
+    };
+
     return NextResponse.json({
       success: true,
       orderId,
       data: dataString,
       signature,
       publicKey: LIQPAY_PUBLIC_KEY,
+      orderData: orderDataForStorage, // Add order data for localStorage
       debug: {
         amount: totalAmount,
         amountInUAH: totalAmount / 100,

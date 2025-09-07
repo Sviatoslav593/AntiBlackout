@@ -18,6 +18,7 @@ import { FormInput } from "@/components/ui/form-input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { FormRadioGroup } from "@/components/ui/form-radio-group";
 import { CheckoutFormData } from "@/lib/validations";
+import { localStorageUtils } from "@/lib/localStorage";
 
 export default function CheckoutPage() {
   const { state, clearCart } = useCart();
@@ -118,6 +119,12 @@ export default function CheckoutPage() {
           }
 
           console.log("✅ LiqPay session created, redirecting to payment...");
+
+          // Save order data to localStorage for fallback loading
+          if (result.orderData) {
+            console.log("💾 Saving order data to localStorage:", result.orderData);
+            localStorageUtils.savePendingOrder(result.orderData);
+          }
 
           // Create LiqPay form and auto-submit
           const form = document.createElement("form");

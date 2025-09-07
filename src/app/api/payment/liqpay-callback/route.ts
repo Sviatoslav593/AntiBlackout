@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     console.log("📝 Form data received:", {
       hasData: !!data,
       hasSignature: !!signature,
-      dataLength: data?.length || 0
+      dataLength: data?.length || 0,
     });
 
     if (!data || !signature) {
@@ -98,7 +98,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Get payment session data
-    console.log("🔍 Looking for payment session with order_id:", paymentData.order_id);
+    console.log(
+      "🔍 Looking for payment session with order_id:",
+      paymentData.order_id
+    );
     const { data: sessionData, error: sessionError } = await supabaseAdmin
       .from("payment_sessions")
       .select("*")
@@ -108,18 +111,21 @@ export async function POST(request: NextRequest) {
     console.log("📊 Session query result:", {
       hasData: !!sessionData,
       error: sessionError,
-      orderId: paymentData.order_id
+      orderId: paymentData.order_id,
     });
 
     if (sessionError || !sessionData) {
       console.error("❌ Payment session not found:", sessionError);
       console.error("❌ Order ID searched:", paymentData.order_id);
-      console.error("❌ This should not happen if payment_sessions table exists");
-      
+      console.error(
+        "❌ This should not happen if payment_sessions table exists"
+      );
+
       // Only use fallback if session really doesn't exist
-      if (sessionError?.code === 'PGRST116') { // No rows found
+      if (sessionError?.code === "PGRST116") {
+        // No rows found
         console.log("🔄 No payment session found, using fallback...");
-        
+
         // Create a basic order structure
         const fallbackOrderData = {
           id: paymentData.order_id,
@@ -178,7 +184,10 @@ export async function POST(request: NextRequest) {
       } else {
         // Table doesn't exist or other error
         return NextResponse.json(
-          { error: "Payment session not found", details: sessionError?.message },
+          {
+            error: "Payment session not found",
+            details: sessionError?.message,
+          },
           { status: 404 }
         );
       }
@@ -189,7 +198,7 @@ export async function POST(request: NextRequest) {
       order_id: sessionData.order_id,
       customer_name: sessionData.customer_data?.name,
       total_amount: sessionData.total_amount,
-      items_count: sessionData.items?.length || 0
+      items_count: sessionData.items?.length || 0,
     });
 
     // Check if order already exists
@@ -214,7 +223,7 @@ export async function POST(request: NextRequest) {
       customer_name: sessionData.customer_data.name,
       customer_email: sessionData.customer_data.email,
       total_amount: sessionData.total_amount,
-      payment_method: "online"
+      payment_method: "online",
     });
 
     const { data: orderData, error: orderError } = await supabaseAdmin
@@ -239,7 +248,7 @@ export async function POST(request: NextRequest) {
     console.log("📊 Order creation result:", {
       hasData: !!orderData,
       error: orderError,
-      orderId: orderData?.id
+      orderId: orderData?.id,
     });
 
     if (orderError) {

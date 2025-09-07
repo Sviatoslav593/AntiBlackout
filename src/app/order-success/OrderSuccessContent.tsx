@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Package, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { localStorageUtils } from "@/lib/localStorage";
 
 interface Order {
   id: string;
@@ -55,6 +56,7 @@ export default function OrderSuccessContent() {
       // Wait 1.5 seconds before fetching to ensure order is created
       await new Promise((r) => setTimeout(r, 1500));
 
+      console.log("🔍 Attempting to fetch order from API...");
       const response = await fetch(`/api/order/get?orderId=${orderId}`);
 
       if (!response.ok) {
@@ -62,10 +64,49 @@ export default function OrderSuccessContent() {
       }
 
       const orderData = await response.json();
+      console.log("✅ Order loaded from API:", orderData);
       setOrder(orderData);
+      
+      // Clear localStorage after successful API fetch
+      localStorageUtils.clearPendingOrder();
     } catch (error) {
-      console.error("Error fetching order:", error);
-      setError("Failed to load order details");
+      console.error("❌ Error fetching order from API:", error);
+      
+      // Try to load from localStorage as fallback
+      console.log("🔄 Attempting to load order from localStorage...");
+      const orderData = localStorageUtils.consumePendingOrder(orderId);
+      
+      if (orderData) {
+        console.log("✅ Order loaded from localStorage:", orderData);
+        
+        // Transform localStorage data to match API format
+        const transformedOrder: Order = {
+          id: orderData.orderId,
+          customer_name: orderData.customerData.name,
+          customer_email: orderData.customerData.email,
+          customer_phone: orderData.customerData.phone,
+          city: orderData.customerData.city,
+          branch: orderData.customerData.branch,
+          status: "paid", // Assume paid since we're on success page
+          payment_method: orderData.paymentMethod,
+          total_amount: orderData.totalAmount,
+          created_at: orderData.createdAt,
+          items: orderData.items.map((item: any) => ({
+            id: item.id,
+            product_name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            subtotal: item.price * item.quantity,
+            product_image: item.image_url,
+          })),
+        };
+        
+        setOrder(transformedOrder);
+        setError(null);
+      } else {
+        console.log("❌ No valid order data in localStorage");
+        setError("Failed to load order details");
+      }
     } finally {
       setIsLoading(false);
     }
