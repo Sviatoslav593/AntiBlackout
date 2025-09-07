@@ -1,10 +1,10 @@
-import { createServerSupabaseClient, Product } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { Product } from "@/lib/supabase";
 
 export class ProductService {
   // Get all products
   static async getAllProducts(): Promise<Product[]> {
-    const supabase = createServerSupabaseClient();
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("products")
       .select("*")
       .order("created_at", { ascending: false });
@@ -19,8 +19,7 @@ export class ProductService {
 
   // Get product by ID
   static async getProductById(id: string): Promise<Product | null> {
-    const supabase = createServerSupabaseClient();
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("products")
       .select("*")
       .eq("id", id)
@@ -38,8 +37,7 @@ export class ProductService {
   static async createProduct(
     product: Omit<Product, "id" | "created_at">
   ): Promise<Product> {
-    const supabase = createServerSupabaseClient();
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("products")
       .insert([product])
       .select()
@@ -58,8 +56,7 @@ export class ProductService {
     id: string,
     updates: Partial<Omit<Product, "id" | "created_at">>
   ): Promise<Product> {
-    const supabase = createServerSupabaseClient();
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("products")
       .update(updates)
       .eq("id", id)
@@ -76,8 +73,7 @@ export class ProductService {
 
   // Delete product
   static async deleteProduct(id: string): Promise<void> {
-    const supabase = createServerSupabaseClient();
-    const { error } = await supabase.from("products").delete().eq("id", id);
+    const { error } = await supabaseAdmin.from("products").delete().eq("id", id);
 
     if (error) {
       console.error("Error deleting product:", error);
@@ -87,7 +83,6 @@ export class ProductService {
 
   // Update product stock
   static async updateStock(id: string, quantity: number): Promise<void> {
-    const supabase = createServerSupabaseClient();
     const { error } = await supabase
       .from("products")
       .update({ stock: quantity })
@@ -101,8 +96,7 @@ export class ProductService {
 
   // Search products
   static async searchProducts(query: string): Promise<Product[]> {
-    const supabase = createServerSupabaseClient();
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("products")
       .select("*")
       .or(

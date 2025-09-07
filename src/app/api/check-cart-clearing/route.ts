@@ -1,18 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-// Initialize Supabase client with proper error handling
-const getSupabaseClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    console.error("Missing Supabase environment variables");
-    return null;
-  }
-
-  return createClient(supabaseUrl, supabaseKey);
-};
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,21 +24,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Check if there's a cart clearing event for this order
-    // Gracefully handle any errors - never return 500
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      console.warn("[/api/check-cart-clearing] Supabase client not available");
-      return new Response(
-        JSON.stringify({
-          shouldClear: false,
-          clearingEvent: null,
-          warning: "Database not available, defaulting to false",
-        }),
-        { status: 200 }
-      );
-    }
-
-    const { data: clearingEvent, error } = await supabase
+    const { data: clearingEvent, error } = await supabaseAdmin
       .from("cart_clearing_events")
       .select("*")
       .eq("order_id", orderId)
@@ -59,6 +32,7 @@ export async function GET(request: NextRequest) {
 
     // Handle errors gracefully - don't fail the request
     if (error && error.code !== "PGRST116") {
+      // PGRST116 is "No rows found"
       console.warn(
         "[/api/check-cart-clearing] Warning checking cart clearing event:",
         error

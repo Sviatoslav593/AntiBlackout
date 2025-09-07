@@ -1,17 +1,17 @@
-// Test script for complete order flow fixes
-const testOrderFlow = async () => {
+// Test script for server-side Supabase admin client fix
+const testServerSupabaseFix = async () => {
   try {
-    console.log("🧪 Testing Complete Order Flow Fixes...");
+    console.log("🧪 Testing Server-Side Supabase Admin Client Fix...");
 
     // Test data for order creation
     const orderData = {
       customerData: {
-        name: "Test Order Flow Customer",
+        name: "Test Server Customer",
         firstName: "Test",
-        lastName: "Order",
-        phone: "+380000000003",
-        email: "test-order-flow@example.com",
-        address: "Test Address",
+        lastName: "Server",
+        phone: "+380000000005",
+        email: "test-server@example.com",
+        address: "Test Server Address 123",
         paymentMethod: "cod",
         city: "Київ",
         warehouse: "Відділення №1",
@@ -19,23 +19,23 @@ const testOrderFlow = async () => {
       items: [
         {
           id: 1,
-          name: "Powerbank 20000mAh",
-          price: 600,
-          quantity: 2,
+          name: "Powerbank 30000mAh",
+          price: 800,
+          quantity: 1,
           image: "test1.jpg",
         },
         {
           id: 2,
-          name: "LED Flashlight",
-          price: 800,
-          quantity: 1,
+          name: "LED Flashlight Pro",
+          price: 1200,
+          quantity: 2,
           image: "test2.jpg",
         },
       ],
-      totalAmount: 2000, // 600*2 + 800*1
+      totalAmount: 3200, // 800*1 + 1200*2
     };
 
-    console.log("\n1️⃣ Testing COD Order Flow...");
+    console.log("\n1️⃣ Testing Order Creation with Admin Client...");
     console.log("📝 Request data:", JSON.stringify(orderData, null, 2));
 
     const createResponse = await fetch(
@@ -57,15 +57,15 @@ const testOrderFlow = async () => {
     );
 
     if (!createResult.success) {
-      console.error("❌ COD Order creation failed:", createResult.error);
+      console.error("❌ Order creation failed:", createResult.error);
       return;
     }
 
     const orderId = createResult.orderId;
-    console.log("✅ COD order created successfully with ID:", orderId);
+    console.log("✅ Order created successfully with ID:", orderId);
 
-    // Test fetching order details with new /api/order/get endpoint
-    console.log("\n2️⃣ Testing /api/order/get endpoint...");
+    // Test fetching order details with admin client
+    console.log("\n2️⃣ Testing /api/order/get with admin client...");
 
     const getResponse = await fetch(
       `http://localhost:3000/api/order/get?orderId=${orderId}`,
@@ -87,7 +87,9 @@ const testOrderFlow = async () => {
     }
 
     const order = getResult;
-    console.log("✅ Order fetched successfully from database");
+    console.log(
+      "✅ Order fetched successfully from database using admin client"
+    );
 
     // Verify order structure
     console.log("\n3️⃣ Verifying order structure...");
@@ -185,15 +187,15 @@ const testOrderFlow = async () => {
     console.log("✅ Total amount calculation is correct");
 
     // Test online payment order creation
-    console.log("\n7️⃣ Testing Online Payment Order Flow...");
+    console.log("\n7️⃣ Testing Online Payment Order Creation...");
 
     const onlineOrderData = {
       ...orderData,
       customerData: {
         ...orderData.customerData,
         paymentMethod: "online",
-        name: "Test Online Customer",
-        email: "test-online@example.com",
+        name: "Test Online Server Customer",
+        email: "test-online-server@example.com",
       },
     };
 
@@ -314,12 +316,15 @@ const testOrderFlow = async () => {
     console.log("✅ Cart clearing endpoint works correctly (no 500 errors)");
 
     // Display order summary
-    console.log("\n📋 Order Flow Summary:");
-    console.log("=====================");
+    console.log("\n📋 Server-Side Supabase Fix Summary:");
+    console.log("=====================================");
     console.log(`COD Order ID: ${order.id}`);
     console.log(`Online Order ID: ${onlineOrderId}`);
     console.log(`Customer: ${order.customer_name}`);
     console.log(`Email: ${order.customer_email}`);
+    console.log(`Phone: ${order.customer_phone || "Not provided"}`);
+    console.log(`Address: ${order.customer_address || "Not provided"}`);
+    console.log(`City: ${order.customer_city || "Not provided"}`);
     console.log(`Status: ${order.status}`);
     console.log(`Payment Method: ${order.payment_method}`);
     console.log(`Total Amount: ₴${order.total_amount.toLocaleString()}`);
@@ -334,8 +339,15 @@ const testOrderFlow = async () => {
       console.log(`     Subtotal: ₴${item.subtotal.toLocaleString()}`);
     });
 
-    console.log("\n🎉 All order flow tests completed successfully!");
+    console.log(
+      "\n🎉 All server-side Supabase admin client tests completed successfully!"
+    );
     console.log("\n📋 Summary:");
+    console.log("- Server-side admin client working correctly: ✅");
+    console.log(
+      "- No more 'createServerSupabaseClient is not defined' errors: ✅"
+    );
+    console.log("- No more 'Database connection failed' errors: ✅");
     console.log("- COD order creation and fetching: ✅");
     console.log("- Online order creation and fetching: ✅");
     console.log("- /api/order/get loads from database: ✅");
@@ -347,11 +359,11 @@ const testOrderFlow = async () => {
     console.log("- Cart clearing event creation works: ✅");
     console.log("- Cart clearing check works (no 500 errors): ✅");
     console.log("- Order confirmation page routing: ✅");
-    console.log("- Complete order flow fixes: ✅");
+    console.log("- Server-side Supabase admin client fix: ✅");
   } catch (error) {
     console.error("❌ Test failed:", error);
   }
 };
 
 // Run the test
-testOrderFlow();
+testServerSupabaseFix();

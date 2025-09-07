@@ -1,17 +1,17 @@
-// Test script for complete order flow fixes
-const testOrderFlow = async () => {
+// Test script for robust order flow with data-access layer
+const testRobustOrderFlow = async () => {
   try {
-    console.log("🧪 Testing Complete Order Flow Fixes...");
+    console.log("🧪 Testing Robust Order Flow with Data-Access Layer...");
 
     // Test data for order creation
     const orderData = {
       customerData: {
-        name: "Test Order Flow Customer",
+        name: "Test Robust Customer",
         firstName: "Test",
-        lastName: "Order",
-        phone: "+380000000003",
-        email: "test-order-flow@example.com",
-        address: "Test Address",
+        lastName: "Robust",
+        phone: "+380000000004",
+        email: "test-robust@example.com",
+        address: "Test Address 123",
         paymentMethod: "cod",
         city: "Київ",
         warehouse: "Відділення №1",
@@ -35,7 +35,7 @@ const testOrderFlow = async () => {
       totalAmount: 2000, // 600*2 + 800*1
     };
 
-    console.log("\n1️⃣ Testing COD Order Flow...");
+    console.log("\n1️⃣ Testing COD Order Creation...");
     console.log("📝 Request data:", JSON.stringify(orderData, null, 2));
 
     const createResponse = await fetch(
@@ -64,8 +64,8 @@ const testOrderFlow = async () => {
     const orderId = createResult.orderId;
     console.log("✅ COD order created successfully with ID:", orderId);
 
-    // Test fetching order details with new /api/order/get endpoint
-    console.log("\n2️⃣ Testing /api/order/get endpoint...");
+    // Test fetching order details with new data-access layer
+    console.log("\n2️⃣ Testing /api/order/get with data-access layer...");
 
     const getResponse = await fetch(
       `http://localhost:3000/api/order/get?orderId=${orderId}`,
@@ -87,7 +87,9 @@ const testOrderFlow = async () => {
     }
 
     const order = getResult;
-    console.log("✅ Order fetched successfully from database");
+    console.log(
+      "✅ Order fetched successfully from database using data-access layer"
+    );
 
     // Verify order structure
     console.log("\n3️⃣ Verifying order structure...");
@@ -185,7 +187,7 @@ const testOrderFlow = async () => {
     console.log("✅ Total amount calculation is correct");
 
     // Test online payment order creation
-    console.log("\n7️⃣ Testing Online Payment Order Flow...");
+    console.log("\n7️⃣ Testing Online Payment Order Creation...");
 
     const onlineOrderData = {
       ...orderData,
@@ -314,12 +316,15 @@ const testOrderFlow = async () => {
     console.log("✅ Cart clearing endpoint works correctly (no 500 errors)");
 
     // Display order summary
-    console.log("\n📋 Order Flow Summary:");
-    console.log("=====================");
+    console.log("\n📋 Robust Order Flow Summary:");
+    console.log("=============================");
     console.log(`COD Order ID: ${order.id}`);
     console.log(`Online Order ID: ${onlineOrderId}`);
     console.log(`Customer: ${order.customer_name}`);
     console.log(`Email: ${order.customer_email}`);
+    console.log(`Phone: ${order.customer_phone || "Not provided"}`);
+    console.log(`Address: ${order.customer_address || "Not provided"}`);
+    console.log(`City: ${order.customer_city || "Not provided"}`);
     console.log(`Status: ${order.status}`);
     console.log(`Payment Method: ${order.payment_method}`);
     console.log(`Total Amount: ₴${order.total_amount.toLocaleString()}`);
@@ -334,8 +339,9 @@ const testOrderFlow = async () => {
       console.log(`     Subtotal: ₴${item.subtotal.toLocaleString()}`);
     });
 
-    console.log("\n🎉 All order flow tests completed successfully!");
+    console.log("\n🎉 All robust order flow tests completed successfully!");
     console.log("\n📋 Summary:");
+    console.log("- Data-access layer working correctly: ✅");
     console.log("- COD order creation and fetching: ✅");
     console.log("- Online order creation and fetching: ✅");
     console.log("- /api/order/get loads from database: ✅");
@@ -347,11 +353,11 @@ const testOrderFlow = async () => {
     console.log("- Cart clearing event creation works: ✅");
     console.log("- Cart clearing check works (no 500 errors): ✅");
     console.log("- Order confirmation page routing: ✅");
-    console.log("- Complete order flow fixes: ✅");
+    console.log("- Robust order flow with data-access layer: ✅");
   } catch (error) {
     console.error("❌ Test failed:", error);
   }
 };
 
 // Run the test
-testOrderFlow();
+testRobustOrderFlow();

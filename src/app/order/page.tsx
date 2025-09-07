@@ -30,9 +30,9 @@ interface Order {
   id: string;
   customer_name: string;
   customer_email: string;
-  customer_phone: string;
-  city: string;
-  branch: string;
+  customer_phone?: string;
+  customer_address?: string;
+  customer_city?: string;
   status: string;
   payment_method: string;
   total_amount: number;
@@ -87,14 +87,16 @@ function OrderContent() {
       setOrder(orderData);
 
       // Clear cart only for online payments with status "paid"
-      if (orderData.payment_method === "online" && orderData.status === "paid") {
+      if (
+        orderData.payment_method === "online" &&
+        orderData.status === "paid"
+      ) {
         console.log("🧹 Online payment confirmed - clearing cart");
         clearCart();
       } else if (orderData.payment_method === "cod") {
         console.log("🧹 COD order - clearing cart immediately");
         clearCart();
       }
-
     } catch (err) {
       console.error("❌ Error fetching order:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch order");
@@ -105,7 +107,7 @@ function OrderContent() {
 
   useEffect(() => {
     const orderId = searchParams.get("orderId");
-    
+
     if (!orderId) {
       setError("Order ID is required");
       setIsLoading(false);
@@ -122,7 +124,9 @@ function OrderContent() {
           <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Завантаження даних замовлення...</p>
+              <p className="mt-4 text-gray-600">
+                Завантаження даних замовлення...
+              </p>
             </div>
           </div>
         </div>
@@ -202,8 +206,7 @@ function OrderContent() {
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">
               <p className="text-blue-800 font-medium">
-                Номер замовлення:{" "}
-                <span className="font-bold">{order.id}</span>
+                Номер замовлення: <span className="font-bold">{order.id}</span>
               </p>
             </div>
           </div>
@@ -241,7 +244,9 @@ function OrderContent() {
                         <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                           <span>Кількість: {item.quantity}</span>
                           <span>•</span>
-                          <span>₴{(item.price / item.quantity).toLocaleString()}</span>
+                          <span>
+                            ₴{(item.price / item.quantity).toLocaleString()}
+                          </span>
                         </div>
                       </div>
                       <div className="text-right">
@@ -306,16 +311,16 @@ function OrderContent() {
                   <div>
                     <p className="text-sm text-gray-500">Місто</p>
                     <p className="font-medium">
-                      {order.city || "Не вказано"}
+                      {order.customer_city || "Не вказано"}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Building className="h-5 w-5 text-gray-500" />
                   <div>
-                    <p className="text-sm text-gray-500">Відділення</p>
+                    <p className="text-sm text-gray-500">Адреса</p>
                     <p className="font-medium">
-                      {order.branch || "Не вказано"}
+                      {order.customer_address || "Не вказано"}
                     </p>
                   </div>
                 </div>

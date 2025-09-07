@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { createServerSupabaseClient } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { OrderService } from "@/services/orders";
 import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
 
@@ -127,9 +127,8 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
   try {
     console.log(`🔄 Creating order after payment for ${callbackData.order_id}`);
     // Get stored order data from pending_orders table
-    const supabase = createServerSupabaseClient();
 
-    const { data: pendingOrder, error: pendingError } = await supabase
+    const { data: pendingOrder, error: pendingError } = await supabaseAdmin
       .from("pending_orders")
       .select("*")
       .eq("id", callbackData.order_id)
@@ -170,7 +169,7 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
 
       // Clear cart for this order (fallback case)
       try {
-        await supabase.from("cart_clearing_events").insert({
+        await supabaseAdmin.from("cart_clearing_events").insert({
           order_id: callbackData.order_id,
           cleared_at: new Date().toISOString(),
         });
@@ -216,7 +215,7 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
 
     // Clean up pending order
     try {
-      await supabase
+      await supabaseAdmin
         .from("pending_orders")
         .delete()
         .eq("id", callbackData.order_id);
@@ -237,7 +236,7 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
     // Clear cart for this order (if we can identify the user)
     try {
       // Store order ID in a way that frontend can detect and clear cart
-      await supabase.from("cart_clearing_events").insert({
+      await supabaseAdmin.from("cart_clearing_events").insert({
         order_id: callbackData.order_id,
         cleared_at: new Date().toISOString(),
       });

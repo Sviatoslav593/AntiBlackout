@@ -191,7 +191,7 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
     try {
       await supabase.from("cart_clearing_events").insert({
         order_id: callbackData.order_id,
-        cleared_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
       });
       console.log(
         `🧹 Cart clearing event created for order ${callbackData.order_id}`

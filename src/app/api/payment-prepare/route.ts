@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { createServerSupabaseClient } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { OrderService } from "@/services/orders";
 
 interface PaymentPrepareRequest {
@@ -93,8 +93,7 @@ export async function POST(request: NextRequest) {
       console.log(`✅ Order created with pending status: ${order.id}`);
 
       // Also store in pending_orders for callback processing
-      const supabase = createServerSupabaseClient();
-      const { error: insertError } = await supabase
+      const { error: insertError } = await supabaseAdmin
         .from("pending_orders")
         .insert({
           id: orderId,
