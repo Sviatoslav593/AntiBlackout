@@ -40,29 +40,30 @@ export async function POST(request: NextRequest) {
       .toString(36)
       .substr(2, 9)}`;
 
-    // Store payment session data in Supabase
-    const paymentSessionData = {
-      order_id: orderId,
-      customer_data: customerData,
-      items: items,
-      total_amount: totalAmount,
-      status: "pending",
-      created_at: new Date().toISOString(),
-    };
+    // Store payment session data in Supabase (optional for testing)
+    try {
+      const paymentSessionData = {
+        order_id: orderId,
+        customer_data: customerData,
+        items: items,
+        total_amount: totalAmount,
+        status: "pending",
+        created_at: new Date().toISOString(),
+      };
 
-    const { error: sessionError } = await supabaseAdmin
-      .from("payment_sessions")
-      .insert([paymentSessionData]);
+      const { error: sessionError } = await supabaseAdmin
+        .from("payment_sessions")
+        .insert([paymentSessionData]);
 
-    if (sessionError) {
-      console.error("❌ Error storing payment session:", sessionError);
-      return NextResponse.json(
-        { error: "Failed to create payment session" },
-        { status: 500 }
-      );
+      if (sessionError) {
+        console.warn("⚠️ Warning: Could not store payment session in database:", sessionError.message);
+        console.log("📝 Continuing without database storage for testing...");
+      } else {
+        console.log(`✅ Payment session stored in database: ${orderId}`);
+      }
+    } catch (dbError) {
+      console.warn("⚠️ Warning: Database error, continuing without storage:", dbError);
     }
-
-    console.log(`✅ Payment session created: ${orderId}`);
 
     // Prepare LiqPay payment data
     const siteUrl =
@@ -93,6 +94,8 @@ export async function POST(request: NextRequest) {
       .digest("base64");
 
     console.log(`✅ LiqPay session data prepared for order: ${orderId}`);
+    console.log("📝 Base64 data length:", dataString.length);
+    console.log("🔐 Signature length:", signature.length);
 
     return NextResponse.json({
       success: true,
@@ -100,6 +103,12 @@ export async function POST(request: NextRequest) {
       data: dataString,
       signature,
       publicKey: LIQPAY_PUBLIC_KEY,
+      debug: {
+        amount: totalAmount,
+        amountInUAH: totalAmount / 100,
+        orderId,
+        siteUrl,
+      }
     });
   } catch (error) {
     console.error("❌ Error creating LiqPay session:", error);

@@ -123,7 +123,8 @@ export async function POST(request: NextRequest) {
       customer_phone: customerData.phone || null,
       city: customerData.city || "",
       branch: customerData.branch || "",
-      payment_method: customerData.paymentMethod === "online" ? "online" : "cod",
+      payment_method:
+        customerData.paymentMethod === "online" ? "online" : "cod",
       total_amount: totalAmount,
       status: "pending" as const,
     };
