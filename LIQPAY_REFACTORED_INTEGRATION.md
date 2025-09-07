@@ -7,25 +7,30 @@ This refactored LiqPay integration provides a robust, production-ready payment s
 ## 🔧 **Key Features**
 
 ### **1. Immediate Order Creation**
+
 - Orders are created in Supabase immediately when "Place order" is clicked
 - All order and customer data persists in the database
 - Orders start with `pending` status for LiqPay, `paid` status for COD
 
 ### **2. Proper Payment Flow**
+
 - **LiqPay**: Order created → Payment form shown → Callback updates status → Email sent
 - **COD**: Order created → Status set to paid → Email sent immediately
 
 ### **3. Email Timing**
+
 - Emails are sent **only** when order status becomes `paid`
 - For LiqPay: Email sent after successful payment callback
 - For COD: Email sent immediately after order creation
 
 ### **4. Cart Management**
+
 - Cart is cleared only after successful payment confirmation
 - For LiqPay: Cart cleared after callback confirms payment
 - For COD: Cart cleared immediately after order creation
 
 ### **5. Sandbox Testing**
+
 - `/api/test-payment` endpoint simulates successful payment
 - Allows testing email flow without real payments
 - Updates order status and triggers email sending
@@ -33,9 +38,11 @@ This refactored LiqPay integration provides a robust, production-ready payment s
 ## 🚀 **API Endpoints**
 
 ### **`POST /api/order/create`**
+
 Creates a new order with immediate persistence in Supabase.
 
 **Request Body:**
+
 ```json
 {
   "customerData": {
@@ -63,6 +70,7 @@ Creates a new order with immediate persistence in Supabase.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -75,18 +83,22 @@ Creates a new order with immediate persistence in Supabase.
 ```
 
 ### **`POST /api/payment/callback`**
+
 Handles LiqPay server-side callbacks (webhooks).
 
 **Process:**
+
 1. Verifies LiqPay signature
 2. Updates order status to `paid` or `failed`
 3. Sends confirmation emails (if successful)
 4. Creates cart clearing event
 
 ### **`POST /api/test-payment`**
+
 Simulates successful payment for sandbox testing.
 
 **Request Body:**
+
 ```json
 {
   "orderId": "AB-1234567890-abcdef123",
@@ -95,6 +107,7 @@ Simulates successful payment for sandbox testing.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -167,6 +180,7 @@ node test-refactored-integration.js
 ### **2. Manual Testing:**
 
 #### **Test LiqPay Payment:**
+
 1. Go to checkout page
 2. Select "Оплата карткою онлайн"
 3. Fill customer details
@@ -177,6 +191,7 @@ node test-refactored-integration.js
 8. **Expected:** Email sent, order status updated to `paid`, cart cleared
 
 #### **Test COD Payment:**
+
 1. Go to checkout page
 2. Select "Післяплата"
 3. Fill customer details
@@ -184,6 +199,7 @@ node test-refactored-integration.js
 5. **Expected:** Order created with `paid` status, email sent immediately, cart cleared
 
 #### **Test Sandbox Simulation:**
+
 ```bash
 # Create a LiqPay order first, then simulate payment
 curl -X POST http://localhost:3000/api/test-payment \
@@ -214,6 +230,7 @@ curl http://localhost:3000/api/check-cart-clearing?orderId=AB-123
 ## 📊 **Database Schema**
 
 ### **Orders Table:**
+
 ```sql
 CREATE TABLE orders (
   id TEXT PRIMARY KEY,
@@ -233,6 +250,7 @@ CREATE TABLE orders (
 ```
 
 ### **Order Items Table:**
+
 ```sql
 CREATE TABLE order_items (
   id SERIAL PRIMARY KEY,
@@ -247,6 +265,7 @@ CREATE TABLE order_items (
 ```
 
 ### **Cart Clearing Events Table:**
+
 ```sql
 CREATE TABLE cart_clearing_events (
   id SERIAL PRIMARY KEY,
@@ -259,6 +278,7 @@ CREATE TABLE cart_clearing_events (
 ## 🔍 **Frontend Integration**
 
 ### **Checkout Page:**
+
 ```typescript
 // Updated onSubmit function
 const onSubmit = async (data: CheckoutFormData) => {
@@ -288,6 +308,7 @@ const onSubmit = async (data: CheckoutFormData) => {
 ```
 
 ### **Order Success Page:**
+
 ```typescript
 // Loads order data from database first
 const fetchOrderFromAPI = async (orderId: string) => {
@@ -301,26 +322,31 @@ const fetchOrderFromAPI = async (orderId: string) => {
 ## ✅ **Benefits**
 
 ### **1. Data Persistence:**
+
 - ✅ Orders persist in database immediately
 - ✅ Order data survives page refresh
 - ✅ Reliable data storage
 
 ### **2. Proper Email Timing:**
+
 - ✅ Emails sent only after payment confirmation
 - ✅ No premature email sending
 - ✅ Reliable email delivery
 
 ### **3. Cart Management:**
+
 - ✅ Cart cleared only after successful payment
 - ✅ Proper cart state management
 - ✅ No accidental cart clearing
 
 ### **4. Testing:**
+
 - ✅ Sandbox testing with mock payments
 - ✅ Complete test suite
 - ✅ Easy debugging
 
 ### **5. Production Ready:**
+
 - ✅ Proper error handling
 - ✅ Security best practices
 - ✅ Scalable architecture
@@ -328,6 +354,7 @@ const fetchOrderFromAPI = async (orderId: string) => {
 ## 🚀 **Deployment**
 
 ### **Environment Variables:**
+
 ```bash
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
@@ -346,6 +373,7 @@ NEXT_PUBLIC_SITE_URL=https://yourdomain.com
 ```
 
 ### **LiqPay Configuration:**
+
 - **server_url**: `https://yourdomain.com/api/payment/callback`
 - **result_url**: `https://yourdomain.com/order-success?orderId={order_id}`
 

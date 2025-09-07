@@ -121,7 +121,7 @@ async function processPaymentCallback(callbackData: LiqPayCallbackData) {
 async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
   try {
     console.log(`🔄 Handling successful payment for ${callbackData.order_id}`);
-    
+
     const supabase = createServerSupabaseClient();
 
     // Find existing order in orders table
@@ -158,20 +158,22 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
     try {
       const emailOrder = formatOrderForEmail(existingOrder);
       await sendOrderEmails(emailOrder);
-      console.log(`📧 Confirmation emails sent for order ${callbackData.order_id}`);
+      console.log(
+        `📧 Confirmation emails sent for order ${callbackData.order_id}`
+      );
     } catch (emailError) {
       console.error("⚠️ Email sending failed (non-critical):", emailError);
     }
 
     // Create cart clearing event
     try {
-      await supabase
-        .from("cart_clearing_events")
-        .insert({
-          order_id: callbackData.order_id,
-          cleared_at: new Date().toISOString(),
-        });
-      console.log(`🧹 Cart clearing event created for order ${callbackData.order_id}`);
+      await supabase.from("cart_clearing_events").insert({
+        order_id: callbackData.order_id,
+        cleared_at: new Date().toISOString(),
+      });
+      console.log(
+        `🧹 Cart clearing event created for order ${callbackData.order_id}`
+      );
     } catch (clearError) {
       console.error("⚠️ Error creating cart clearing event:", clearError);
     }
@@ -192,7 +194,7 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
 async function handleFailedPayment(callbackData: LiqPayCallbackData) {
   try {
     console.log(`🔄 Handling failed payment for ${callbackData.order_id}`);
-    
+
     const supabase = createServerSupabaseClient();
 
     // Update order status to failed
@@ -210,7 +212,9 @@ async function handleFailedPayment(callbackData: LiqPayCallbackData) {
       return;
     }
 
-    console.log(`❌ Order status updated to failed for ${callbackData.order_id}`);
+    console.log(
+      `❌ Order status updated to failed for ${callbackData.order_id}`
+    );
 
     // Log failure details
     console.log(`💸 Payment failed for order ${callbackData.order_id}:`, {

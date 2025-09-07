@@ -12,7 +12,9 @@ export async function POST(request: NextRequest) {
     const body: TestPaymentRequest = await request.json();
     const { orderId, status = "success" } = body;
 
-    console.log(`🧪 Test payment simulation for order ${orderId} with status ${status}`);
+    console.log(
+      `🧪 Test payment simulation for order ${orderId} with status ${status}`
+    );
 
     if (!orderId) {
       return NextResponse.json(
@@ -32,10 +34,7 @@ export async function POST(request: NextRequest) {
 
     if (orderError || !order) {
       console.error("❌ Order not found:", orderId);
-      return NextResponse.json(
-        { error: "Order not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
     if (order.status === "paid") {
@@ -80,12 +79,10 @@ export async function POST(request: NextRequest) {
 
       // Create cart clearing event
       try {
-        await supabase
-          .from("cart_clearing_events")
-          .insert({
-            order_id: orderId,
-            cleared_at: new Date().toISOString(),
-          });
+        await supabase.from("cart_clearing_events").insert({
+          order_id: orderId,
+          cleared_at: new Date().toISOString(),
+        });
         console.log(`🧹 Cart clearing event created for test order ${orderId}`);
       } catch (clearError) {
         console.error("⚠️ Error creating cart clearing event:", clearError);
@@ -142,7 +139,8 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const orderId = searchParams.get("orderId");
-  const status = searchParams.get("status") as "success" | "failed" || "success";
+  const status =
+    (searchParams.get("status") as "success" | "failed") || "success";
 
   if (!orderId) {
     return NextResponse.json(

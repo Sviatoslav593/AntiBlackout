@@ -142,7 +142,10 @@ function OrderSuccessContent() {
               phone: order.customer_phone || "",
               address: order.branch || "",
               email: order.customer_email || "",
-              paymentMethod: order.payment_method === "online" ? "online" : "cash_on_delivery",
+              paymentMethod:
+                order.payment_method === "online"
+                  ? "online"
+                  : "cash_on_delivery",
               city: order.city || "",
               warehouse: order.branch || "",
             });

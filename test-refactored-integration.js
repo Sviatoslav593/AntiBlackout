@@ -2,7 +2,7 @@
 const testRefactoredIntegration = async () => {
   try {
     console.log("🧪 Testing Refactored LiqPay Integration...");
-    
+
     // Step 1: Test COD order creation
     console.log("\n1️⃣ Testing COD order creation...");
     const codResponse = await fetch("http://localhost:3000/api/order/create", {
@@ -47,35 +47,38 @@ const testRefactoredIntegration = async () => {
 
     // Step 2: Test LiqPay order creation
     console.log("\n2️⃣ Testing LiqPay order creation...");
-    const liqpayResponse = await fetch("http://localhost:3000/api/order/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        customerData: {
-          name: "Test LiqPay Customer",
-          firstName: "Test",
-          lastName: "LiqPay",
-          phone: "+380000000000",
-          email: "test-liqpay@example.com",
-          address: "Test Address",
-          paymentMethod: "liqpay",
-          city: "Київ",
-          warehouse: "Відділення №1",
+    const liqpayResponse = await fetch(
+      "http://localhost:3000/api/order/create",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        items: [
-          {
-            id: 2,
-            name: "Test LiqPay Product",
-            price: 1000,
-            quantity: 1,
-            image: "test.jpg",
+        body: JSON.stringify({
+          customerData: {
+            name: "Test LiqPay Customer",
+            firstName: "Test",
+            lastName: "LiqPay",
+            phone: "+380000000000",
+            email: "test-liqpay@example.com",
+            address: "Test Address",
+            paymentMethod: "liqpay",
+            city: "Київ",
+            warehouse: "Відділення №1",
           },
-        ],
-        totalAmount: 1000,
-      }),
-    });
+          items: [
+            {
+              id: 2,
+              name: "Test LiqPay Product",
+              price: 1000,
+              quantity: 1,
+              image: "test.jpg",
+            },
+          ],
+          totalAmount: 1000,
+        }),
+      }
+    );
 
     const liqpayResult = await liqpayResponse.json();
     console.log("📝 LiqPay order result:", liqpayResult);
@@ -89,16 +92,19 @@ const testRefactoredIntegration = async () => {
 
     // Step 3: Test payment simulation
     console.log("\n3️⃣ Testing payment simulation...");
-    const testPaymentResponse = await fetch("http://localhost:3000/api/test-payment", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        orderId: liqpayResult.orderId,
-        status: "success",
-      }),
-    });
+    const testPaymentResponse = await fetch(
+      "http://localhost:3000/api/test-payment",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          orderId: liqpayResult.orderId,
+          status: "success",
+        }),
+      }
+    );
 
     const testPaymentResult = await testPaymentResponse.json();
     console.log("📞 Test payment result:", testPaymentResult);
@@ -112,7 +118,9 @@ const testRefactoredIntegration = async () => {
 
     // Step 4: Test order retrieval
     console.log("\n4️⃣ Testing order retrieval...");
-    const orderResponse = await fetch(`http://localhost:3000/api/order-success?orderId=${liqpayResult.orderId}`);
+    const orderResponse = await fetch(
+      `http://localhost:3000/api/order-success?orderId=${liqpayResult.orderId}`
+    );
     const orderResult = await orderResponse.json();
     console.log("📦 Order retrieval result:", orderResult);
 
@@ -130,7 +138,9 @@ const testRefactoredIntegration = async () => {
 
     // Step 5: Test cart clearing
     console.log("\n5️⃣ Testing cart clearing...");
-    const cartClearResponse = await fetch(`http://localhost:3000/api/check-cart-clearing?orderId=${liqpayResult.orderId}`);
+    const cartClearResponse = await fetch(
+      `http://localhost:3000/api/check-cart-clearing?orderId=${liqpayResult.orderId}`
+    );
     const cartClearResult = await cartClearResponse.json();
     console.log("🧹 Cart clearing result:", cartClearResult);
 
@@ -147,7 +157,6 @@ const testRefactoredIntegration = async () => {
     console.log("- Payment simulation: ✅");
     console.log("- Order retrieval: ✅");
     console.log("- Cart clearing: ✅");
-    
   } catch (error) {
     console.error("❌ Test failed:", error);
   }
