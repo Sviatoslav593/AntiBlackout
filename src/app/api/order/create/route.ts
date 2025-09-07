@@ -359,35 +359,33 @@ export async function POST(request: NextRequest) {
           })
         );
 
-        // Create order object for email
-        const emailOrder = {
-          id: orderData.id,
-          customerName: customerData.name,
-          customerEmail: customerData.email,
-          customerPhone: customerData.phone,
-          branch: customerData.branch,
-          paymentMethod: "online",
-          city: customerData.city,
-          items: itemsWithImages.map((item) => ({
-            productName: item.product_name,
-            quantity: item.quantity,
-            price: item.product_price,
-            image_url: item.image_url,
-          })),
-          total: totalAmount,
+        // Create order object for email using the same format as COD
+        const orderDataForEmail = {
+          ...orderData,
+          order_items: itemsWithImages,
         };
-
-        console.log("📧 Sending email with order data:", JSON.stringify(emailOrder, null, 2));
         
+        console.log("📧 Order data for email formatting:", JSON.stringify(orderDataForEmail, null, 2));
+        
+        const emailOrder = formatOrderForEmail(orderDataForEmail);
+        
+        console.log(
+          "📧 Sending email with order data:",
+          JSON.stringify(emailOrder, null, 2)
+        );
+
         const emailResult = await sendOrderEmails(emailOrder);
         console.log("📧 Email sending result:", emailResult);
-        
+
         if (emailResult.customerEmail.success) {
           console.log("✅ Online order confirmation emails sent successfully");
         } else {
-          console.error("❌ Customer email failed:", emailResult.customerEmail.error);
+          console.error(
+            "❌ Customer email failed:",
+            emailResult.customerEmail.error
+          );
         }
-        
+
         if (emailResult.adminEmail.success) {
           console.log("✅ Admin email sent successfully");
         } else {

@@ -33,7 +33,9 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(`Resend API error: ${errorData.message || response.statusText}`);
+      throw new Error(
+        `Resend API error: ${errorData.message || response.statusText}`
+      );
     }
 
     const result = await response.json();

@@ -142,7 +142,10 @@ export default function OrderSuccessContent() {
             const errorData = await updateResponse.json();
             console.error("❌ Failed to update order status:", errorData);
             console.error("❌ Response status:", updateResponse.status);
-            console.error("❌ Response headers:", Object.fromEntries(updateResponse.headers.entries()));
+            console.error(
+              "❌ Response headers:",
+              Object.fromEntries(updateResponse.headers.entries())
+            );
           }
         } catch (updateError) {
           console.error("❌ Error updating order status:", updateError);

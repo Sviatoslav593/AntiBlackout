@@ -724,6 +724,7 @@ export async function sendOrderEmails(order: Order): Promise<{
   adminEmail: { success: boolean; error?: string };
 }> {
   console.log(`📧 Starting email sending process for order ${order.id}...`);
+  console.log(`📧 Order data:`, JSON.stringify(order, null, 2));
 
   // Prepare admin order data
   const adminOrder: AdminOrderNotification = {
@@ -804,7 +805,9 @@ interface SupabaseOrderItem {
 
 // Helper function to format order data for email
 export function formatOrderForEmail(orderData: SupabaseOrderData): Order {
-  return {
+  console.log("📧 formatOrderForEmail input:", JSON.stringify(orderData, null, 2));
+  
+  const result = {
     id: orderData.id,
     customerName: orderData.customer_name,
     customerEmail: orderData.customer_email,
@@ -821,4 +824,8 @@ export function formatOrderForEmail(orderData: SupabaseOrderData): Order {
       })) || [],
     total: orderData.total_amount,
   };
+  
+  console.log("📧 formatOrderForEmail output:", JSON.stringify(result, null, 2));
+  
+  return result;
 }
