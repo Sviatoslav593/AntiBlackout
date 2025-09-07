@@ -39,8 +39,7 @@ export async function GET(req: NextRequest) {
         product_name, 
         quantity, 
         price, 
-        product_price, 
-        product_image,
+        product_price,
         products:product_id (
           image_url
         )
@@ -61,7 +60,7 @@ export async function GET(req: NextRequest) {
         quantity: i.quantity,
         price: Number(unitPrice),
         subtotal: Number(unitPrice) * Number(i.quantity),
-        product_image: i.product_image || i.products?.image_url || null, // Use joined image_url as fallback
+        product_image: i.products?.image_url || null, // Use joined image_url from products table
       };
     });
 

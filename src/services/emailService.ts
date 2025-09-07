@@ -2,6 +2,7 @@ interface OrderItem {
   productName: string;
   quantity: number;
   price: number;
+  image_url?: string;
 }
 
 interface Order {
@@ -231,6 +232,7 @@ function createOrderConfirmationHTML(order: Order): string {
             <table class="items-table">
                 <thead>
                     <tr>
+                        <th>Зображення</th>
                         <th>Товар</th>
                         <th>Кількість</th>
                         <th>Ціна за одиницю</th>
@@ -242,6 +244,9 @@ function createOrderConfirmationHTML(order: Order): string {
                       .map(
                         (item) => `
                         <tr>
+                            <td>
+                              ${item.image_url ? `<img src="${item.image_url}" alt="${item.productName}" width="60" height="60" style="object-fit: cover; border-radius: 4px;" />` : ''}
+                            </td>
                             <td>${item.productName}</td>
                             <td>${item.quantity}</td>
                             <td>₴${item.price.toLocaleString()}</td>
@@ -253,7 +258,7 @@ function createOrderConfirmationHTML(order: Order): string {
                       )
                       .join("")}
                     <tr class="total-row">
-                        <td colspan="3">Загальна сума:</td>
+                        <td colspan="4">Загальна сума:</td>
                         <td>₴${order.total.toLocaleString()}</td>
                     </tr>
                 </tbody>
@@ -492,6 +497,7 @@ function createAdminNotificationHTML(
             <table class="items-table">
                 <thead>
                     <tr>
+                        <th>Зображення</th>
                         <th>Товар</th>
                         <th>Кількість</th>
                         <th>Ціна за од.</th>
@@ -503,6 +509,9 @@ function createAdminNotificationHTML(
                       .map(
                         (item) => `
                         <tr>
+                            <td>
+                              ${item.image_url ? `<img src="${item.image_url}" alt="${item.productName}" width="60" height="60" style="object-fit: cover; border-radius: 4px;" />` : ''}
+                            </td>
                             <td>${item.productName}</td>
                             <td>${item.quantity}</td>
                             <td>₴${item.price.toLocaleString()}</td>
@@ -516,7 +525,7 @@ function createAdminNotificationHTML(
                 </tbody>
                 <tfoot>
                     <tr class="total-row">
-                        <td colspan="3"><strong>Загальна сума:</strong></td>
+                        <td colspan="4"><strong>Загальна сума:</strong></td>
                         <td><strong>₴${adminOrder.total.toLocaleString()}</strong></td>
                     </tr>
                 </tfoot>
@@ -782,6 +791,7 @@ interface SupabaseOrderItem {
   product_name?: string;
   quantity: number;
   price: number;
+  image_url?: string;
 }
 
 // Helper function to format order data for email
@@ -799,6 +809,7 @@ export function formatOrderForEmail(orderData: SupabaseOrderData): Order {
         productName: item.product_name || "Unknown Product",
         quantity: item.quantity,
         price: item.price,
+        image_url: item.image_url || null,
       })) || [],
     total: orderData.total_amount,
   };

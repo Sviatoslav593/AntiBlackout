@@ -188,7 +188,6 @@ export async function POST(request: NextRequest) {
         product_price: item.price,
         quantity: item.quantity,
         price: item.price * item.quantity,
-        product_image: item.image || null, // Store product image
       });
     }
 
@@ -220,7 +219,7 @@ export async function POST(request: NextRequest) {
             .select("image_url")
             .eq("id", productUUID)
             .single();
-          
+
           return {
             product_name: item.name,
             quantity: item.quantity,
@@ -229,7 +228,7 @@ export async function POST(request: NextRequest) {
           };
         })
       );
-      
+
       const emailOrder = formatOrderForEmail({
         ...order,
         order_items: itemsWithImages,

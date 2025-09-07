@@ -226,7 +226,6 @@ export async function POST(request: NextRequest) {
         price: item.price, // if "price" column exists
         product_price: item.price, // if only "product_price" exists
         quantity: item.quantity,
-        product_image: item.image || null, // Store product image
       });
     }
 
@@ -286,7 +285,7 @@ export async function POST(request: NextRequest) {
                 .select("image_url")
                 .eq("id", productUUID)
                 .single();
-              
+
               return {
                 product_name: item.name,
                 quantity: item.quantity,
@@ -295,7 +294,7 @@ export async function POST(request: NextRequest) {
               };
             })
           );
-          
+
           const emailOrder = formatOrderForEmail({
             ...orderData,
             order_items: itemsWithImages,
