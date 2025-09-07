@@ -270,7 +270,7 @@ function createOrderConfirmationHTML(order: Order): string {
             </table>
             
             <div style="text-align: center; margin: 30px 0;">
-                <a href="https://antiblackout.shop/order-status/${
+                <a href="https://www.antiblackout.shop/order-status/${
                   order.orderNumber || order.id
                 }" class="cta-button">
                     Відстежити замовлення

@@ -1,8 +1,8 @@
-import Layout from '@/components/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Package, ArrowLeft, Home } from 'lucide-react';
-import Link from 'next/link';
+import Layout from "@/components/Layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Package, ArrowLeft, Home } from "lucide-react";
+import Link from "next/link";
 
 export default function OrderNotFound() {
   return (
@@ -23,10 +23,11 @@ export default function OrderNotFound() {
                 Замовлення з таким номером не існує або було видалено.
               </p>
               <p className="text-sm text-gray-500">
-                Перевірте правильність номера замовлення або зверніться до служби підтримки.
+                Перевірте правильність номера замовлення або зверніться до
+                служби підтримки.
               </p>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button asChild variant="outline">
                 <Link href="/" className="flex items-center gap-2">
@@ -34,7 +35,7 @@ export default function OrderNotFound() {
                   На головну
                 </Link>
               </Button>
-              
+
               <Button asChild>
                 <Link href="/contacts" className="flex items-center gap-2">
                   <ArrowLeft className="w-4 h-4" />
