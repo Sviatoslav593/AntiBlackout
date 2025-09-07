@@ -1,6 +1,6 @@
-import { ReactNode } from 'react';
-import Link from 'next/link';
-import { Package, Home, Settings, BarChart3 } from 'lucide-react';
+import { ReactNode } from "react";
+import Link from "next/link";
+import { Package, Home, Settings, BarChart3 } from "lucide-react";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -16,13 +16,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <div className="flex items-center gap-4">
               <Link href="/admin" className="flex items-center gap-2">
                 <Package className="w-8 h-8 text-blue-600" />
-                <span className="text-xl font-bold text-gray-900">Admin Panel</span>
+                <span className="text-xl font-bold text-gray-900">
+                  Admin Panel
+                </span>
               </Link>
             </div>
-            
+
             <div className="flex items-center gap-6">
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <Home className="w-4 h-4" />

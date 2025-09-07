@@ -123,7 +123,9 @@ export default function Header() {
     { name: "FAQ", href: "/faq" },
     { name: "Контакти", href: "/contacts" },
     // Тільки для розробки - видалити в продакшні
-    ...(process.env.NODE_ENV === 'development' ? [{ name: "Адмін", href: "/admin" }] : []),
+    ...(process.env.NODE_ENV === "development"
+      ? [{ name: "Адмін", href: "/admin" }]
+      : []),
   ];
 
   return (
