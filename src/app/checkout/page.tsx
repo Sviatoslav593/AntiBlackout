@@ -136,6 +136,10 @@ export default function CheckoutPage() {
       const orderResult = await orderResponse.json();
       console.log("✅ Order created successfully:", orderResult);
 
+      // Clear cart immediately after order creation (for both payment methods)
+      console.log("🧹 Clearing cart after order creation...");
+      clearCart();
+
       if (data.paymentMethod === "online") {
         // For online payment, create LiqPay session and redirect
         console.log("💳 Creating LiqPay payment session...");
@@ -197,14 +201,13 @@ export default function CheckoutPage() {
           setError(errorMessage);
         }
       } else {
-        // For COD, clear cart and redirect to order page
+        // For COD, redirect to order page
         console.log("✅ COD order created, redirecting to order page...");
 
         // Store orderId in localStorage for backup
         localStorage.setItem("lastOrderId", orderResult.orderId);
 
-        // Clear cart and redirect to order page
-        clearCart();
+        // Redirect to order page
         router.push(`/order?orderId=${orderResult.orderId}`);
       }
     } catch (error) {

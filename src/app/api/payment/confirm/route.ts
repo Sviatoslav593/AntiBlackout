@@ -43,37 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("✅ Payment confirmed for order:", orderData.id);
-
-    // Send confirmation email
-    try {
-      console.log("📧 Sending confirmation email...");
-      await sendOrderEmails(orderData.id);
-      console.log("✅ Confirmation email sent successfully");
-    } catch (emailError) {
-      console.error("❌ Error sending confirmation email:", emailError);
-      // Don't fail the request if email fails
-    }
-
-    // Create cart clearing event
-    try {
-      console.log("🧹 Creating cart clearing event...");
-      const { error: cartError } = await supabaseAdmin
-        .from("cart_clearing_events")
-        .insert([
-          {
-            order_id: orderData.id,
-            cleared_at: new Date().toISOString(),
-          },
-        ]);
-
-      if (cartError) {
-        console.error("❌ Error creating cart clearing event:", cartError);
-      } else {
-        console.log("✅ Cart clearing event created");
-      }
-    } catch (cartError) {
-      console.error("❌ Error creating cart clearing event:", cartError);
-    }
+    // Email and cart clearing already handled in checkout
 
     return NextResponse.json({
       success: true,

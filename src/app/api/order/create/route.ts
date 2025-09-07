@@ -327,17 +327,68 @@ export async function POST(request: NextRequest) {
         );
       }
     } else if (normalizedPM === "online") {
-      // For online payment, keep as pending and return order data for payment
+      // For online payment, send email and clear cart immediately, then return order data for payment
       console.log(
-        "💳 Processing online order - keeping as pending for payment"
+        "💳 Processing online order - sending email and clearing cart immediately"
       );
+
+      try {
+        // Send confirmation email for online order
+        console.log("📧 Sending online order confirmation emails...");
+        // Fetch product images for email
+        const itemsWithImages = await Promise.all(
+          items.map(async (item) => {
+            try {
+              const { data: productData } = await supabaseAdmin
+                .from("products")
+                .select("image_url")
+                .eq("id", item.product_id)
+                .single();
+
+              return {
+                ...item,
+                image_url: productData?.image_url || null,
+              };
+            } catch (error) {
+              console.error(
+                `❌ Error fetching image for product ${item.product_id}:`,
+                error
+              );
+              return { ...item, image_url: null };
+            }
+          })
+        );
+
+        await sendOrderEmails(orderData.id, itemsWithImages);
+        console.log("✅ Online order confirmation emails sent successfully");
+
+        // Create cart clearing event
+        console.log("🧹 Creating cart clearing event for online order...");
+        const { error: cartError } = await supabaseAdmin
+          .from("cart_clearing_events")
+          .insert([
+            {
+              order_id: orderData.id,
+              cleared_at: new Date().toISOString(),
+            },
+          ]);
+
+        if (cartError) {
+          console.error("❌ Error creating cart clearing event:", cartError);
+        } else {
+          console.log("✅ Cart clearing event created for online order");
+        }
+      } catch (onlineError) {
+        console.error("❌ Error processing online order:", onlineError);
+        // Don't fail the request if email/cart clearing fails
+      }
 
       return NextResponse.json({
         success: true,
         orderId: orderData.id,
         paymentMethod: "online",
         status: "pending",
-        message: "Order created, ready for online payment",
+        message: "Order created, email sent, cart cleared, ready for online payment",
         order: orderData,
       });
     } else {

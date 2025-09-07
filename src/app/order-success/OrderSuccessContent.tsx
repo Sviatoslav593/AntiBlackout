@@ -119,8 +119,11 @@ export default function OrderSuccessContent() {
 
       setOrder(orderData);
 
-      // For online payments, we need to update status and send email
-      if (orderData.payment_method === "online" && orderData.status === "pending") {
+      // For online payments, just update status to paid (email already sent in checkout)
+      if (
+        orderData.payment_method === "online" &&
+        orderData.status === "pending"
+      ) {
         console.log("🔄 Online payment - updating status to paid...");
         try {
           const updateResponse = await fetch("/api/payment/confirm", {
@@ -134,9 +137,12 @@ export default function OrderSuccessContent() {
           });
 
           if (updateResponse.ok) {
-            console.log("✅ Order status updated to paid and email sent");
+            console.log("✅ Order status updated to paid");
           } else {
-            console.error("❌ Failed to update order status:", await updateResponse.json());
+            console.error(
+              "❌ Failed to update order status:",
+              await updateResponse.json()
+            );
           }
         } catch (updateError) {
           console.error("❌ Error updating order status:", updateError);
