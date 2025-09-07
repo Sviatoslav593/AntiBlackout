@@ -120,9 +120,21 @@ export default function CheckoutPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error || `HTTP error! status: ${response.status}`;
-        console.error("Order creation failed:", errorMessage);
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (parseError) {
+          console.error("Failed to parse error response:", parseError);
+          errorData = { error: `HTTP error! status: ${response.status}` };
+        }
+        
+        const errorMessage = errorData.details || errorData.error || `HTTP error! status: ${response.status}`;
+        console.error("Order creation failed:", {
+          status: response.status,
+          error: errorData.error,
+          details: errorData.details,
+          missing: errorData.missing,
+        });
         throw new Error(errorMessage);
       }
 

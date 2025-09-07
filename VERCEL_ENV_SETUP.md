@@ -5,6 +5,7 @@
 Add these environment variables in your Vercel dashboard under Settings > Environment Variables:
 
 ### Supabase Configuration
+
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://gtizpymstxfjyidhzygd.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_fRoo7OWfWcC6GiXA6HTxCg_iYVNHuEX
@@ -12,22 +13,26 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 ```
 
 ### LiqPay Configuration
+
 ```
 LIQPAY_PUBLIC_KEY=sandbox_i1881916757
 LIQPAY_PRIVATE_KEY=sandbox_i4PTRrU9ZfD0KCglN0QwJLfcJmbkoj1OJaHnRuWg
 ```
 
 ### Email Configuration
+
 ```
 RESEND_API_KEY=re_A9tvHur2_GCjdi8cvdUY76xMJZxFqFhaZ
 ```
 
 ### Site Configuration
+
 ```
 NEXT_PUBLIC_SITE_URL=https://antiblackout.shop
 ```
 
 ### Nova Poshta API
+
 ```
 NEXT_PUBLIC_NOVA_POSHTA_API_KEY=c8be07eac251641182e5575f8ee0da40
 ```
@@ -42,6 +47,7 @@ NEXT_PUBLIC_NOVA_POSHTA_API_KEY=c8be07eac251641182e5575f8ee0da40
 ## Verification
 
 To verify the setup, check the Vercel function logs after deployment:
+
 1. Go to Vercel Dashboard
 2. Select your project
 3. Go to Functions tab
@@ -57,6 +63,7 @@ To verify the setup, check the Vercel function logs after deployment:
 ## Testing
 
 After setting up environment variables, test the order creation:
+
 1. Go to your deployed site
 2. Add items to cart
 3. Go to checkout
