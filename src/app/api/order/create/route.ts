@@ -3,6 +3,7 @@ import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getProductUUID, isValidUUID } from "@/lib/uuid";
 import { validateProductExists } from "@/services/productMapping";
+import { generateOrderNumber } from "@/lib/orderNumber";
 
 interface CreateOrderRequest {
   customerData: {
@@ -162,11 +163,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1) Create order
+    // 1) Generate order number
+    const orderNumber = generateOrderNumber();
+    console.log("📋 Generated order number:", orderNumber);
+
+    // 2) Create order
     const { data: orderData, error: orderErr } = await supabaseAdmin
       .from("orders")
       .insert([
         {
+          order_number: orderNumber,
           customer_name: customerData.name,
           customer_email: customerData.email,
           customer_phone: customerData.phone ?? null,
@@ -188,7 +194,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2) Validate and prepare order items
+    // 3) Validate and prepare order items
     console.log("🔍 Validating product IDs before inserting order items...");
 
     const itemsInsert = [];

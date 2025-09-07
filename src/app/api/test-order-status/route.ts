@@ -4,7 +4,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const orderNumber = searchParams.get("orderNumber");
-    
+
     return NextResponse.json({
       success: true,
       message: "API endpoint працює",

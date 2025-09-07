@@ -19,23 +19,23 @@ export default function DebugOrderStatusPage() {
       {
         name: "Тест 1: Перевірка базового роутингу",
         url: "/order-status/test-basic",
-        description: "Перевіряє чи працює базовий роутинг для order-status"
+        description: "Перевіряє чи працює базовий роутинг для order-status",
       },
       {
         name: "Тест 2: Перевірка з UUID",
         url: `/order-status/${testOrderNumber}`,
-        description: "Перевіряє чи працює роутинг з реальним UUID"
+        description: "Перевіряє чи працює роутинг з реальним UUID",
       },
       {
         name: "Тест 3: Перевірка 404 для неіснуючого замовлення",
         url: "/order-status/non-existent-order",
-        description: "Перевіряє чи правильно обробляється 404"
+        description: "Перевіряє чи правильно обробляється 404",
       },
       {
         name: "Тест 4: Перевірка API order/get",
         url: "/api/order/get?orderId=test",
-        description: "Перевіряє чи працює API для отримання замовлення"
-      }
+        description: "Перевіряє чи працює API для отримання замовлення",
+      },
     ];
 
     const results = [];
@@ -43,11 +43,11 @@ export default function DebugOrderStatusPage() {
     for (const test of tests) {
       try {
         console.log(`🧪 Running test: ${test.name}`);
-        
+
         const response = await fetch(test.url, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         });
 
@@ -63,7 +63,7 @@ export default function DebugOrderStatusPage() {
         };
 
         // Якщо це не API запит, спробуємо отримати текст відповіді
-        if (!test.url.startsWith('/api/')) {
+        if (!test.url.startsWith("/api/")) {
           try {
             const text = await response.text();
             result.responseText = text.substring(0, 500); // Перші 500 символів
@@ -73,8 +73,9 @@ export default function DebugOrderStatusPage() {
         }
 
         results.push(result);
-        console.log(`✅ Test completed: ${test.name} - Status: ${response.status}`);
-
+        console.log(
+          `✅ Test completed: ${test.name} - Status: ${response.status}`
+        );
       } catch (error) {
         const result = {
           name: test.name,
@@ -116,21 +117,20 @@ export default function DebugOrderStatusPage() {
         <CardContent className="space-y-6">
           <div className="space-y-4">
             <p className="text-gray-600">
-              Ця сторінка допоможе діагностувати проблеми з роутингом сторінки статусу замовлення.
+              Ця сторінка допоможе діагностувати проблеми з роутингом сторінки
+              статусу замовлення.
             </p>
-            
+
             <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-              <h3 className="font-semibold text-blue-800 mb-2">Тестовий номер замовлення:</h3>
+              <h3 className="font-semibold text-blue-800 mb-2">
+                Тестовий номер замовлення:
+              </h3>
               <code className="bg-blue-100 px-2 py-1 rounded text-sm">
                 {testOrderNumber}
               </code>
             </div>
 
-            <Button 
-              onClick={runTests} 
-              disabled={isLoading}
-              className="w-full"
-            >
+            <Button onClick={runTests} disabled={isLoading} className="w-full">
               {isLoading ? "🧪 Запуск тестів..." : "🚀 Запустити діагностику"}
             </Button>
           </div>
@@ -138,7 +138,7 @@ export default function DebugOrderStatusPage() {
           {testResults.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Результати тестів:</h3>
-              
+
               {testResults.map((result, index) => (
                 <Card key={index} className="border-l-4 border-l-blue-500">
                   <CardContent className="pt-4">
@@ -146,25 +146,31 @@ export default function DebugOrderStatusPage() {
                       <h4 className="font-medium">{result.name}</h4>
                       {getStatusBadge(result)}
                     </div>
-                    
-                    <p className="text-sm text-gray-600 mb-3">{result.description}</p>
-                    
+
+                    <p className="text-sm text-gray-600 mb-3">
+                      {result.description}
+                    </p>
+
                     <div className="space-y-2 text-sm">
                       <div>
-                        <span className="font-medium">URL:</span> 
+                        <span className="font-medium">URL:</span>
                         <code className="ml-2 bg-gray-100 px-2 py-1 rounded">
                           {result.url}
                         </code>
                       </div>
-                      
+
                       <div>
-                        <span className="font-medium">Статус:</span> 
-                        <span className="ml-2">{result.status} - {result.statusText}</span>
+                        <span className="font-medium">Статус:</span>
+                        <span className="ml-2">
+                          {result.status} - {result.statusText}
+                        </span>
                       </div>
-                      
+
                       <div>
-                        <span className="font-medium">Час:</span> 
-                        <span className="ml-2">{new Date(result.timestamp).toLocaleTimeString()}</span>
+                        <span className="font-medium">Час:</span>
+                        <span className="ml-2">
+                          {new Date(result.timestamp).toLocaleTimeString()}
+                        </span>
                       </div>
 
                       {result.responseText && (
@@ -178,7 +184,9 @@ export default function DebugOrderStatusPage() {
 
                       {result.error && (
                         <div>
-                          <span className="font-medium text-red-600">Помилка:</span>
+                          <span className="font-medium text-red-600">
+                            Помилка:
+                          </span>
                           <pre className="mt-1 p-2 bg-red-50 rounded text-xs overflow-auto max-h-32">
                             {result.error}
                           </pre>
@@ -192,7 +200,9 @@ export default function DebugOrderStatusPage() {
           )}
 
           <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded">
-            <h3 className="font-semibold text-yellow-800 mb-2">Можливі причини проблеми:</h3>
+            <h3 className="font-semibold text-yellow-800 mb-2">
+              Можливі причини проблеми:
+            </h3>
             <ul className="text-yellow-700 text-sm space-y-1">
               <li>• Сторінка не розгорнута на продакшн сервері</li>
               <li>• Проблема з кешем CDN або браузера</li>
