@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createServerSupabaseClient } from "@/lib/supabase";
+import { OrderService } from "@/services/orders";
 
 interface PaymentPrepareRequest {
   amount: number;
@@ -67,10 +68,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Store order data in Supabase for later retrieval
+    // Create order in database immediately with "pending" status
     try {
-      const supabase = createServerSupabaseClient();
+      const orderData = {
+        customer_name: customerData.name || "Customer",
+        customer_email: customerData.email || "customer@example.com",
+        customer_phone: customerData.phone || "+380000000000",
+        city: customerData.city || "Київ",
+        branch: customerData.warehouse || customerData.address || "Відділення №1",
+        payment_method: "online",
+        total_amount: amount,
+        items: items.map((item: any) => ({
+          product_name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        status: "pending", // Will be updated to "paid" by callback
+        payment_status: "pending",
+        payment_id: null,
+      };
 
+      const order = await OrderService.createOrder(orderData);
+      console.log(`✅ Order created with pending status: ${order.id}`);
+
+      // Also store in pending_orders for callback processing
+      const supabase = createServerSupabaseClient();
       const { error: insertError } = await supabase
         .from("pending_orders")
         .insert({
@@ -89,8 +111,11 @@ export async function POST(request: NextRequest) {
         console.log(`✅ Pending order stored: ${orderId}`);
       }
     } catch (error) {
-      console.error("❌ Error storing pending order:", error);
-      // Continue anyway - this is not critical
+      console.error("❌ Error creating order:", error);
+      return NextResponse.json(
+        { error: "Failed to create order" },
+        { status: 500 }
+      );
     }
 
     // Get site URL for callbacks
@@ -107,7 +132,7 @@ export async function POST(request: NextRequest) {
       description: description,
       order_id: orderId,
       result_url: `${siteUrl}/order-success?orderId=${orderId}`,
-      server_url: `${siteUrl}/api/payment-callback`,
+      server_url: `${siteUrl}/api/payment/callback`,
       language: "uk",
     };
 

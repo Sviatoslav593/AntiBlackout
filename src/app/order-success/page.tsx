@@ -95,7 +95,9 @@ function OrderSuccessContent() {
 
       // Check if cart should be cleared (from payment callback)
       try {
-        const clearResponse = await fetch(`/api/check-cart-clearing?orderId=${orderId}`);
+        const clearResponse = await fetch(
+          `/api/check-cart-clearing?orderId=${orderId}`
+        );
         if (clearResponse.ok) {
           const clearData = await clearResponse.json();
           if (clearData.shouldClear) {
@@ -107,7 +109,54 @@ function OrderSuccessContent() {
         console.error("⚠️ Error checking cart clearing:", clearError);
       }
 
-      // First, try to get data from localStorage
+      // First, try to fetch order from database
+      try {
+        const orderResponse = await fetch(`/api/order-success?orderId=${orderId}`);
+        if (orderResponse.ok) {
+          const orderResult = await orderResponse.json();
+          if (orderResult.success && orderResult.order) {
+            const order = orderResult.order;
+            console.log("📦 Order data loaded from database:", order);
+
+            // Set order number
+            setOrderNumber(order.id);
+
+            // Convert order items to the expected format
+            const items: OrderItem[] = order.order_items?.map((item: any) => ({
+              id: item.id || 0,
+              name: item.product_name || "Unknown Product",
+              price: item.price || 0,
+              quantity: item.quantity || 1,
+              image: "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
+            })) || [];
+
+            setOrderItems(items);
+
+            // Set customer info
+            setCustomerInfo({
+              name: order.customer_name || "Unknown Customer",
+              phone: order.customer_phone || "",
+              address: order.branch || "",
+              email: order.customer_email || "",
+              paymentMethod: order.payment_method || "online",
+              city: order.city || "",
+              warehouse: order.branch || "",
+            });
+
+            // Clear cart after successful order (if not already cleared)
+            clearCart();
+
+            // Don't send emails here - they should be sent by payment callback
+            console.log("📧 Emails should have been sent by payment callback");
+
+            return; // Exit early if we got data from database
+          }
+        }
+      } catch (dbError) {
+        console.error("⚠️ Error fetching order from database:", dbError);
+      }
+
+      // Fallback: try to get data from localStorage
       const storedOrderData = localStorage.getItem(`pending_order_${orderId}`);
       if (storedOrderData) {
         try {

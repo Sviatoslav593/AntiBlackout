@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     }
 
     const shouldClear = !!clearingEvent;
-    
+
     if (shouldClear) {
       console.log("✅ Cart clearing event found for orderId:", orderId);
     } else {

@@ -3,14 +3,17 @@
 ## 🎯 **Problems Fixed:**
 
 ### **1. Email Timing Issue:**
+
 - ❌ **Before:** Email sent only after clicking "Повернутись на сайт" on LiqPay page
 - ✅ **After:** Email sent immediately after successful payment via server-side callback
 
 ### **2. Order Data Persistence:**
+
 - ❌ **Before:** Order details disappeared after page refresh
 - ✅ **After:** Order data persists in Supabase and loads correctly on refresh
 
 ### **3. Cart Clearing Timing:**
+
 - ❌ **Before:** Cart cleared before payment confirmation
 - ✅ **After:** Cart cleared only after successful LiqPay payment
 
@@ -19,6 +22,7 @@
 ### **1. Backend (API Routes)**
 
 #### **`/api/payment-callback` (server_url for LiqPay):**
+
 ```typescript
 // Verifies LiqPay signature
 // If status = success:
@@ -29,6 +33,7 @@
 ```
 
 #### **`/api/check-cart-clearing`:**
+
 ```typescript
 // Checks if cart should be cleared for specific order
 // Returns cart clearing status to frontend
@@ -37,6 +42,7 @@
 ### **2. Frontend (Checkout Flow)**
 
 #### **LiqPay Payment Flow:**
+
 1. **Form Submission:** User selects "Оплата карткою онлайн"
 2. **Payment Preparation:** Data sent to `/api/payment-prepare`
 3. **LiqPay Redirect:** User redirected to LiqPay for payment
@@ -49,6 +55,7 @@
 10. **Order Display:** Success page fetches order from Supabase
 
 #### **Cash on Delivery Flow:**
+
 1. **Form Submission:** User selects "Післяплата"
 2. **Immediate Processing:** Order created immediately
 3. **Email Sending:** Confirmation emails sent
@@ -58,11 +65,13 @@
 ### **3. Order Data Persistence**
 
 #### **Supabase Tables:**
+
 - **`orders`:** Main order data with all customer and product details
 - **`pending_orders`:** Temporary storage for LiqPay orders
 - **`cart_clearing_events`:** Tracks when carts should be cleared
 
 #### **Order Fields Saved:**
+
 ```typescript
 {
   id: string,
@@ -84,11 +93,13 @@
 ### **4. Email Logic**
 
 #### **LiqPay Orders:**
+
 - ✅ Email sent by `/api/payment-callback` after successful payment
 - ✅ No email sent on frontend redirect
 - ✅ Guaranteed delivery after payment confirmation
 
 #### **Cash on Delivery Orders:**
+
 - ✅ Email sent immediately after order creation
 - ✅ Same email flow as before
 
@@ -126,7 +137,9 @@ sequenceDiagram
 
 ```typescript
 // 1. Check for cart clearing event
-const clearResponse = await fetch(`/api/check-cart-clearing?orderId=${orderId}`);
+const clearResponse = await fetch(
+  `/api/check-cart-clearing?orderId=${orderId}`
+);
 if (clearData.shouldClear) {
   clearCart(); // Clear cart only after payment confirmation
 }
@@ -141,21 +154,25 @@ const order = await fetchOrderFromAPI(orderId);
 ## ✅ **Benefits:**
 
 ### **1. Security:**
+
 - ✅ Server-side payment verification
 - ✅ No sensitive data on frontend
 - ✅ Proper signature validation
 
 ### **2. Reliability:**
+
 - ✅ Email sent only after payment confirmation
 - ✅ Order data persists in database
 - ✅ Cart cleared only after successful payment
 
 ### **3. User Experience:**
+
 - ✅ Immediate email delivery
 - ✅ Order data survives page refresh
 - ✅ Proper payment flow
 
 ### **4. Data Integrity:**
+
 - ✅ Complete order information stored
 - ✅ Payment status tracking
 - ✅ Audit trail for all orders
@@ -163,6 +180,7 @@ const order = await fetchOrderFromAPI(orderId);
 ## 🧪 **Testing:**
 
 ### **1. Test LiqPay Payment:**
+
 1. Go to checkout page
 2. Select "Оплата карткою онлайн"
 3. Fill customer details
@@ -172,12 +190,14 @@ const order = await fetchOrderFromAPI(orderId);
 7. **Expected:** Email sent immediately, order created, cart cleared
 
 ### **2. Test Order Persistence:**
+
 1. Complete LiqPay payment
 2. Go to order success page
 3. Refresh the page
 4. **Expected:** Order data still visible
 
 ### **3. Test Cart Clearing:**
+
 1. Add items to cart
 2. Complete LiqPay payment
 3. Go back to main page
@@ -186,6 +206,7 @@ const order = await fetchOrderFromAPI(orderId);
 ## 📊 **Database Schema:**
 
 ### **cart_clearing_events table:**
+
 ```sql
 CREATE TABLE cart_clearing_events (
   id SERIAL PRIMARY KEY,
@@ -198,15 +219,18 @@ CREATE TABLE cart_clearing_events (
 ## 🔍 **API Endpoints:**
 
 ### **`POST /api/payment-callback`**
+
 - **Purpose:** LiqPay server callback
 - **Action:** Creates order, sends email, clears cart
 - **Security:** Signature verification required
 
 ### **`GET /api/check-cart-clearing?orderId={id}`**
+
 - **Purpose:** Check if cart should be cleared
 - **Returns:** `{ shouldClear: boolean, clearingEvent: object }`
 
 ### **`POST /api/payment-prepare`**
+
 - **Purpose:** Prepare LiqPay payment
 - **Action:** Stores pending order, returns LiqPay data
 
