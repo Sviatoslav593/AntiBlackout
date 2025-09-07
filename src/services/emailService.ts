@@ -2,11 +2,12 @@ interface OrderItem {
   productName: string;
   quantity: number;
   price: number;
-  image_url?: string;
+  image_url?: string | null;
 }
 
 interface Order {
   id: string;
+  orderNumber?: string;
   customerName: string;
   customerEmail: string;
   items: OrderItem[];
@@ -270,7 +271,7 @@ function createOrderConfirmationHTML(order: Order): string {
             
             <div style="text-align: center; margin: 30px 0;">
                 <a href="https://antiblackout.shop/order-status/${
-                  order.id
+                  order.orderNumber || order.id
                 }" class="cta-button">
                     Відстежити замовлення
                 </a>
@@ -790,8 +791,13 @@ export async function sendOrderEmails(order: Order): Promise<{
 // Interface for order data from Supabase
 interface SupabaseOrderData {
   id: string;
+  order_number?: string;
   customer_name: string;
   customer_email: string;
+  customer_phone?: string;
+  city?: string;
+  branch?: string;
+  payment_method?: string;
   total_amount: number;
   order_items?: SupabaseOrderItem[];
 }
@@ -812,6 +818,7 @@ export function formatOrderForEmail(orderData: SupabaseOrderData): Order {
 
   const result = {
     id: orderData.id,
+    orderNumber: orderData.order_number,
     customerName: orderData.customer_name,
     customerEmail: orderData.customer_email,
     customerPhone: orderData.customer_phone,

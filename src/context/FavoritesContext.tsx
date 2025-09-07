@@ -48,7 +48,9 @@ function favoritesReducer(
       };
     }
     case "REMOVE_FROM_FAVORITES": {
-      const newItems = state.items.filter((item) => item.id.toString() !== action.payload);
+      const newItems = state.items.filter(
+        (item) => item.id.toString() !== action.payload
+      );
       return {
         items: newItems,
         count: newItems.length,
