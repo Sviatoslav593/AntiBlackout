@@ -46,10 +46,18 @@ interface LiqPayPaymentData {
 export async function POST(request: NextRequest) {
   try {
     console.log("🔄 Received LiqPay callback...");
+    console.log("📝 Request URL:", request.url);
+    console.log("📝 Request method:", request.method);
 
     const formData = await request.formData();
     const data = formData.get("data") as string;
     const signature = formData.get("signature") as string;
+
+    console.log("📝 Form data received:", {
+      hasData: !!data,
+      hasSignature: !!signature,
+      dataLength: data?.length || 0
+    });
 
     if (!data || !signature) {
       console.error("❌ Missing data or signature in callback");
@@ -90,76 +98,99 @@ export async function POST(request: NextRequest) {
     }
 
     // Get payment session data
+    console.log("🔍 Looking for payment session with order_id:", paymentData.order_id);
     const { data: sessionData, error: sessionError } = await supabaseAdmin
       .from("payment_sessions")
       .select("*")
       .eq("order_id", paymentData.order_id)
       .single();
 
+    console.log("📊 Session query result:", {
+      hasData: !!sessionData,
+      error: sessionError,
+      orderId: paymentData.order_id
+    });
+
     if (sessionError || !sessionData) {
       console.error("❌ Payment session not found:", sessionError);
       console.error("❌ Order ID searched:", paymentData.order_id);
-      console.error("❌ Payment sessions table might not exist");
+      console.error("❌ This should not happen if payment_sessions table exists");
       
-      // Try to create order without session data (fallback)
-      console.log("🔄 Attempting to create order without session data...");
-      
-      // Create a basic order structure
-      const fallbackOrderData = {
-        id: paymentData.order_id,
-        customer_name: "Unknown Customer",
-        customer_email: "unknown@example.com",
-        customer_phone: "",
-        city: "Unknown",
-        branch: "Unknown",
-        payment_method: "online",
-        total_amount: paymentData.amount * 100, // Convert from UAH to kopecks
-        status: "paid",
-        payment_status: "success",
-      };
-      
-      const { data: orderData, error: orderError } = await supabaseAdmin
-        .from("orders")
-        .insert([fallbackOrderData])
-        .select()
-        .single();
+      // Only use fallback if session really doesn't exist
+      if (sessionError?.code === 'PGRST116') { // No rows found
+        console.log("🔄 No payment session found, using fallback...");
+        
+        // Create a basic order structure
+        const fallbackOrderData = {
+          id: paymentData.order_id,
+          customer_name: "Unknown Customer",
+          customer_email: "unknown@example.com",
+          customer_phone: "",
+          city: "Unknown",
+          branch: "Unknown",
+          payment_method: "online",
+          total_amount: paymentData.amount * 100, // Convert from UAH to kopecks
+          status: "paid",
+          payment_status: "success",
+        };
 
-      if (orderError) {
-        console.error("❌ Error creating fallback order:", orderError);
+        const { data: orderData, error: orderError } = await supabaseAdmin
+          .from("orders")
+          .insert([fallbackOrderData])
+          .select()
+          .single();
+
+        if (orderError) {
+          console.error("❌ Error creating fallback order:", orderError);
+          return NextResponse.json(
+            { error: "Failed to create order" },
+            { status: 500 }
+          );
+        }
+
+        console.log(`✅ Fallback order created: ${orderData.id}`);
+
+        // Create a basic order item
+        const fallbackOrderItem = {
+          order_id: orderData.id,
+          product_id: "00000000-0000-0000-0000-000000000000", // Default UUID
+          product_name: "Unknown Product",
+          product_price: paymentData.amount * 100,
+          quantity: 1,
+          price: paymentData.amount * 100,
+        };
+
+        const { error: itemError } = await supabaseAdmin
+          .from("order_items")
+          .insert([fallbackOrderItem]);
+
+        if (itemError) {
+          console.error("⚠️ Error creating fallback order item:", itemError);
+        } else {
+          console.log("✅ Fallback order item created");
+        }
+
+        return NextResponse.json({
+          success: true,
+          orderId: orderData.id,
+          message: "Order created without session data",
+        });
+      } else {
+        // Table doesn't exist or other error
         return NextResponse.json(
-          { error: "Failed to create order" },
-          { status: 500 }
+          { error: "Payment session not found", details: sessionError?.message },
+          { status: 404 }
         );
       }
-
-      console.log(`✅ Fallback order created: ${orderData.id}`);
-      
-      // Create a basic order item
-      const fallbackOrderItem = {
-        order_id: orderData.id,
-        product_id: "00000000-0000-0000-0000-000000000000", // Default UUID
-        product_name: "Unknown Product",
-        product_price: paymentData.amount * 100,
-        quantity: 1,
-        price: paymentData.amount * 100,
-      };
-      
-      const { error: itemError } = await supabaseAdmin
-        .from("order_items")
-        .insert([fallbackOrderItem]);
-      
-      if (itemError) {
-        console.error("⚠️ Error creating fallback order item:", itemError);
-      } else {
-        console.log("✅ Fallback order item created");
-      }
-      
-      return NextResponse.json({
-        success: true,
-        orderId: orderData.id,
-        message: "Order created without session data",
-      });
     }
+
+    console.log("✅ Payment session found, proceeding with order creation...");
+    console.log("📋 Session data:", {
+      order_id: sessionData.order_id,
+      customer_name: sessionData.customer_data?.name,
+      total_amount: sessionData.total_amount,
+      items_count: sessionData.items?.length || 0
+    });
 
     // Check if order already exists
     const { data: existingOrder } = await supabaseAdmin
@@ -178,6 +209,13 @@ export async function POST(request: NextRequest) {
 
     // Create order in database
     console.log("🔄 Creating order from payment session...");
+    console.log("📋 Order data to insert:", {
+      id: paymentData.order_id,
+      customer_name: sessionData.customer_data.name,
+      customer_email: sessionData.customer_data.email,
+      total_amount: sessionData.total_amount,
+      payment_method: "online"
+    });
 
     const { data: orderData, error: orderError } = await supabaseAdmin
       .from("orders")
@@ -197,6 +235,12 @@ export async function POST(request: NextRequest) {
       ])
       .select()
       .single();
+
+    console.log("📊 Order creation result:", {
+      hasData: !!orderData,
+      error: orderError,
+      orderId: orderData?.id
+    });
 
     if (orderError) {
       console.error("❌ Error creating order:", orderError);
