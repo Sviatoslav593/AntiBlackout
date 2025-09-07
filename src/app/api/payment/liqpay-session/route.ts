@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-const LIQPAY_PUBLIC_KEY = process.env.LIQPAY_PUBLIC_KEY || "sandbox_i1881916757";
-const LIQPAY_PRIVATE_KEY = process.env.LIQPAY_PRIVATE_KEY || "sandbox_i4PTRrU9ZfD0KCglN0QwJLfcJmbkoj1OJaHnRuWg";
+const LIQPAY_PUBLIC_KEY =
+  process.env.LIQPAY_PUBLIC_KEY || "sandbox_i1881916757";
+const LIQPAY_PRIVATE_KEY =
+  process.env.LIQPAY_PRIVATE_KEY ||
+  "sandbox_i4PTRrU9ZfD0KCglN0QwJLfcJmbkoj1OJaHnRuWg";
 
 interface LiqPaySessionRequest {
   customerData: {
@@ -33,7 +36,9 @@ export async function POST(request: NextRequest) {
     const { customerData, items, totalAmount } = body;
 
     // Generate unique order ID for this payment session
-    const orderId = `liqpay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const orderId = `liqpay_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
 
     // Store payment session data in Supabase
     const paymentSessionData = {
@@ -60,8 +65,9 @@ export async function POST(request: NextRequest) {
     console.log(`✅ Payment session created: ${orderId}`);
 
     // Prepare LiqPay payment data
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://antiblackout.shop";
-    
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL || "https://antiblackout.shop";
+
     const liqPayData = {
       version: 3,
       public_key: LIQPAY_PUBLIC_KEY,
@@ -76,9 +82,15 @@ export async function POST(request: NextRequest) {
     };
 
     // Create signature
-    const dataString = Buffer.from(JSON.stringify(liqPayData)).toString("base64");
-    const signatureString = LIQPAY_PRIVATE_KEY + dataString + LIQPAY_PRIVATE_KEY;
-    const signature = crypto.createHash("sha1").update(signatureString).digest("base64");
+    const dataString = Buffer.from(JSON.stringify(liqPayData)).toString(
+      "base64"
+    );
+    const signatureString =
+      LIQPAY_PRIVATE_KEY + dataString + LIQPAY_PRIVATE_KEY;
+    const signature = crypto
+      .createHash("sha1")
+      .update(signatureString)
+      .digest("base64");
 
     console.log(`✅ LiqPay session data prepared for order: ${orderId}`);
 
@@ -89,7 +101,6 @@ export async function POST(request: NextRequest) {
       signature,
       publicKey: LIQPAY_PUBLIC_KEY,
     });
-
   } catch (error) {
     console.error("❌ Error creating LiqPay session:", error);
     return NextResponse.json(

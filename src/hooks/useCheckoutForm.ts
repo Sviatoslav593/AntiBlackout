@@ -92,7 +92,7 @@ export const useCheckoutForm = () => {
 
   // Handle payment method selection
   const handlePaymentMethodChange = (value: string) => {
-    setValue("paymentMethod", value as "online" | "cash_on_delivery");
+    setValue("paymentMethod", value as "online" | "cod");
     clearFieldError("paymentMethod");
   };
 

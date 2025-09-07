@@ -76,7 +76,7 @@ export default function CheckoutPage() {
         lastName: data.lastName,
         phone: data.phone,
         email: data.email,
-        paymentMethod: data.paymentMethod === "online" ? "liqpay" : "cod",
+        paymentMethod: data.paymentMethod, // Use the actual selected payment method
         city: data.city?.Description || "",
         cityRef: data.city?.Ref || "",
         branch: data.warehouse
@@ -94,7 +94,7 @@ export default function CheckoutPage() {
         image: item.image,
       }));
 
-      if (customerData.paymentMethod === "online") {
+      if (data.paymentMethod === "online") {
         // For online payment, create LiqPay session and redirect
         console.log("💳 Creating LiqPay payment session...");
 
@@ -150,7 +150,7 @@ export default function CheckoutPage() {
           customerData,
           items,
           total: state.total,
-          paymentMethod: customerData.paymentMethod,
+          paymentMethod: data.paymentMethod,
         });
 
         const response = await fetch("/api/order/create", {
@@ -233,7 +233,7 @@ export default function CheckoutPage() {
       icon: <CreditCard className="h-4 w-4" />,
     },
     {
-      value: "cash_on_delivery",
+      value: "cod",
       label: "Післяплата (оплата при отриманні)",
       description: "Оплата готівкою або карткою при отриманні товару",
       icon: <Truck className="h-4 w-4" />,

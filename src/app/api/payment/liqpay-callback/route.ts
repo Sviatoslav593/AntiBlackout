@@ -5,7 +5,9 @@ import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
 import { getProductUUID, isValidUUID } from "@/lib/uuid";
 import { validateProductExists } from "@/services/productMapping";
 
-const LIQPAY_PRIVATE_KEY = process.env.LIQPAY_PRIVATE_KEY || "sandbox_i4PTRrU9ZfD0KCglN0QwJLfcJmbkoj1OJaHnRuWg";
+const LIQPAY_PRIVATE_KEY =
+  process.env.LIQPAY_PRIVATE_KEY ||
+  "sandbox_i4PTRrU9ZfD0KCglN0QwJLfcJmbkoj1OJaHnRuWg";
 
 interface LiqPayCallbackData {
   data: string;

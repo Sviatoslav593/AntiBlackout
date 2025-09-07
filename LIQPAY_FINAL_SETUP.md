@@ -5,24 +5,28 @@
 ### 🎯 **What's Been Implemented:**
 
 #### 1. **Correct Payment Flow for Card Payments**
+
 - ✅ **No immediate order creation** when selecting "Оплата карткою онлайн"
 - ✅ **LiqPay session creation** via `/api/payment/liqpay-session`
 - ✅ **Auto-redirect to LiqPay** with proper form submission
 - ✅ **Order creation only after successful payment** via callback
 
 #### 2. **LiqPay API Endpoints**
+
 - ✅ `/api/payment/liqpay-session` - Creates payment session and returns LiqPay form data
 - ✅ `/api/payment/liqpay-callback` - Handles LiqPay server-to-server callback
 - ✅ **Proper signature validation** and payment verification
 - ✅ **Order creation** with `payment_method: 'online'` and `payment_status: 'success'`
 
 #### 3. **Order Success Page**
+
 - ✅ **Suspense boundary** for `useSearchParams()` (no more warnings)
 - ✅ **Full order display** with customer info, products, and images
 - ✅ **Product images** fetched via JOIN with `products` table
 - ✅ **Cart clearing** only after successful payment
 
 #### 4. **Email Notifications**
+
 - ✅ **Order confirmation emails** sent after successful payment
 - ✅ **Product images included** in email templates
 - ✅ **Full order details** with customer and item information
@@ -136,7 +140,7 @@ CREATE POLICY "Service role can access payment sessions" ON payment_sessions
 
 ### 🎉 **Result:**
 
-Your LiqPay integration is now **complete and production-ready**! 
+Your LiqPay integration is now **complete and production-ready**!
 
 - **Card payments** work correctly with proper flow
 - **COD payments** work as before

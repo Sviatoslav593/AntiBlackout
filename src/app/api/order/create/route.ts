@@ -123,8 +123,7 @@ export async function POST(request: NextRequest) {
       customer_phone: customerData.phone || null,
       city: customerData.city || "",
       branch: customerData.branch || "",
-      payment_method:
-        customerData.paymentMethod === "liqpay" ? "online" : "cod",
+      payment_method: customerData.paymentMethod === "online" ? "online" : "cod",
       total_amount: totalAmount,
       status: "pending" as const,
     };
@@ -138,9 +137,8 @@ export async function POST(request: NextRequest) {
     });
 
     // Normalize payment method
-    const paymentMethod = (customerData.paymentMethod || "").toLowerCase();
-    const normalizedPM =
-      paymentMethod === "online" || paymentMethod === "card" ? "online" : "cod";
+    const paymentMethod = customerData.paymentMethod || "cod";
+    const normalizedPM = paymentMethod === "online" ? "online" : "cod";
     console.log(`💾 Creating ${normalizedPM} order in Supabase...`);
 
     // Validate required fields
