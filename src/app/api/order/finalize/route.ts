@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
 import { getProductUUID, isValidUUID } from "@/lib/uuid";
+import { validateProductExists } from "@/services/productMapping";
 
 interface FinalizeOrderRequest {
   orderId: string;
@@ -150,22 +151,41 @@ export async function POST(request: NextRequest) {
     // First, delete existing items
     await supabaseAdmin.from("order_items").delete().eq("order_id", orderId);
 
-    // Insert new items
-    const orderItems = items.map((item) => {
+    // Validate and prepare order items
+    console.log("🔍 Validating product IDs before inserting order items...");
+    
+    const orderItems = [];
+    for (const item of items) {
       // Convert numeric ID to UUID if needed
       const productUUID = getProductUUID(item);
       
       console.log(`🔄 Converting product ID ${item.id} to UUID: ${productUUID}`);
       
-      return {
+      // Validate that the product exists in the database
+      const productExists = await validateProductExists(productUUID);
+      
+      if (!productExists) {
+        console.error(`❌ Product with ID ${productUUID} does not exist in database`);
+        return NextResponse.json(
+          {
+            error: "Invalid product",
+            details: `Product with ID ${item.id} does not exist in database`,
+          },
+          { status: 400 }
+        );
+      }
+      
+      console.log(`✅ Product ${item.id} validated successfully`);
+      
+      orderItems.push({
         order_id: orderId,
         product_id: productUUID,
         product_name: item.name,
         product_price: item.price,
         quantity: item.quantity,
         price: item.price * item.quantity,
-      };
-    });
+      });
+    }
 
     const { error: itemsError } = await supabaseAdmin
       .from("order_items")

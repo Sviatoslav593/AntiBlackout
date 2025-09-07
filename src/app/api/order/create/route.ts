@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getProductUUID, isValidUUID } from "@/lib/uuid";
+import { validateProductExists } from "@/services/productMapping";
 
 interface CreateOrderRequest {
   customerData: {
@@ -188,22 +189,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2) Insert order items (write to both price columns to be schema-compatible)
-    const itemsInsert = items.map((item) => {
+    // 2) Validate and prepare order items
+    console.log("🔍 Validating product IDs before inserting order items...");
+    
+    const itemsInsert = [];
+    for (const item of items) {
       // Convert numeric ID to UUID if needed
       const productUUID = getProductUUID(item);
       
       console.log(`🔄 Converting product ID ${item.id} to UUID: ${productUUID}`);
       
-      return {
+      // Validate that the product exists in the database
+      const productExists = await validateProductExists(productUUID);
+      
+      if (!productExists) {
+        console.error(`❌ Product with ID ${productUUID} does not exist in database`);
+        return NextResponse.json(
+          {
+            error: "Invalid product",
+            details: `Product with ID ${item.id} does not exist in database`,
+          },
+          { status: 400 }
+        );
+      }
+      
+      console.log(`✅ Product ${item.id} validated successfully`);
+      
+      itemsInsert.push({
         order_id: orderData.id,
         product_id: productUUID,
         product_name: item.name,
         price: item.price, // if "price" column exists
         product_price: item.price, // if only "product_price" exists
         quantity: item.quantity,
-      };
-    });
+      });
+    }
 
     const { error: itemsErr } = await supabaseAdmin
       .from("order_items")
