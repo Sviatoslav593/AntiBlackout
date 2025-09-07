@@ -9,6 +9,7 @@ const LIQPAY_PRIVATE_KEY =
   "sandbox_i4PTRrU9ZfD0KCglN0QwJLfcJmbkoj1OJaHnRuWg";
 
 interface LiqPaySessionRequest {
+  orderId: string;
   customerData: {
     name: string;
     firstName: string;
@@ -33,12 +34,16 @@ export async function POST(request: NextRequest) {
     console.log("🚀 Creating LiqPay session...");
 
     const body: LiqPaySessionRequest = await request.json();
-    const { customerData, items, totalAmount } = body;
+    const { orderId, customerData, items, totalAmount } = body;
 
-    // Generate unique order ID for this payment session
-    const orderId = `liqpay_${Date.now()}_${Math.random()
-      .toString(36)
-      .substr(2, 9)}`;
+    if (!orderId) {
+      return NextResponse.json(
+        { error: "OrderId is required" },
+        { status: 400 }
+      );
+    }
+
+    console.log("📋 Using existing orderId:", orderId);
 
     // Store payment session data in Supabase (optional for testing)
     try {

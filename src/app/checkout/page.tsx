@@ -95,18 +95,59 @@ export default function CheckoutPage() {
         image: item.image,
       }));
 
+      // Create order in database first (same for both payment methods)
+      console.log("🔄 Creating order in database...");
+      
+      const orderResponse = await fetch("/api/order/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customerData,
+          items,
+          totalAmount: state.total,
+          paymentMethod: data.paymentMethod,
+        }),
+      });
+
+      if (!orderResponse.ok) {
+        let errorData;
+        try {
+          errorData = await orderResponse.json();
+        } catch (parseError) {
+          console.error("Failed to parse error response:", parseError);
+          errorData = { error: `HTTP error! status: ${orderResponse.status}` };
+        }
+
+        const errorMessage =
+          errorData.details ||
+          errorData.error ||
+          `HTTP error! status: ${orderResponse.status}`;
+        console.error("Order creation failed:", {
+          status: orderResponse.status,
+          error: errorData.error,
+          details: errorData.details,
+          missing: errorData.missing,
+        });
+        throw new Error(errorMessage);
+      }
+
+      const orderResult = await orderResponse.json();
+      console.log("✅ Order created successfully:", orderResult);
+
       if (data.paymentMethod === "online") {
-        // For online payment, create pending order first, then LiqPay session
-        console.log("💳 Creating pending order and LiqPay payment session...");
+        // For online payment, create LiqPay session and redirect
+        console.log("💳 Creating LiqPay payment session...");
 
         try {
-          // First, create LiqPay session to get orderId
           const response = await fetch("/api/payment/liqpay-session", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
+              orderId: orderResult.orderId,
               customerData,
               items,
               totalAmount: state.total,
@@ -119,34 +160,6 @@ export default function CheckoutPage() {
             throw new Error(result.error || "Failed to create payment session");
           }
 
-          console.log("✅ LiqPay session created:", result);
-          console.log("📋 OrderId from LiqPay:", result.orderId);
-
-          // Then create pending order in database
-          const pendingResponse = await fetch("/api/order/create-pending", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              orderId: result.orderId,
-              customerData,
-              items,
-              totalAmount: state.total,
-            }),
-          });
-
-          console.log("📋 Pending order response status:", pendingResponse.status);
-
-          if (!pendingResponse.ok) {
-            const pendingError = await pendingResponse.json();
-            console.error("❌ Pending order creation failed:", pendingError);
-            throw new Error(
-              pendingError.error || "Failed to create pending order"
-            );
-          }
-
-          console.log("✅ Pending order created in database");
           console.log("✅ LiqPay session created, redirecting to payment...");
 
           // Save order data to localStorage for fallback loading
@@ -184,57 +197,15 @@ export default function CheckoutPage() {
           setError(errorMessage);
         }
       } else {
-        // For COD, create order immediately
-        console.log("Creating COD order:", {
-          customerData,
-          items,
-          total: state.total,
-          paymentMethod: data.paymentMethod,
-        });
-
-        const response = await fetch("/api/order/create", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            customerData,
-            items,
-            totalAmount: state.total,
-          }),
-        });
-
-        if (!response.ok) {
-          let errorData;
-          try {
-            errorData = await response.json();
-          } catch (parseError) {
-            console.error("Failed to parse error response:", parseError);
-            errorData = { error: `HTTP error! status: ${response.status}` };
-          }
-
-          const errorMessage =
-            errorData.details ||
-            errorData.error ||
-            `HTTP error! status: ${response.status}`;
-          console.error("Order creation failed:", {
-            status: response.status,
-            error: errorData.error,
-            details: errorData.details,
-            missing: errorData.missing,
-          });
-          throw new Error(errorMessage);
-        }
-
-        const result = await response.json();
-        console.log("COD Order created successfully:", result);
-
+        // For COD, clear cart and redirect to order page
+        console.log("✅ COD order created, redirecting to order page...");
+        
         // Store orderId in localStorage for backup
-        localStorage.setItem("lastOrderId", result.orderId);
+        localStorage.setItem("lastOrderId", orderResult.orderId);
 
         // Clear cart and redirect to order page
         clearCart();
-        router.push(`/order?orderId=${result.orderId}`);
+        router.push(`/order?orderId=${orderResult.orderId}`);
       }
     } catch (error) {
       console.error("Failed to create order:", error);

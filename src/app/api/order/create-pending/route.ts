@@ -57,11 +57,11 @@ export async function POST(request: NextRequest) {
         total_amount: totalAmount,
       });
       return NextResponse.json(
-        { 
+        {
           error: "Failed to create pending order",
           details: orderError.message,
           code: orderError.code,
-          hint: orderError.hint
+          hint: orderError.hint,
         },
         { status: 500 }
       );

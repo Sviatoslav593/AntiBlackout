@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 export async function POST(request: NextRequest) {
   try {
     console.log("🧪 Testing pending order creation...");
-    
+
     const body = await request.json();
     const { orderId, customerData, items, totalAmount } = body;
 
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     // Test order creation
     const testOrderId = `test_${Date.now()}`;
-    
+
     const { data: orderData, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert([
@@ -39,22 +39,22 @@ export async function POST(request: NextRequest) {
 
     if (orderError) {
       console.error("❌ Error creating test order:", orderError);
-      return NextResponse.json({
-        success: false,
-        error: "Failed to create test order",
-        details: orderError.message,
-        code: orderError.code,
-        hint: orderError.hint
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to create test order",
+          details: orderError.message,
+          code: orderError.code,
+          hint: orderError.hint,
+        },
+        { status: 500 }
+      );
     }
 
     console.log("✅ Test order created:", orderData.id);
 
     // Clean up test order
-    await supabaseAdmin
-      .from("orders")
-      .delete()
-      .eq("id", testOrderId);
+    await supabaseAdmin.from("orders").delete().eq("id", testOrderId);
 
     console.log("🧹 Test order cleaned up");
 
@@ -62,14 +62,16 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Test order creation successful",
       testOrderId: orderData.id,
-      orderData: orderData
+      orderData: orderData,
     });
-
   } catch (error) {
     console.error("❌ Test pending order error:", error);
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error"
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }

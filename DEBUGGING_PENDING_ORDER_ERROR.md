@@ -1,6 +1,7 @@
 # Debugging Pending Order Error
 
 ## ❌ **Проблема:**
+
 ```
 ❌ Failed to create payment session: Error: Failed to create pending order
 ```
@@ -8,12 +9,14 @@
 ## 🔍 **Діагностика:**
 
 ### **Крок 1: Перевірка тестового endpoint**
+
 ```bash
 # Відкрийте в браузері:
 http://localhost:3000/api/test-pending-order
 ```
 
 **POST дані для тесту:**
+
 ```json
 {
   "orderId": "test_order_123",
@@ -38,6 +41,7 @@ http://localhost:3000/api/test-pending-order
 ```
 
 ### **Крок 2: Перевірка логів сервера**
+
 Після спроби створення замовлення перевірте консоль сервера на:
 
 ```
@@ -50,16 +54,19 @@ http://localhost:3000/api/test-pending-order
 ```
 
 ### **Крок 3: Перевірка структури даних**
+
 Переконайтеся, що передаються правильні дані:
 
 #### **Customer Data має містити:**
+
 - `name` (string)
-- `email` (string) 
+- `email` (string)
 - `phone` (string)
 - `city` (string)
 - `branch` (string)
 
 #### **Items має бути масивом з:**
+
 - `id` (string)
 - `name` (string)
 - `price` (number)
@@ -71,15 +78,18 @@ http://localhost:3000/api/test-pending-order
 ## 🐛 **Можливі причини помилки:**
 
 ### **1. Відсутні обов'язкові поля**
+
 ```json
 {
   "error": "Missing required fields",
   "status": 400
 }
 ```
+
 **Рішення:** Перевірити, що всі поля передаються правильно
 
 ### **2. Помилка бази даних**
+
 ```json
 {
   "error": "Failed to create pending order",
@@ -87,9 +97,11 @@ http://localhost:3000/api/test-pending-order
   "code": "23505"
 }
 ```
+
 **Рішення:** OrderId вже існує, потрібно генерувати унікальний ID
 
 ### **3. Помилка валідації UUID**
+
 ```json
 {
   "error": "Failed to create pending order",
@@ -97,9 +109,11 @@ http://localhost:3000/api/test-pending-order
   "code": "22P02"
 }
 ```
+
 **Рішення:** OrderId не є валідним UUID
 
 ### **4. Помилка зовнішнього ключа**
+
 ```json
 {
   "error": "Failed to create pending order",
@@ -107,20 +121,25 @@ http://localhost:3000/api/test-pending-order
   "code": "23503"
 }
 ```
+
 **Рішення:** Перевірити структуру таблиці orders
 
 ## 🔧 **Кроки для виправлення:**
 
 ### **1. Перевірити LiqPay session API**
+
 Переконайтеся, що `/api/payment/liqpay-session` повертає правильний `orderId`:
 
 ```typescript
 // В liqpay-session/route.ts
-const orderId = `liqpay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+const orderId = `liqpay_${Date.now()}_${Math.random()
+  .toString(36)
+  .substr(2, 9)}`;
 console.log("📋 Generated orderId:", orderId);
 ```
 
 ### **2. Перевірити передачу даних в checkout**
+
 ```typescript
 // В checkout/page.tsx
 console.log("📋 Data being sent to pending order:", {
@@ -132,17 +151,19 @@ console.log("📋 Data being sent to pending order:", {
 ```
 
 ### **3. Перевірити структуру таблиці orders**
+
 ```sql
 -- Перевірити структуру таблиці
 \d orders
 
 -- Перевірити обмеження
-SELECT conname, contype, confrelid 
-FROM pg_constraint 
+SELECT conname, contype, confrelid
+FROM pg_constraint
 WHERE conrelid = 'orders'::regclass;
 ```
 
 ### **4. Перевірити права доступу**
+
 ```sql
 -- Перевірити RLS політики
 SELECT * FROM pg_policies WHERE tablename = 'orders';
@@ -151,6 +172,7 @@ SELECT * FROM pg_policies WHERE tablename = 'orders';
 ## 🧪 **Тестування:**
 
 ### **Тест 1: Базове створення замовлення**
+
 ```bash
 curl -X POST http://localhost:3000/api/test-pending-order \
   -H "Content-Type: application/json" \
@@ -169,6 +191,7 @@ curl -X POST http://localhost:3000/api/test-pending-order \
 ```
 
 ### **Тест 2: Перевірка LiqPay session**
+
 ```bash
 curl -X POST http://localhost:3000/api/payment/liqpay-session \
   -H "Content-Type: application/json" \
@@ -188,6 +211,7 @@ curl -X POST http://localhost:3000/api/payment/liqpay-session \
 ## 📋 **Очікувані результати:**
 
 ### **Успішний тест pending order:**
+
 ```json
 {
   "success": true,
@@ -203,6 +227,7 @@ curl -X POST http://localhost:3000/api/payment/liqpay-session \
 ```
 
 ### **Успішний LiqPay session:**
+
 ```json
 {
   "success": true,

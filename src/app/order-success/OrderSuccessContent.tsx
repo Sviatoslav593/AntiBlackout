@@ -133,67 +133,56 @@ export default function OrderSuccessContent() {
     } catch (error) {
       console.error("❌ Error fetching order from API:", error);
 
-      // Try to load from localStorage and confirm payment
-      console.log(
-        "🔄 Attempting to load order from localStorage and confirm payment..."
-      );
+      // Try to update order status to paid and load from database
+      console.log("🔄 Attempting to update order status to paid...");
+      
+      try {
+        // Update order status to paid
+        const updateResponse = await fetch("/api/payment/confirm", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            orderId: orderId,
+          }),
+        });
+
+        if (updateResponse.ok) {
+          console.log("✅ Order status updated to paid");
+          
+          // Now fetch the updated order from database
+          const dbResponse = await fetch(
+            `/api/order/get?orderId=${orderId}`,
+            {
+              cache: "no-store",
+              headers: {
+                "Cache-Control": "no-cache",
+              },
+            }
+          );
+
+          if (dbResponse.ok) {
+            const dbOrderData = await dbResponse.json();
+            console.log("✅ Order loaded from database:", dbOrderData);
+            setOrder(dbOrderData);
+            setError(null);
+            clearCart();
+            return;
+          }
+        } else {
+          console.error("❌ Failed to update order status:", await updateResponse.json());
+        }
+      } catch (updateError) {
+        console.error("❌ Error updating order status:", updateError);
+      }
+
+      // Fallback: try to load from localStorage
+      console.log("🔄 Attempting to load order from localStorage...");
       const orderData = localStorageUtils.consumePendingOrder(orderId);
 
       if (orderData) {
         console.log("✅ Order loaded from localStorage:", orderData);
-
-        // Confirm payment and create order in database
-        try {
-          console.log(
-            "🔄 Confirming payment and creating order in database..."
-          );
-          const confirmResponse = await fetch(
-            "/api/order/create-after-payment",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                orderId: orderData.orderId,
-                customerData: orderData.customerData,
-                items: orderData.items,
-                totalAmount: orderData.totalAmount,
-              }),
-            }
-          );
-
-          if (confirmResponse.ok) {
-            console.log("✅ Payment confirmed and order created in database");
-
-            // Now fetch the order from database
-            const dbResponse = await fetch(
-              `/api/order/get?orderId=${orderId}`,
-              {
-                cache: "no-store",
-                headers: {
-                  "Cache-Control": "no-cache",
-                },
-              }
-            );
-
-            if (dbResponse.ok) {
-              const dbOrderData = await dbResponse.json();
-              console.log("✅ Order loaded from database:", dbOrderData);
-              setOrder(dbOrderData);
-              setError(null);
-              clearCart();
-              return;
-            }
-          } else {
-            console.error(
-              "❌ Failed to confirm payment:",
-              await confirmResponse.json()
-            );
-          }
-        } catch (confirmError) {
-          console.error("❌ Error confirming payment:", confirmError);
-        }
 
         // If database confirmation failed, use localStorage data
         const transformedOrder: Order = {
