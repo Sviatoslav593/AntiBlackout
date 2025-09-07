@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
         payment_method,
         total_amount,
         created_at,
+        updated_at,
         order_items (
           id,
           product_name,
@@ -127,6 +128,7 @@ export async function GET(request: NextRequest) {
       payment_method: orderData.payment_method,
       total_amount: orderData.total_amount,
       created_at: orderData.created_at,
+      updated_at: orderData.updated_at,
       items: Array.isArray(orderData.order_items) ? orderData.order_items : [],
     };
 

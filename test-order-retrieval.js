@@ -2,7 +2,7 @@
 const testOrderRetrieval = async () => {
   try {
     console.log("🧪 Testing Order Retrieval Logic...");
-    
+
     // Test data for order creation
     const orderData = {
       customerData: {
@@ -92,7 +92,7 @@ const testOrderRetrieval = async () => {
       "created_at",
       "items",
     ];
-    
+
     const missingFields = expectedFields.filter((field) => !(field in order));
 
     if (missingFields.length > 0) {
@@ -180,7 +180,7 @@ const testOrderRetrieval = async () => {
 
     // Test empty items scenario
     console.log("\n7️⃣ Testing empty items scenario...");
-    
+
     // Create a mock order with empty items
     const emptyOrder = {
       id: "test-empty",
@@ -233,7 +233,6 @@ const testOrderRetrieval = async () => {
     console.log("- Item values match expected format: ✅");
     console.log("- Empty items check: ✅");
     console.log("- Order retrieval logic ready: ✅");
-
   } catch (error) {
     console.error("❌ Test failed:", error);
   }
