@@ -56,13 +56,19 @@ export async function POST(request: NextRequest) {
         .insert([paymentSessionData]);
 
       if (sessionError) {
-        console.warn("⚠️ Warning: Could not store payment session in database:", sessionError.message);
+        console.warn(
+          "⚠️ Warning: Could not store payment session in database:",
+          sessionError.message
+        );
         console.log("📝 Continuing without database storage for testing...");
       } else {
         console.log(`✅ Payment session stored in database: ${orderId}`);
       }
     } catch (dbError) {
-      console.warn("⚠️ Warning: Database error, continuing without storage:", dbError);
+      console.warn(
+        "⚠️ Warning: Database error, continuing without storage:",
+        dbError
+      );
     }
 
     // Prepare LiqPay payment data
@@ -73,7 +79,7 @@ export async function POST(request: NextRequest) {
       version: 3,
       public_key: LIQPAY_PUBLIC_KEY,
       action: "pay",
-      amount: totalAmount / 100, // Convert from kopecks to UAH
+      amount: parseFloat(totalAmount).toFixed(2), // Correct amount in UAH
       currency: "UAH",
       description: `Замовлення #${orderId} - AntiBlackout`,
       order_id: orderId,
@@ -108,7 +114,7 @@ export async function POST(request: NextRequest) {
         amountInUAH: totalAmount / 100,
         orderId,
         siteUrl,
-      }
+      },
     });
   } catch (error) {
     console.error("❌ Error creating LiqPay session:", error);
