@@ -79,7 +79,9 @@ export default function CheckoutPage() {
         paymentMethod: data.paymentMethod === "online" ? "liqpay" : "cod",
         city: data.city?.Description || "",
         cityRef: data.city?.Ref || "",
-        branch: data.warehouse ? getWarehouseDisplayName(data.warehouse as NovaPoshtaWarehouse) : "",
+        branch: data.warehouse
+          ? getWarehouseDisplayName(data.warehouse as NovaPoshtaWarehouse)
+          : "",
         warehouseRef: (data.warehouse as NovaPoshtaWarehouse)?.Ref || "",
         customAddress: data.customAddress || "",
       };
@@ -93,11 +95,11 @@ export default function CheckoutPage() {
       }));
 
       if (customerData.paymentMethod === "online") {
-        // For online payment, redirect to LiqPay
-        console.log("💳 Initiating LiqPay payment...");
+        // For online payment, create LiqPay session and redirect
+        console.log("💳 Creating LiqPay payment session...");
 
         try {
-          const response = await fetch("/api/initiate-liqpay", {
+          const response = await fetch("/api/payment/liqpay-session", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -112,15 +114,33 @@ export default function CheckoutPage() {
           const result = await response.json();
 
           if (!response.ok) {
-            throw new Error(result.error || "Failed to initiate payment");
+            throw new Error(result.error || "Failed to create payment session");
           }
 
-          console.log("✅ LiqPay payment initiated, redirecting...");
+          console.log("✅ LiqPay session created, redirecting to payment...");
 
-          // Redirect to LiqPay payment page
-          window.location.href = result.paymentUrl;
+          // Create LiqPay form and auto-submit
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = "https://www.liqpay.ua/api/3/checkout";
+          form.target = "_self";
+
+          const dataInput = document.createElement("input");
+          dataInput.type = "hidden";
+          dataInput.name = "data";
+          dataInput.value = result.data;
+
+          const signatureInput = document.createElement("input");
+          signatureInput.type = "hidden";
+          signatureInput.name = "signature";
+          signatureInput.value = result.signature;
+
+          form.appendChild(dataInput);
+          form.appendChild(signatureInput);
+          document.body.appendChild(form);
+          form.submit();
         } catch (error) {
-          console.error("❌ Failed to initiate payment:", error);
+          console.error("❌ Failed to create payment session:", error);
           const errorMessage = getErrorMessage(error);
           setError(errorMessage);
         }
@@ -324,7 +344,9 @@ export default function CheckoutPage() {
                         cityRef={city?.Ref || ""}
                         value={
                           warehouse
-                            ? getWarehouseDisplayName(warehouse as NovaPoshtaWarehouse)
+                            ? getWarehouseDisplayName(
+                                warehouse as NovaPoshtaWarehouse
+                              )
                             : customAddress || ""
                         }
                         onChange={handleWarehouseSelect}
