@@ -55,7 +55,10 @@ export async function POST(request: NextRequest) {
 
     if (!data || !signature) {
       console.error("❌ Missing data or signature in callback");
-      return NextResponse.json({ error: "Missing data or signature" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing data or signature" },
+        { status: 400 }
+      );
     }
 
     // Verify signature
@@ -70,8 +73,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse payment data
-    const paymentData: LiqPayPaymentData = JSON.parse(Buffer.from(data, "base64").toString());
-    
+    const paymentData: LiqPayPaymentData = JSON.parse(
+      Buffer.from(data, "base64").toString()
+    );
+
     console.log("📝 Payment data:", {
       order_id: paymentData.order_id,
       status: paymentData.status,
@@ -80,7 +85,9 @@ export async function POST(request: NextRequest) {
 
     // Check if payment was successful
     if (paymentData.status !== "success") {
-      console.log(`⚠️ Payment failed for order ${paymentData.order_id}: ${paymentData.status}`);
+      console.log(
+        `⚠️ Payment failed for order ${paymentData.order_id}: ${paymentData.status}`
+      );
       return NextResponse.json({ error: "Payment failed" }, { status: 400 });
     }
 
@@ -93,7 +100,10 @@ export async function POST(request: NextRequest) {
 
     if (sessionError || !sessionData) {
       console.error("❌ Payment session not found:", sessionError);
-      return NextResponse.json({ error: "Payment session not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Payment session not found" },
+        { status: 404 }
+      );
     }
 
     // Check if order already exists
@@ -105,12 +115,15 @@ export async function POST(request: NextRequest) {
 
     if (existingOrder) {
       console.log("⚠️ Order already exists, skipping creation");
-      return NextResponse.json({ success: true, message: "Order already exists" });
+      return NextResponse.json({
+        success: true,
+        message: "Order already exists",
+      });
     }
 
     // Create order in database
     console.log("🔄 Creating order from payment session...");
-    
+
     const { data: orderData, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert([
@@ -132,18 +145,21 @@ export async function POST(request: NextRequest) {
 
     if (orderError) {
       console.error("❌ Error creating order:", orderError);
-      return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to create order" },
+        { status: 500 }
+      );
     }
 
     console.log(`✅ Order created: ${orderData.id}`);
 
     // Create order items
     console.log("🔄 Creating order items...");
-    
+
     const orderItems = [];
     for (const item of sessionData.items) {
       const productUUID = getProductUUID(item);
-      
+
       // Validate product exists
       const productExists = await validateProductExists(productUUID);
       if (!productExists) {
@@ -167,7 +183,10 @@ export async function POST(request: NextRequest) {
 
     if (itemsError) {
       console.error("❌ Error creating order items:", itemsError);
-      return NextResponse.json({ error: "Failed to create order items" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to create order items" },
+        { status: 500 }
+      );
     }
 
     console.log(`✅ Order items created: ${orderItems.length} items`);
@@ -175,7 +194,7 @@ export async function POST(request: NextRequest) {
     // Send confirmation email
     try {
       console.log("📧 Sending confirmation email...");
-      
+
       // Fetch product images for email
       const itemsWithImages = await Promise.all(
         sessionData.items.map(async (item) => {
@@ -185,7 +204,7 @@ export async function POST(request: NextRequest) {
             .select("image_url")
             .eq("id", productUUID)
             .single();
-          
+
           return {
             product_name: item.name,
             quantity: item.quantity,
@@ -194,12 +213,12 @@ export async function POST(request: NextRequest) {
           };
         })
       );
-      
+
       const emailOrder = formatOrderForEmail({
         ...orderData,
         order_items: itemsWithImages,
       });
-      
+
       await sendOrderEmails(emailOrder);
       console.log("✅ Confirmation email sent");
     } catch (emailError) {
@@ -223,14 +242,15 @@ export async function POST(request: NextRequest) {
       console.error("⚠️ Error creating cart clearing event:", clearError);
     }
 
-    console.log(`✅ Payment callback processed successfully for order ${paymentData.order_id}`);
+    console.log(
+      `✅ Payment callback processed successfully for order ${paymentData.order_id}`
+    );
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       orderId: paymentData.order_id,
-      message: "Order created successfully" 
+      message: "Order created successfully",
     });
-
   } catch (error) {
     console.error("❌ Error processing LiqPay callback:", error);
     return NextResponse.json(

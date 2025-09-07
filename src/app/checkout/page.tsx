@@ -95,7 +95,7 @@ export default function CheckoutPage() {
       if (customerData.paymentMethod === "online") {
         // For online payment, redirect to LiqPay
         console.log("💳 Initiating LiqPay payment...");
-        
+
         try {
           const response = await fetch("/api/initiate-liqpay", {
             method: "POST",
@@ -116,10 +116,9 @@ export default function CheckoutPage() {
           }
 
           console.log("✅ LiqPay payment initiated, redirecting...");
-          
+
           // Redirect to LiqPay payment page
           window.location.href = result.paymentUrl;
-          
         } catch (error) {
           console.error("❌ Failed to initiate payment:", error);
           const errorMessage = getErrorMessage(error);
@@ -456,7 +455,6 @@ export default function CheckoutPage() {
             </Card>
           </div>
         </div>
-
       </div>
     </Layout>
   );
