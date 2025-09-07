@@ -8,7 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ShoppingBag, Loader2, CreditCard, Truck, Package } from "lucide-react";
+import { ShoppingBag, Loader2, Truck, Package } from "lucide-react";
 import Link from "next/link";
 import CityAutocomplete from "@/components/CityAutocomplete";
 import WarehouseAutocomplete from "@/components/WarehouseAutocomplete";
@@ -18,13 +18,11 @@ import { FormInput } from "@/components/ui/form-input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { FormRadioGroup } from "@/components/ui/form-radio-group";
 import { CheckoutFormData } from "@/lib/validations";
-import LiqPayPaymentForm from "@/components/LiqPayPaymentForm";
 
 export default function CheckoutPage() {
   const { state, clearCart } = useCart();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showLiqPayForm, setShowLiqPayForm] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const {
@@ -95,28 +93,38 @@ export default function CheckoutPage() {
       }));
 
       if (customerData.paymentMethod === "online") {
-        // For online payment, don't create order yet - just show payment form
-        // Store order data in localStorage for later creation after payment
-        const orderData = {
-          customerData,
-          items,
-          totalAmount: state.total,
-        };
+        // For online payment, redirect to LiqPay
+        console.log("💳 Initiating LiqPay payment...");
+        
+        try {
+          const response = await fetch("/api/initiate-liqpay", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              customerData,
+              items,
+              totalAmount: state.total,
+            }),
+          });
 
-        localStorage.setItem("pendingOrderData", JSON.stringify(orderData));
-        setOrderId("pending"); // Temporary ID for UI
-        setShowLiqPayForm(true);
+          const result = await response.json();
 
-        // Smooth scroll to payment form
-        setTimeout(() => {
-          const paymentForm = document.getElementById("liqpay-payment-form");
-          if (paymentForm) {
-            paymentForm.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
-            });
+          if (!response.ok) {
+            throw new Error(result.error || "Failed to initiate payment");
           }
-        }, 100);
+
+          console.log("✅ LiqPay payment initiated, redirecting...");
+          
+          // Redirect to LiqPay payment page
+          window.location.href = result.paymentUrl;
+          
+        } catch (error) {
+          console.error("❌ Failed to initiate payment:", error);
+          const errorMessage = getErrorMessage(error);
+          setError(errorMessage);
+        }
       } else {
         // For COD, create order immediately
         console.log("Creating COD order:", {
@@ -449,116 +457,6 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {/* LiqPay Payment Form */}
-        {showLiqPayForm && orderId && (
-          <div id="liqpay-payment-form" className="max-w-6xl mx-auto mt-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Оплата замовлення
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Будь ласка, завершіть оплату, щоб оформити замовлення #
-                  {orderId}.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <LiqPayPaymentForm
-                  amount={state.total}
-                  description={`Замовлення #${orderId} - AntiBlackout`}
-                  orderId={orderId}
-                  customerData={{
-                    name: `${firstName} ${lastName}`,
-                    firstName,
-                    lastName,
-                    phone,
-                    email,
-                    paymentMethod: "online",
-                    city: city?.Description || "",
-                    branch: warehouse ? getWarehouseDisplayName(warehouse) : "",
-                  }}
-                  items={state.items.map((item) => ({
-                    id: item.id,
-                    name: item.name,
-                    price: item.price,
-                    quantity: item.quantity,
-                    image: item.image,
-                  }))}
-                  onPaymentInitiated={() => {
-                    console.log(
-                      "💳 LiqPay payment initiated for order:",
-                      orderId
-                    );
-                  }}
-                  onPaymentSuccess={async () => {
-                    console.log(
-                      "✅ LiqPay payment successful, creating order..."
-                    );
-
-                    // Get pending order data from localStorage
-                    const pendingOrderData =
-                      localStorage.getItem("pendingOrderData");
-
-                    if (!pendingOrderData) {
-                      console.error("❌ No pending order data found");
-                      setError("Помилка: дані замовлення не знайдено");
-                      return;
-                    }
-
-                    try {
-                      const orderData = JSON.parse(pendingOrderData);
-
-                      // Create order after successful payment
-                      const response = await fetch("/api/order/create", {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(orderData),
-                      });
-
-                      const result = await response.json();
-
-                      if (response.ok && result.success) {
-                        console.log(
-                          "✅ Order created successfully after payment"
-                        );
-
-                        // Clear pending data
-                        localStorage.removeItem("pendingOrderData");
-
-                        // Clear cart
-                        clearCart();
-
-                        // Store order ID in localStorage for backup
-                        localStorage.setItem("lastOrderId", result.orderId);
-
-                        // Redirect to order page
-                        router.push(`/order?orderId=${result.orderId}`);
-                      } else {
-                        console.error(
-                          "❌ Failed to create order:",
-                          result.error
-                        );
-                        setError(
-                          `Помилка створення замовлення: ${result.error}`
-                        );
-                      }
-                    } catch (error) {
-                      console.error("❌ Error creating order:", error);
-                      setError("Помилка створення замовлення");
-                    }
-                  }}
-                  onPaymentError={(error) => {
-                    console.error("❌ LiqPay payment error:", error);
-                    alert(`Помилка оплати: ${error}`);
-                  }}
-                />
-              </CardContent>
-            </Card>
-          </div>
-        )}
       </div>
     </Layout>
   );

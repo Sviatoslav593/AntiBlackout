@@ -34,7 +34,8 @@ export async function GET(req: NextRequest) {
     // 2) Fetch items from order_items with product image via JOIN
     const { data: itemsData, error: itemsErr } = await supabaseAdmin
       .from("order_items")
-      .select(`
+      .select(
+        `
         id, 
         product_name, 
         quantity, 
@@ -43,7 +44,8 @@ export async function GET(req: NextRequest) {
         products:product_id (
           image_url
         )
-      `)
+      `
+      )
       .eq("order_id", orderId)
       .order("created_at", { ascending: true });
 

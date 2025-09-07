@@ -245,7 +245,11 @@ function createOrderConfirmationHTML(order: Order): string {
                         (item) => `
                         <tr>
                             <td>
-                              ${item.image_url ? `<img src="${item.image_url}" alt="${item.productName}" width="60" height="60" style="object-fit: cover; border-radius: 4px;" />` : ''}
+                              ${
+                                item.image_url
+                                  ? `<img src="${item.image_url}" alt="${item.productName}" width="60" height="60" style="object-fit: cover; border-radius: 4px;" />`
+                                  : ""
+                              }
                             </td>
                             <td>${item.productName}</td>
                             <td>${item.quantity}</td>
@@ -510,7 +514,11 @@ function createAdminNotificationHTML(
                         (item) => `
                         <tr>
                             <td>
-                              ${item.image_url ? `<img src="${item.image_url}" alt="${item.productName}" width="60" height="60" style="object-fit: cover; border-radius: 4px;" />` : ''}
+                              ${
+                                item.image_url
+                                  ? `<img src="${item.image_url}" alt="${item.productName}" width="60" height="60" style="object-fit: cover; border-radius: 4px;" />`
+                                  : ""
+                              }
                             </td>
                             <td>${item.productName}</td>
                             <td>${item.quantity}</td>

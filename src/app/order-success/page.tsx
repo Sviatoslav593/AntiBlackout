@@ -1,23 +1,25 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import Layout from "@/components/Layout";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  CheckCircle,
-  Package,
-  Truck,
-  Phone,
-  User,
-  Mail,
-  MapPin,
-  CreditCard,
-  Building,
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, Package, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+
+interface Order {
+  id: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone?: string;
+  city?: string;
+  branch?: string;
+  status: string;
+  payment_method: string;
+  total_amount: number;
+  created_at: string;
+  items: OrderItem[];
+}
 
 interface OrderItem {
   id: string;
@@ -25,305 +27,179 @@ interface OrderItem {
   quantity: number;
   price: number;
   subtotal: number;
+  product_image?: string;
 }
 
-interface Order {
-  id: string;
-  customer_name: string;
-  customer_email: string;
-  customer_phone: string;
-  city: string;
-  branch: string;
-  status: string;
-  payment_method: string;
-  total_amount: number;
-  created_at: string;
-  updated_at: string;
-  items: OrderItem[];
-}
-
-interface CustomerInfo {
-  name: string;
-  phone: string;
-  address: string;
-  email?: string;
-  paymentMethod?: string;
-  city?: string;
-  warehouse?: string;
-}
-
-function OrderSuccessContent() {
+export default function OrderSuccessPage() {
   const searchParams = useSearchParams();
   const [order, setOrder] = useState<Order | null>(null);
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
-  const [orderNumber, setOrderNumber] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const clearCart = () => {
-    try {
-      localStorage.removeItem("cart");
-      console.log("🧹 Cart automatically cleared after successful payment");
-      console.log("🧹 Cart after clearing:", localStorage.getItem("cart"));
-
-      // Dispatch custom event to notify other components about cart clearing
-      window.dispatchEvent(new CustomEvent("cartCleared"));
-    } catch (error) {
-      console.error("❌ Error clearing cart:", error);
+  useEffect(() => {
+    const orderId = searchParams.get("orderId");
+    
+    if (!orderId) {
+      setError("Order ID not found");
+      setIsLoading(false);
+      return;
     }
-  };
 
-  const sendOrderEmails = async (orderData: any) => {
-    try {
-      console.log("📧 Sending order confirmation emails...");
+    fetchOrder(orderId);
+  }, [searchParams]);
 
-      const response = await fetch("/api/create-order-after-payment", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      if (response.ok) {
-        console.log("✅ Order confirmation emails sent successfully");
-        return true;
-      } else {
-        console.error("❌ Failed to send order confirmation emails");
-        return false;
-      }
-    } catch (error) {
-      console.error("❌ Error sending emails:", error);
-      return false;
-    }
-  };
-
-  const fetchOrderFromAPI = async (orderId: string) => {
+  const fetchOrder = async (orderId: string) => {
     try {
       setIsLoading(true);
-      console.log("🔄 Fetching order data for orderId:", orderId);
-
-      // Always fetch order from database first
-      const orderResponse = await fetch(`/api/order/get?orderId=${orderId}`);
-
-      if (orderResponse.ok) {
-        const order = await orderResponse.json();
-        console.log("📦 Order data loaded from database:", order);
-
-        // Validate order structure
-        if (!order || !order.id) {
-          throw new Error("Invalid order data received from API");
-        }
-
-        // Ensure items array exists and is properly formatted
-        const normalizedOrder = {
-          ...order,
-          items: Array.isArray(order.items) ? order.items : [],
-        };
-
-        console.log("📦 Normalized order data:", normalizedOrder);
-
-        // Set order number
-        setOrderNumber(normalizedOrder.id);
-
-        // Set order data
-        setOrder(normalizedOrder);
-
-        // Set customer info
-        setCustomerInfo({
-          name: normalizedOrder.customer_name || "Unknown Customer",
-          phone: normalizedOrder.customer_phone || "",
-          address: normalizedOrder.branch || "",
-          email: normalizedOrder.customer_email || "",
-          paymentMethod:
-            normalizedOrder.payment_method === "online"
-              ? "online"
-              : "cash_on_delivery",
-          city: normalizedOrder.city || "",
-          warehouse: normalizedOrder.branch || "",
-        });
-
-        // Check if cart should be cleared (only for online payments)
-        if (normalizedOrder.payment_method === "online") {
-          try {
-            const clearResponse = await fetch(
-              `/api/check-cart-clearing?orderId=${orderId}`
-            );
-            if (clearResponse.ok) {
-              const clearData = await clearResponse.json();
-              if (clearData.shouldClear) {
-                console.log(
-                  "🧹 Cart clearing event detected, clearing cart..."
-                );
-                clearCart();
-              }
-            }
-          } catch (clearError) {
-            console.error("⚠️ Error checking cart clearing:", clearError);
-            // Don't fail the UI if cart clearing check fails
-          }
-        }
-
-        // For COD orders, clear cart immediately
-        if (normalizedOrder.payment_method === "cod") {
-          console.log("🧹 COD order - clearing cart immediately");
-          clearCart();
-        }
-
-        return; // Exit early if we got data from database
-      } else {
-        console.error("❌ Order response not ok:", orderResponse.status);
-        const errorData = await orderResponse.json();
-        console.error("❌ Error details:", errorData);
+      const response = await fetch(`/api/order/get?orderId=${orderId}`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch order");
       }
 
-      // Fallback: try to get data from localStorage (only if database fails)
-      const storedOrderData = localStorage.getItem(`pending_order_${orderId}`);
-      if (storedOrderData) {
-        try {
-          const orderData = JSON.parse(storedOrderData);
-          console.log(
-            "📥 Using stored order data from localStorage as fallback:",
-            orderData
-          );
-
-          // Set order number
-          setOrderNumber(orderId);
-
-          // Convert order items to the expected format
-          const items: OrderItem[] =
-            orderData.items?.map((item: any) => ({
-              id: item.id || 0,
-              product_name: item.name || "Unknown Product",
-              price: item.price || 0,
-              quantity: item.quantity || 1,
-              subtotal: (item.price || 0) * (item.quantity || 1),
-            })) || [];
-
-          setOrderItems(items);
-
-          // Set customer info
-          setCustomerInfo({
-            name: orderData.customerData?.name || "Unknown Customer",
-            phone: orderData.customerData?.phone || "",
-            address: orderData.customerData?.address || "",
-            email: orderData.customerData?.email || "",
-            paymentMethod: orderData.customerData?.paymentMethod || "online",
-            city: orderData.customerData?.city || "",
-            warehouse: orderData.customerData?.warehouse || "",
-          });
-
-          // Clear cart after successful order
-          clearCart();
-
-          localStorage.removeItem(`pending_order_${orderId}`);
-          localStorage.removeItem(`order_${orderId}`);
-          console.log("🧹 localStorage cleared:", {
-            cart: localStorage.getItem("cart"),
-            pendingOrder: localStorage.getItem(`pending_order_${orderId}`),
-            order: localStorage.getItem(`order_${orderId}`),
-          });
-          return;
-        } catch (parseError) {
-          console.error("Error parsing stored order data:", parseError);
-        }
-      }
-
-      // If all else fails, show fallback data
-      console.log("🔄 All data sources failed, showing fallback data");
-      loadFallbackData();
+      const orderData = await response.json();
+      setOrder(orderData);
     } catch (error) {
-      console.error("Error fetching order from API:", error);
-      loadFallbackData();
+      console.error("Error fetching order:", error);
+      setError("Failed to load order details");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const loadFallbackData = () => {
-    console.log("🔄 Loading fallback data...");
-    // Generate a sample order number
-    setOrderNumber(`AB-${Date.now().toString().slice(-10)}`);
-  };
-
-  const calculateTotal = () => {
-    if (!order?.items || !Array.isArray(order.items)) {
-      return 0;
-    }
-    return order.items.reduce(
-      (total, item) => total + (item.subtotal || item.price),
-      0
-    );
-  };
-
   if (isLoading) {
     return (
-      <Layout>
-        <div className="container py-8 sm:py-12">
-          <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">
-                Завантаження даних замовлення...
-              </p>
-            </div>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Завантаження деталей замовлення...</p>
         </div>
-      </Layout>
+      </div>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Package className="h-8 w-8 text-red-600" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Помилка завантаження
+              </h2>
+              <p className="text-gray-600 mb-6">
+                {error || "Замовлення не знайдено"}
+              </p>
+              <Link href="/">
+                <Button>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Повернутися на головну
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="container py-8 sm:py-12">
-        <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
-          {/* Success Header */}
-          <div className="text-center space-y-4">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-8 h-8 text-green-600" />
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
-              Замовлення успішно оформлено!
-            </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Дякуємо за ваше замовлення! Ми отримали ваш запит і обробимо його
-              найближчим часом.
-            </p>
-            {orderNumber && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">
-                <p className="text-blue-800 font-medium">
-                  Номер замовлення:{" "}
-                  <span className="font-bold">{orderNumber}</span>
-                </p>
-              </div>
-            )}
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Success Header */}
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-12 w-12 text-green-600" />
           </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Замовлення успішно оформлено!
+          </h1>
+          <p className="text-lg text-gray-600">
+            Дякуємо за ваше замовлення. Ми надішлемо підтвердження на email.
+          </p>
+        </div>
 
-          {/* Order Details */}
-          <Card className="shadow-sm">
+        {/* Order Details */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Order Info */}
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5" />
                 Деталі замовлення
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              {!order?.items || order.items.length === 0 ? (
-                <div className="text-center py-8">
-                  <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg">
-                    No products in this order.
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-500">Номер замовлення</p>
+                  <p className="font-medium">#{order.id}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Статус</p>
+                  <p className="font-medium text-green-600 capitalize">
+                    {order.status === "paid" ? "Оплачено" : order.status}
                   </p>
                 </div>
-              ) : (
+                <div>
+                  <p className="text-gray-500">Спосіб оплати</p>
+                  <p className="font-medium">
+                    {order.payment_method === "online" ? "Картка" : "Накладений платіж"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Загальна сума</p>
+                  <p className="font-medium text-lg">₴{order.total_amount?.toLocaleString()}</p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t">
+                <h4 className="font-medium mb-2">Контактна інформація</h4>
+                <div className="space-y-1 text-sm">
+                  <p><span className="text-gray-500">Ім'я:</span> {order.customer_name}</p>
+                  <p><span className="text-gray-500">Email:</span> {order.customer_email}</p>
+                  {order.customer_phone && (
+                    <p><span className="text-gray-500">Телефон:</span> {order.customer_phone}</p>
+                  )}
+                  {order.city && (
+                    <p><span className="text-gray-500">Місто:</span> {order.city}</p>
+                  )}
+                  {order.branch && (
+                    <p><span className="text-gray-500">Відділення:</span> {order.branch}</p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Order Items */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Товари в замовленні</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {order.items && order.items.length > 0 ? (
                 <div className="space-y-3">
                   {order.items.map((item, index) => (
                     <div
                       key={item.id || index}
                       className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                     >
-                      <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-200 rounded-md flex items-center justify-center">
-                        <Package className="h-6 w-6 text-gray-500" />
+                      <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-200 rounded-md overflow-hidden">
+                        {item.product_image ? (
+                          <img
+                            src={item.product_image}
+                            alt={item.product_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="h-6 w-6 text-gray-500" />
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm sm:text-base truncate">
@@ -332,9 +208,7 @@ function OrderSuccessContent() {
                         <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                           <span>Кількість: {item.quantity}</span>
                           <span>•</span>
-                          <span>
-                            ₴{(item.price / item.quantity).toLocaleString()}
-                          </span>
+                          <span>₴{(item.price / item.quantity).toLocaleString()}</span>
                         </div>
                       </div>
                       <div className="text-right">
@@ -345,170 +219,30 @@ function OrderSuccessContent() {
                     </div>
                   ))}
                 </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">
+                  Товари не знайдено
+                </p>
               )}
-              <div className="border-t pt-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold">Загальна сума:</span>
-                  <span className="text-xl font-bold text-blue-600">
-                    ₴
-                    {order?.total_amount?.toLocaleString() ||
-                      calculateTotal().toLocaleString()}
-                  </span>
-                </div>
-              </div>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Customer Information */}
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Інформація про замовника
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <User className="h-5 w-5 text-gray-500" />
-                  <div>
-                    <p className="text-sm text-gray-500">Ім'я</p>
-                    <p className="font-medium">
-                      {customerInfo?.name ||
-                        order?.customer_name ||
-                        "Не вказано"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-gray-500" />
-                  <div>
-                    <p className="text-sm text-gray-500">Телефон</p>
-                    <p className="font-medium">
-                      {customerInfo?.phone ||
-                        order?.customer_phone ||
-                        "Не вказано"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-gray-500" />
-                  <div>
-                    <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium">
-                      {customerInfo?.email ||
-                        order?.customer_email ||
-                        "Не вказано"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-gray-500" />
-                  <div>
-                    <p className="text-sm text-gray-500">Місто</p>
-                    <p className="font-medium">
-                      {customerInfo?.city || order?.city || "Не вказано"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Building className="h-5 w-5 text-gray-500" />
-                  <div>
-                    <p className="text-sm text-gray-500">Відділення</p>
-                    <p className="font-medium">
-                      {customerInfo?.warehouse || order?.branch || "Не вказано"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CreditCard className="h-5 w-5 text-gray-500" />
-                  <div>
-                    <p className="text-sm text-gray-500">Спосіб оплати</p>
-                    <p className="font-medium">
-                      {customerInfo?.paymentMethod === "online" ||
-                      order?.payment_method === "online"
-                        ? "Оплата карткою онлайн"
-                        : "Післяплата"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Next Steps */}
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Truck className="h-5 w-5" />
-                Що далі?
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-blue-600 text-sm font-medium">1</span>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">
-                      Підтвердження замовлення
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      Ми надішлемо вам підтвердження на email та SMS з деталями
-                      замовлення.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-blue-600 text-sm font-medium">2</span>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">
-                      Обробка замовлення
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      Наші менеджери оброблять ваше замовлення протягом 1-2
-                      робочих днів.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-blue-600 text-sm font-medium">3</span>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">Доставка</h4>
-                    <p className="text-sm text-gray-600">
-                      Товар буде відправлено на вказану вами адресу через Нову
-                      Пошту.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
+        {/* Actions */}
+        <div className="mt-8 text-center">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild className="w-full sm:w-auto">
-              <Link href="/">Продовжити покупки</Link>
-            </Button>
-            <Button variant="outline" asChild className="w-full sm:w-auto">
-              <Link href="/contacts">Зв'язатися з нами</Link>
+            <Link href="/">
+              <Button variant="outline">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Продовжити покупки
+              </Button>
+            </Link>
+            <Button onClick={() => window.print()}>
+              Роздрукувати замовлення
             </Button>
           </div>
         </div>
       </div>
-    </Layout>
-  );
-}
-
-export default function OrderSuccessPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <OrderSuccessContent />
-    </Suspense>
+    </div>
   );
 }
