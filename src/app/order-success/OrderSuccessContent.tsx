@@ -119,13 +119,28 @@ export default function OrderSuccessContent() {
 
       setOrder(orderData);
 
-      // Clear cart for online payments with status "paid"
-      if (
-        orderData.payment_method === "online" &&
-        orderData.status === "paid"
-      ) {
-        console.log("🧹 Online payment confirmed - clearing cart");
-        clearCart();
+      // For online payments, we need to update status and send email
+      if (orderData.payment_method === "online" && orderData.status === "pending") {
+        console.log("🔄 Online payment - updating status to paid...");
+        try {
+          const updateResponse = await fetch("/api/payment/confirm", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              orderId: orderId,
+            }),
+          });
+
+          if (updateResponse.ok) {
+            console.log("✅ Order status updated to paid and email sent");
+          } else {
+            console.error("❌ Failed to update order status:", await updateResponse.json());
+          }
+        } catch (updateError) {
+          console.error("❌ Error updating order status:", updateError);
+        }
       }
 
       // Clear localStorage after successful API fetch
@@ -135,7 +150,7 @@ export default function OrderSuccessContent() {
 
       // Try to update order status to paid and load from database
       console.log("🔄 Attempting to update order status to paid...");
-      
+
       try {
         // Update order status to paid
         const updateResponse = await fetch("/api/payment/confirm", {
@@ -150,28 +165,28 @@ export default function OrderSuccessContent() {
 
         if (updateResponse.ok) {
           console.log("✅ Order status updated to paid");
-          
+
           // Now fetch the updated order from database
-          const dbResponse = await fetch(
-            `/api/order/get?orderId=${orderId}`,
-            {
-              cache: "no-store",
-              headers: {
-                "Cache-Control": "no-cache",
-              },
-            }
-          );
+          const dbResponse = await fetch(`/api/order/get?orderId=${orderId}`, {
+            cache: "no-store",
+            headers: {
+              "Cache-Control": "no-cache",
+            },
+          });
 
           if (dbResponse.ok) {
             const dbOrderData = await dbResponse.json();
             console.log("✅ Order loaded from database:", dbOrderData);
             setOrder(dbOrderData);
             setError(null);
-            clearCart();
+            // Cart will be cleared by the API endpoint
             return;
           }
         } else {
-          console.error("❌ Failed to update order status:", await updateResponse.json());
+          console.error(
+            "❌ Failed to update order status:",
+            await updateResponse.json()
+          );
         }
       } catch (updateError) {
         console.error("❌ Error updating order status:", updateError);

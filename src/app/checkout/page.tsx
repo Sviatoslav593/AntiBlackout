@@ -97,7 +97,7 @@ export default function CheckoutPage() {
 
       // Create order in database first (same for both payment methods)
       console.log("🔄 Creating order in database...");
-      
+
       const orderResponse = await fetch("/api/order/create", {
         method: "POST",
         headers: {
@@ -199,7 +199,7 @@ export default function CheckoutPage() {
       } else {
         // For COD, clear cart and redirect to order page
         console.log("✅ COD order created, redirecting to order page...");
-        
+
         // Store orderId in localStorage for backup
         localStorage.setItem("lastOrderId", orderResult.orderId);
 
