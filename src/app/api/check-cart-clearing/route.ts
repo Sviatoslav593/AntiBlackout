@@ -1,18 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-// Initialize Supabase client with proper error handling
-const getSupabaseClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    console.error("Missing Supabase environment variables");
-    return null;
-  }
-
-  return createClient(supabaseUrl, supabaseKey);
-};
+import { shouldClearCart } from "@/lib/db/orders";
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,29 +23,11 @@ export async function GET(request: NextRequest) {
       orderId
     );
 
-    // Check if there's a cart clearing event for this order
-    // Gracefully handle any errors - never return 500
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      console.warn("[/api/check-cart-clearing] Supabase client not available");
-      return new Response(
-        JSON.stringify({
-          shouldClear: false,
-          clearingEvent: null,
-          warning: "Database not available, defaulting to false",
-        }),
-        { status: 200 }
-      );
-    }
-
-    const { data: clearingEvent, error } = await supabase
-      .from("cart_clearing_events")
-      .select("*")
-      .eq("order_id", orderId)
-      .single();
+    // Check if there's a cart clearing event for this order using data-access layer
+    const { shouldClear, error } = await shouldClearCart(orderId);
 
     // Handle errors gracefully - don't fail the request
-    if (error && error.code !== "PGRST116") {
+    if (error) {
       console.warn(
         "[/api/check-cart-clearing] Warning checking cart clearing event:",
         error
@@ -73,8 +42,6 @@ export async function GET(request: NextRequest) {
         { status: 200 }
       );
     }
-
-    const shouldClear = !!clearingEvent;
 
     if (shouldClear) {
       console.log(
@@ -91,7 +58,7 @@ export async function GET(request: NextRequest) {
     return new Response(
       JSON.stringify({
         shouldClear,
-        clearingEvent: clearingEvent || null,
+        clearingEvent: shouldClear ? { order_id: orderId } : null,
       }),
       { status: 200 }
     );

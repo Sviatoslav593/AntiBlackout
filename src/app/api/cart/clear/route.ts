@@ -1,18 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-// Initialize Supabase client with proper error handling
-const getSupabaseClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    console.error("Missing Supabase environment variables");
-    return null;
-  }
-
-  return createClient(supabaseUrl, supabaseKey);
-};
+import { createCartClearingEvent } from "@/lib/db/orders";
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,18 +13,8 @@ export async function POST(request: NextRequest) {
 
     console.log("[/api/cart/clear] Clearing cart for orderId:", orderId);
 
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      return new Response(JSON.stringify({ error: "Database not available" }), {
-        status: 500,
-      });
-    }
-
-    // Create cart clearing event
-    const { error } = await supabase.from("cart_clearing_events").insert({
-      order_id: orderId,
-      created_at: new Date().toISOString(),
-    });
+    // Create cart clearing event using data-access layer
+    const { error } = await createCartClearingEvent(orderId);
 
     if (error) {
       console.error(

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createServerSupabaseClient } from "@/lib/supabase";
 import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
+import { updateOrderStatus, createCartClearingEvent } from "@/lib/db/orders";
 
 interface LiqPayCallbackData {
   order_id: string;
@@ -136,16 +137,15 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
       return;
     }
 
-    // Update order status to paid
-    const { error: updateError } = await supabase
-      .from("orders")
-      .update({
-        status: "paid",
+    // Update order status to paid using data-access layer
+    const { error: updateError } = await updateOrderStatus(
+      callbackData.order_id,
+      "paid",
+      {
         payment_status: callbackData.status,
         payment_id: callbackData.payment_id || callbackData.transaction_id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", callbackData.order_id);
+      }
+    );
 
     if (updateError) {
       console.error("❌ Error updating order status:", updateError);
@@ -165,12 +165,9 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
       console.error("⚠️ Email sending failed (non-critical):", emailError);
     }
 
-    // Create cart clearing event
+    // Create cart clearing event using data-access layer
     try {
-      await supabase.from("cart_clearing_events").insert({
-        order_id: callbackData.order_id,
-        cleared_at: new Date().toISOString(),
-      });
+      await createCartClearingEvent(callbackData.order_id);
       console.log(
         `🧹 Cart clearing event created for order ${callbackData.order_id}`
       );
@@ -197,15 +194,14 @@ async function handleFailedPayment(callbackData: LiqPayCallbackData) {
 
     const supabase = createServerSupabaseClient();
 
-    // Update order status to failed
-    const { error: updateError } = await supabase
-      .from("orders")
-      .update({
-        status: "failed",
+    // Update order status to failed using data-access layer
+    const { error: updateError } = await updateOrderStatus(
+      callbackData.order_id,
+      "failed",
+      {
         payment_status: callbackData.status,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", callbackData.order_id);
+      }
+    );
 
     if (updateError) {
       console.error("❌ Error updating order status to failed:", updateError);

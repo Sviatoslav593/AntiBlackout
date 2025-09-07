@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
-import { createServerSupabaseClient } from "@/lib/supabase";
+import { createCodOrder, createOnlineOrder, normalizePaymentMethod } from "@/lib/db/orders";
 
 interface CreateOrderRequest {
   customerData: {
@@ -152,33 +152,37 @@ export async function POST(request: NextRequest) {
       status: orderData.status,
     });
 
-    // Create order in Supabase
-    console.log("💾 Creating order in Supabase...");
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .insert(orderData)
-      .select()
-      .single();
+    // Normalize payment method
+    const paymentMethod = normalizePaymentMethod(customerData.paymentMethod);
+    console.log(`💾 Creating ${paymentMethod} order in Supabase...`);
 
-    if (orderError) {
+    // Prepare order data
+    const orderPayload = {
+      customer_name: customerData.name,
+      customer_email: customerData.email,
+      customer_phone: customerData.phone,
+      customer_address: customerData.address,
+      customer_city: customerData.city,
+      items: items.map((item) => ({
+        product_id: item.id ? item.id.toString() : undefined,
+        product_name: item.name,
+        price: item.price, // Unit price
+        quantity: item.quantity,
+      })),
+      total_amount: totalAmount,
+    };
+
+    // Create order using data-access layer
+    const { order, error: orderError } = paymentMethod === "cod" 
+      ? await createCodOrder(orderPayload)
+      : await createOnlineOrder(orderPayload);
+
+    if (orderError || !order) {
       console.error("❌ Error creating order in database:", orderError);
       return NextResponse.json(
         {
           error: "Failed to create order",
-          details: orderError.message,
-          code: orderError.code,
-          hint: orderError.hint,
-        },
-        { status: 500 }
-      );
-    }
-
-    if (!order) {
-      console.error("❌ Order creation returned null data");
-      return NextResponse.json(
-        {
-          error: "Order creation failed",
-          details: "No order data returned from database",
+          details: orderError?.message || "Unknown error",
         },
         { status: 500 }
       );
@@ -186,39 +190,13 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Order created successfully with ID: ${order.id}`);
 
-    // Create order items with product details snapshot
-    console.log("📦 Creating order items...");
-    const orderItems = items.map((item) => ({
-      order_id: order.id,
-      product_id: item.id ? item.id.toString() : null,
-      product_name: item.name, // Store product name at time of purchase
-      quantity: item.quantity,
-      price: item.price * item.quantity, // Total price for this item
-    }));
-
-    console.log("📦 Order items data:", orderItems);
-
-    const { error: itemsError } = await supabase
-      .from("order_items")
-      .insert(orderItems);
-
-    if (itemsError) {
-      console.error("❌ Error creating order items:", itemsError);
-      // Don't fail the entire request, but log the error
-      console.warn("⚠️ Order created but items failed to save");
-    } else {
-      console.log("✅ Order items created successfully");
-    }
-
     // Handle different payment methods
-    if (customerData.paymentMethod === "cod") {
-      // For COD, immediately mark as paid and send email
-      console.log(
-        "💰 Processing COD order - marking as paid and sending email"
-      );
+    if (paymentMethod === "cod") {
+      // For COD, immediately mark as confirmed and send email
+      console.log("💰 Processing COD order - marking as confirmed and sending email");
 
       try {
-        // Update order status to paid
+        // Update order status to confirmed
         const { error: updateError } = await supabase
           .from("orders")
           .update({
@@ -245,8 +223,8 @@ export async function POST(request: NextRequest) {
           console.log("📧 Sending COD confirmation emails...");
           const emailOrder = formatOrderForEmail({
             ...order,
-            items: orderItems.map((item, index) => ({
-              product_name: items[index]?.name || "Unknown Product",
+            items: orderPayload.items.map((item) => ({
+              product_name: item.product_name,
               quantity: item.quantity,
               price: item.price,
             })),
@@ -277,18 +255,16 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-    } else if (customerData.paymentMethod === "liqpay") {
-      // For LiqPay, keep as pending and return order data for payment
-      console.log(
-        "💳 Processing LiqPay order - keeping as pending for payment"
-      );
+    } else if (paymentMethod === "online") {
+      // For online payment, keep as pending and return order data for payment
+      console.log("💳 Processing online order - keeping as pending for payment");
 
       return NextResponse.json({
         success: true,
         orderId: order.id,
-        paymentMethod: "liqpay",
+        paymentMethod: "online",
         status: "pending",
-        message: "Order created, ready for LiqPay payment",
+        message: "Order created, ready for online payment",
         order: order,
       });
     } else {
