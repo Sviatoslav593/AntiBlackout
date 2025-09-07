@@ -24,6 +24,7 @@ interface OrderItem {
   product_name: string;
   quantity: number;
   price: number;
+  subtotal: number;
 }
 
 interface Order {
@@ -37,6 +38,7 @@ interface Order {
   payment_method: string;
   total_amount: number;
   created_at: string;
+  updated_at: string;
   items: OrderItem[];
 }
 
@@ -53,6 +55,7 @@ interface CustomerInfo {
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const [order, setOrder] = useState<Order | null>(null);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [orderNumber, setOrderNumber] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -79,20 +82,14 @@ function OrderSuccessContent() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          customerData: orderData.customerData,
-          items: orderData.items,
-          total: orderData.amount,
-          orderId: orderData.orderId,
-        }),
+        body: JSON.stringify(orderData),
       });
 
       if (response.ok) {
-        const result = await response.json();
-        console.log("✅ Order created and emails sent:", result);
+        console.log("✅ Order confirmation emails sent successfully");
         return true;
       } else {
-        console.error("❌ Failed to send emails:", await response.text());
+        console.error("❌ Failed to send order confirmation emails");
         return false;
       }
     } catch (error) {
@@ -126,39 +123,51 @@ function OrderSuccessContent() {
       try {
         const orderResponse = await fetch(`/api/order/get?orderId=${orderId}`);
         if (orderResponse.ok) {
-          const orderResult = await orderResponse.json();
-          if (orderResult.success && orderResult.order) {
-            const order = orderResult.order;
-            console.log("📦 Order data loaded from database:", order);
+          const order = await orderResponse.json();
+          console.log("📦 Order data loaded from database:", order);
 
-            // Set order number
-            setOrderNumber(order.id);
-
-            // Set order data
-            setOrder(order);
-
-            // Set customer info
-            setCustomerInfo({
-              name: order.customer_name || "Unknown Customer",
-              phone: order.customer_phone || "",
-              address: order.branch || "",
-              email: order.customer_email || "",
-              paymentMethod:
-                order.payment_method === "online"
-                  ? "online"
-                  : "cash_on_delivery",
-              city: order.city || "",
-              warehouse: order.branch || "",
-            });
-
-            // Clear cart after successful order (if not already cleared)
-            clearCart();
-
-            // Don't send emails here - they should be sent by payment callback
-            console.log("📧 Emails should have been sent by payment callback");
-
-            return; // Exit early if we got data from database
+          // Validate order structure
+          if (!order || !order.id) {
+            throw new Error("Invalid order data received from API");
           }
+
+          // Ensure items array exists and is properly formatted
+          const normalizedOrder = {
+            ...order,
+            items: Array.isArray(order.items) ? order.items : [],
+          };
+
+          console.log("📦 Normalized order data:", normalizedOrder);
+
+          // Set order number
+          setOrderNumber(normalizedOrder.id);
+
+          // Set order data
+          setOrder(normalizedOrder);
+
+          // Set customer info
+          setCustomerInfo({
+            name: normalizedOrder.customer_name || "Unknown Customer",
+            phone: normalizedOrder.customer_phone || "",
+            address: normalizedOrder.branch || "",
+            email: normalizedOrder.customer_email || "",
+            paymentMethod:
+              normalizedOrder.payment_method === "online"
+                ? "online"
+                : "cash_on_delivery",
+            city: normalizedOrder.city || "",
+            warehouse: normalizedOrder.branch || "",
+          });
+
+          // Clear cart after successful order (if not already cleared)
+          clearCart();
+
+          // Don't send emails here - they should be sent by payment callback
+          console.log("📧 Emails should have been sent by payment callback");
+
+          return; // Exit early if we got data from database
+        } else {
+          console.error("❌ Order response not ok:", orderResponse.status);
         }
       } catch (dbError) {
         console.error("⚠️ Error fetching order from database:", dbError);
@@ -181,12 +190,10 @@ function OrderSuccessContent() {
           const items: OrderItem[] =
             orderData.items?.map((item: any) => ({
               id: item.id || 0,
-              name: item.name || "Unknown Product",
+              product_name: item.name || "Unknown Product",
               price: item.price || 0,
               quantity: item.quantity || 1,
-              image:
-                item.image ||
-                "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
+              subtotal: (item.price || 0) * (item.quantity || 1),
             })) || [];
 
           setOrderItems(items);
@@ -237,11 +244,10 @@ function OrderSuccessContent() {
         const items: OrderItem[] =
           order.order_items?.map((item: any) => ({
             id: item.id || 0,
-            name: item.product_name || "Unknown Product",
+            product_name: item.product_name || "Unknown Product",
             price: item.price || 0,
             quantity: item.quantity || 1,
-            image:
-              "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop", // Default image
+            subtotal: (item.price || 0) * (item.quantity || 1),
           })) || [];
 
         setOrderItems(items);
@@ -274,211 +280,27 @@ function OrderSuccessContent() {
     }
   };
 
-  useEffect(() => {
-    // Get order data from URL params or localStorage
-    const orderData = searchParams.get("orderData");
-    const orderNum = searchParams.get("orderNumber");
-    const orderId = searchParams.get("orderId");
-
-    // If we have orderId (from LiqPay redirect), fetch order data from API
-    if (orderId) {
-      fetchOrderFromAPI(orderId);
-      return;
-    }
-
-    if (orderData) {
-      try {
-        // Clear cart when we have orderData (from successful payment)
-        clearCart();
-
-        const parsedData = JSON.parse(decodeURIComponent(orderData));
-        console.log("📥 Received order success data:", parsedData);
-
-        // Convert to order format
-        const orderData = {
-          id: parsedData.orderId || "",
-          customer_name: parsedData.customerInfo?.name || "",
-          customer_email: parsedData.customerInfo?.email || "",
-          customer_phone: parsedData.customerInfo?.phone || "",
-          city: parsedData.customerInfo?.city || "",
-          branch: parsedData.customerInfo?.warehouse || "",
-          status: "confirmed",
-          payment_method:
-            parsedData.paymentMethod === "online" ? "online" : "cod",
-          total_amount: parsedData.total || 0,
-          created_at: new Date().toISOString(),
-          items:
-            parsedData.items?.map((item: any, index: number) => ({
-              id: `fallback-${index}`,
-              product_name: item.name || "Unknown Product",
-              quantity: item.quantity || 1,
-              price: item.price || 0,
-            })) || [],
-        };
-
-        setOrder(orderData);
-        setCustomerInfo(parsedData.customerInfo || null);
-      } catch (error) {
-        console.error("Error parsing order data:", error);
-        // Try to get data from localStorage as fallback
-        const savedOrderData = localStorage.getItem("lastOrderData");
-        if (savedOrderData) {
-          try {
-            const parsedSavedData = JSON.parse(savedOrderData);
-            console.log("📥 Using saved order data:", parsedSavedData);
-            // Convert to order format
-            const orderData = {
-              id: parsedSavedData.orderId || "",
-              customer_name: parsedSavedData.customerInfo?.name || "",
-              customer_email: parsedSavedData.customerInfo?.email || "",
-              customer_phone: parsedSavedData.customerInfo?.phone || "",
-              city: parsedSavedData.customerInfo?.city || "",
-              branch: parsedSavedData.customerInfo?.warehouse || "",
-              status: "confirmed",
-              payment_method:
-                parsedSavedData.paymentMethod === "online" ? "online" : "cod",
-              total_amount: parsedSavedData.total || 0,
-              created_at: new Date().toISOString(),
-              items:
-                parsedSavedData.items?.map((item: any, index: number) => ({
-                  id: `fallback-${index}`,
-                  product_name: item.name || "Unknown Product",
-                  quantity: item.quantity || 1,
-                  price: item.price || 0,
-                })) || [],
-            };
-
-            setOrder(orderData);
-            setCustomerInfo(parsedSavedData.customerInfo || null);
-          } catch (savedError) {
-            console.error("Error parsing saved order data:", savedError);
-            loadFallbackData();
-          }
-        } else {
-          loadFallbackData();
-        }
-      }
-    } else {
-      // Try to get data from localStorage
-      const savedOrderData = localStorage.getItem("lastOrderData");
-      if (savedOrderData) {
-        try {
-          const parsedSavedData = JSON.parse(savedOrderData);
-          console.log("📥 Using saved order data:", parsedSavedData);
-          // Convert to order format
-          const orderData = {
-            id: parsedSavedData.orderId || "",
-            customer_name: parsedSavedData.customerInfo?.name || "",
-            customer_email: parsedSavedData.customerInfo?.email || "",
-            customer_phone: parsedSavedData.customerInfo?.phone || "",
-            city: parsedSavedData.customerInfo?.city || "",
-            branch: parsedSavedData.customerInfo?.warehouse || "",
-            status: "confirmed",
-            payment_method:
-              parsedSavedData.paymentMethod === "online" ? "online" : "cod",
-            total_amount: parsedSavedData.total || 0,
-            created_at: new Date().toISOString(),
-            items:
-              parsedSavedData.items?.map((item: any, index: number) => ({
-                id: `fallback-${index}`,
-                product_name: item.name || "Unknown Product",
-                quantity: item.quantity || 1,
-                price: item.price || 0,
-              })) || [],
-          };
-
-          setOrder(orderData);
-          setCustomerInfo(parsedSavedData.customerInfo || null);
-        } catch (savedError) {
-          console.error("Error parsing saved order data:", savedError);
-          loadFallbackData();
-        }
-      } else {
-        loadFallbackData();
-      }
-    }
-
-    function loadFallbackData() {
-      // Fallback to sample data for demonstration
-      setOrder({
-        id: "demo-123456789",
-        customer_name: "Іван Петренко",
-        customer_email: "ivan@example.com",
-        customer_phone: "+380671234567",
-        city: "м. Київ",
-        branch: "Відділення №1: вул. Хрещатик, 1",
-        status: "confirmed",
-        payment_method: "cod",
-        total_amount: 2897,
-        created_at: new Date().toISOString(),
-        items: [
-          {
-            id: "demo-1",
-            product_name: "Powerbank ANKER 20000mAh",
-            quantity: 1,
-            price: 2499,
-          },
-          {
-            id: "demo-2",
-            product_name: "Кабель USB-C 2m",
-            quantity: 2,
-            price: 398,
-          },
-        ],
-      });
-      setCustomerInfo({
-        name: "Іван Петренко",
-        phone: "+380671234567",
-        address: "м. Київ, Відділення №1: вул. Хрещатик, 1",
-        email: "ivan@example.com",
-        paymentMethod: "cash_on_delivery",
-        city: "м. Київ",
-        warehouse: "Відділення №1: вул. Хрещатик, 1",
-      });
-    }
-
-    if (orderNum) {
-      setOrderNumber(orderNum);
-    } else if (orderData) {
-      try {
-        const parsedData = JSON.parse(decodeURIComponent(orderData));
-        setOrderNumber(
-          parsedData.orderId || `AB-${Date.now().toString().slice(-10)}`
-        );
-      } catch {
-        setOrderNumber(`AB-${Date.now().toString().slice(-10)}`);
-      }
-    } else {
-      // Generate a sample order number
-      setOrderNumber(`AB-${Date.now().toString().slice(-10)}`);
-    }
-  }, [searchParams]);
+  const loadFallbackData = () => {
+    console.log("🔄 Loading fallback data...");
+    // Generate a sample order number
+    setOrderNumber(`AB-${Date.now().toString().slice(-10)}`);
+  };
 
   const calculateTotal = () => {
     if (!order?.items || !Array.isArray(order.items)) {
       return 0;
     }
-    return order.items.reduce((total, item) => total + item.price, 0);
+    return order.items.reduce((total, item) => total + (item.subtotal || item.price), 0);
   };
+
   if (isLoading) {
     return (
       <Layout>
         <div className="container py-8 sm:py-12">
           <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
-            <div className="text-center space-y-4">
-              <div className="flex justify-center">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-blue-100 rounded-full flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600">
-                  Завантаження замовлення...
-                </h1>
-                <p className="text-sm sm:text-base text-muted-foreground">
-                  Отримуємо дані вашого замовлення
-                </p>
-              </div>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Завантаження даних замовлення...</p>
             </div>
           </div>
         </div>
@@ -492,222 +314,147 @@ function OrderSuccessContent() {
         <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
           {/* Success Header */}
           <div className="text-center space-y-4">
-            <div className="flex justify-center">
-              <div className="relative">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-green-100 rounded-full flex items-center justify-center">
-                  <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-green-600" />
-                </div>
-                <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
-                  <span className="text-white text-sm font-bold">✓</span>
-                </div>
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              Замовлення успішно оформлено!
+            </h1>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Дякуємо за ваше замовлення! Ми отримали ваш запит і обробимо його
+              найближчим часом.
+            </p>
+            {orderNumber && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">
+                <p className="text-blue-800 font-medium">
+                  Номер замовлення: <span className="font-bold">{orderNumber}</span>
+                </p>
               </div>
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-600">
-                Замовлення оформлено!
-              </h1>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                Номер замовлення:{" "}
-                <span className="font-semibold text-foreground">
-                  {orderNumber}
-                </span>
-              </p>
-              <p className="text-muted-foreground">
-                Дякуємо за ваше замовлення! Ми зв'яжемося з вами найближчим
-                часом для підтвердження.
-              </p>
-            </div>
+            )}
           </div>
 
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-            {/* Order Summary */}
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Ваше замовлення
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {!order?.items || order.items.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 text-lg">
-                      No products in this order.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {order.items.map((item, index) => (
-                      <div
-                        key={item.id || index}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-200 rounded-md flex items-center justify-center">
-                          <Package className="h-6 w-6 text-gray-500" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm sm:text-base truncate">
-                            {item.product_name}
-                          </h4>
-                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                            <span>Кількість: {item.quantity}</span>
-                            <span>•</span>
-                            <span>
-                              ₴{(item.price / item.quantity).toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-sm sm:text-base">
-                            ₴{item.price.toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="border-t pt-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold">
-                      Загальна сума:
-                    </span>
-                    <span className="text-xl font-bold text-blue-600">
-                      ₴
-                      {order?.total_amount?.toLocaleString() ||
-                        calculateTotal().toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Customer Information */}
-            <Card className="shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Інформація про покупця
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {customerInfo && (
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <User className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Ім'я</p>
-                        <p className="font-medium">{customerInfo.name}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Phone className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Телефон</p>
-                        <p className="font-medium">{customerInfo.phone}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <MapPin className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Адреса доставки
-                        </p>
-                        <p className="font-medium">{customerInfo.address}</p>
-                      </div>
-                    </div>
-                    {customerInfo.email && (
-                      <div className="flex items-start gap-3">
-                        <Mail className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">Email</p>
-                          <p className="font-medium">{customerInfo.email}</p>
-                        </div>
-                      </div>
-                    )}
-                    {customerInfo.paymentMethod && (
-                      <div className="flex items-start gap-3">
-                        <CreditCard className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Спосіб оплати
-                          </p>
-                          <p className="font-medium">
-                            {customerInfo.paymentMethod === "online"
-                              ? "Оплата карткою онлайн"
-                              : "Післяплата (оплата при отриманні)"}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    {customerInfo.city && (
-                      <div className="flex items-start gap-3">
-                        <Building className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Населений пункт
-                          </p>
-                          <p className="font-medium">{customerInfo.city}</p>
-                        </div>
-                      </div>
-                    )}
-                    {customerInfo.warehouse && (
-                      <div className="flex items-start gap-3">
-                        <Package className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            Відділення Нової пошти
-                          </p>
-                          <p className="font-medium">
-                            {customerInfo.warehouse}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Process Steps */}
+          {/* Order Details */}
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="text-center">Що далі?</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Деталі замовлення
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-                <div className="text-center space-y-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                    <Phone className="h-6 w-6 text-blue-600" />
-                  </div>
+              {!order?.items || order.items.length === 0 ? (
+                <div className="text-center py-8">
+                  <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg">No products in this order.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {order.items.map((item, index) => (
+                    <div
+                      key={item.id || index}
+                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-200 rounded-md flex items-center justify-center">
+                        <Package className="h-6 w-6 text-gray-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm sm:text-base truncate">
+                          {item.product_name}
+                        </h4>
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                          <span>Кількість: {item.quantity}</span>
+                          <span>•</span>
+                          <span>
+                            ₴{(item.price / item.quantity).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-sm sm:text-base">
+                          ₴{(item.subtotal || item.price).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="border-t pt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold">Загальна сума:</span>
+                  <span className="text-xl font-bold text-blue-600">
+                    ₴
+                    {order?.total_amount?.toLocaleString() ||
+                      calculateTotal().toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Customer Information */}
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Інформація про замовника
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3">
+                  <User className="h-5 w-5 text-gray-500" />
                   <div>
-                    <h3 className="font-semibold mb-1">Підтвердження</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Протягом 30 хвилин з вами зв'яжеться наш менеджер
+                    <p className="text-sm text-gray-500">Ім'я</p>
+                    <p className="font-medium">
+                      {customerInfo?.name || order?.customer_name || "Не вказано"}
                     </p>
                   </div>
                 </div>
-                <div className="text-center space-y-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                    <Package className="h-6 w-6 text-blue-600" />
-                  </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="h-5 w-5 text-gray-500" />
                   <div>
-                    <h3 className="font-semibold mb-1">Упаковка</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Ваше замовлення буде зібрано та упаковано
+                    <p className="text-sm text-gray-500">Телефон</p>
+                    <p className="font-medium">
+                      {customerInfo?.phone || order?.customer_phone || "Не вказано"}
                     </p>
                   </div>
                 </div>
-                <div className="text-center space-y-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                    <Truck className="h-6 w-6 text-blue-600" />
-                  </div>
+                <div className="flex items-center gap-3">
+                  <Mail className="h-5 w-5 text-gray-500" />
                   <div>
-                    <h3 className="font-semibold mb-1">Доставка</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Відправлення в день замовлення по всій Україні
+                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="font-medium">
+                      {customerInfo?.email || order?.customer_email || "Не вказано"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm text-gray-500">Місто</p>
+                    <p className="font-medium">
+                      {customerInfo?.city || order?.city || "Не вказано"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Building className="h-5 w-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm text-gray-500">Відділення</p>
+                    <p className="font-medium">
+                      {customerInfo?.warehouse || order?.branch || "Не вказано"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CreditCard className="h-5 w-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm text-gray-500">Спосіб оплати</p>
+                    <p className="font-medium">
+                      {customerInfo?.paymentMethod === "online" ||
+                      order?.payment_method === "online"
+                        ? "Оплата карткою онлайн"
+                        : "Післяплата"}
                     </p>
                   </div>
                 </div>
@@ -715,56 +462,74 @@ function OrderSuccessContent() {
             </CardContent>
           </Card>
 
-          {/* Important Information */}
-          <div className="bg-blue-50 p-4 sm:p-6 rounded-lg">
-            <h3 className="font-semibold text-blue-900 mb-3">
-              Важлива інформація:
-            </h3>
-            <ul className="space-y-2 text-blue-800">
-              <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 mt-0.5 text-blue-600 flex-shrink-0" />
-                <span className="text-sm">
-                  Очікуйте повідомлення від нашого менеджера протягом 30 хвилин
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 mt-0.5 text-blue-600 flex-shrink-0" />
-                <span className="text-sm">
-                  Доставка здійснюється протягом 1-2 робочих днів
-                </span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 mt-0.5 text-blue-600 flex-shrink-0" />
-                <span className="text-sm">
-                  Оплата при отриманні (готівкою або карткою)
-                </span>
-              </li>
-            </ul>
-          </div>
+          {/* Next Steps */}
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Truck className="h-5 w-5" />
+                Що далі?
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-sm font-medium">1</span>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">
+                      Підтвердження замовлення
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Ми надішлемо вам підтвердження на email та SMS з деталями
+                      замовлення.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-sm font-medium">2</span>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">
+                      Обробка замовлення
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Наші менеджери оброблять ваше замовлення протягом 1-2 робочих
+                      днів.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-sm font-medium">3</span>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">
+                      Доставка
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Товар буде відправлено на вказану вами адресу через Нову
+                      Пошту.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/">
-              <Button size="lg" className="w-full sm:w-auto cursor-pointer">
+            <Button asChild className="w-full sm:w-auto">
+              <Link href="/">
                 Продовжити покупки
-              </Button>
-            </Link>
-            <Link href="/contacts">
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full sm:w-auto cursor-pointer"
-              >
+              </Link>
+            </Button>
+            <Button variant="outline" asChild className="w-full sm:w-auto">
+              <Link href="/contacts">
                 Зв'язатися з нами
-              </Button>
-            </Link>
-          </div>
-
-          {/* Contact Info */}
-          <div className="text-center text-sm text-muted-foreground">
-            Маєте питання? Зв'яжіться з нами:
-            <br />
-            📧 antiblackoutsupp@gmail.com | 💬 @antiblackout_support
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -774,18 +539,7 @@ function OrderSuccessContent() {
 
 export default function OrderSuccessPage() {
   return (
-    <Suspense
-      fallback={
-        <Layout>
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Завантаження...</p>
-            </div>
-          </div>
-        </Layout>
-      }
-    >
+    <Suspense fallback={<div>Loading...</div>}>
       <OrderSuccessContent />
     </Suspense>
   );

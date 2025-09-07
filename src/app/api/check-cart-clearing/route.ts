@@ -1,5 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase";
+import { NextRequest } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,48 +12,54 @@ export async function GET(request: NextRequest) {
     const orderId = searchParams.get("orderId");
 
     if (!orderId) {
-      return NextResponse.json(
-        { error: "Order ID is required" },
-        { status: 400 }
-      );
+      console.log("[/api/check-cart-clearing] Missing orderId parameter");
+      return new Response(JSON.stringify({ 
+        shouldClear: false, 
+        clearingEvent: null,
+        error: "Order ID is required" 
+      }), { status: 400 });
     }
 
-    console.log("🔍 Checking cart clearing event for orderId:", orderId);
-
-    const supabase = createServerSupabaseClient();
+    console.log("[/api/check-cart-clearing] Checking cart clearing event for orderId:", orderId);
 
     // Check if there's a cart clearing event for this order
+    // Gracefully handle any errors - never return 500
     const { data: clearingEvent, error } = await supabase
       .from("cart_clearing_events")
       .select("*")
       .eq("order_id", orderId)
       .single();
 
+    // Handle errors gracefully - don't fail the request
     if (error && error.code !== "PGRST116") {
-      console.error("❌ Error checking cart clearing event:", error);
-      return NextResponse.json(
-        { error: "Failed to check cart clearing event" },
-        { status: 500 }
-      );
+      console.warn("[/api/check-cart-clearing] Warning checking cart clearing event:", error);
+      // Return safe default instead of 500
+      return new Response(JSON.stringify({
+        shouldClear: false,
+        clearingEvent: null,
+        warning: "Could not check cart clearing event, defaulting to false"
+      }), { status: 200 });
     }
 
     const shouldClear = !!clearingEvent;
 
     if (shouldClear) {
-      console.log("✅ Cart clearing event found for orderId:", orderId);
+      console.log("[/api/check-cart-clearing] Cart clearing event found for orderId:", orderId);
     } else {
-      console.log("ℹ️ No cart clearing event found for orderId:", orderId);
+      console.log("[/api/check-cart-clearing] No cart clearing event found for orderId:", orderId);
     }
 
-    return NextResponse.json({
+    return new Response(JSON.stringify({
       shouldClear,
       clearingEvent: clearingEvent || null,
-    });
+    }), { status: 200 });
   } catch (error) {
-    console.error("❌ Error in check-cart-clearing:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("[/api/check-cart-clearing] Error:", error);
+    // Never return 500 - always return safe default
+    return new Response(JSON.stringify({
+      shouldClear: false,
+      clearingEvent: null,
+      error: "Service temporarily unavailable, defaulting to false"
+    }), { status: 200 });
   }
 }

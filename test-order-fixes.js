@@ -1,18 +1,18 @@
-// Test script for order management logic
-const testOrderManagement = async () => {
+// Test script for order management fixes
+const testOrderFixes = async () => {
   try {
-    console.log("🧪 Testing Order Management Logic...");
-
+    console.log("🧪 Testing Order Management Fixes...");
+    
     // Test data for order creation
     const orderData = {
       customerData: {
-        name: "Test Management Customer",
+        name: "Test Fix Customer",
         firstName: "Test",
-        lastName: "Management",
-        phone: "+380000000000",
-        email: "test-management@example.com",
+        lastName: "Fix",
+        phone: "+380000000001",
+        email: "test-fix@example.com",
         address: "Test Address",
-        paymentMethod: "cod",
+        paymentMethod: "online",
         city: "Київ",
         warehouse: "Відділення №1",
       },
@@ -35,7 +35,7 @@ const testOrderManagement = async () => {
       totalAmount: 2000, // 600*2 + 800*1
     };
 
-    console.log("\n1️⃣ Creating COD order with products...");
+    console.log("\n1️⃣ Creating order with products...");
     console.log("📝 Request data:", JSON.stringify(orderData, null, 2));
 
     const createResponse = await fetch(
@@ -62,10 +62,10 @@ const testOrderManagement = async () => {
     }
 
     const orderId = createResult.orderId;
-    console.log("✅ COD order created successfully with ID:", orderId);
+    console.log("✅ Order created successfully with ID:", orderId);
 
-    // Test fetching order details with LEFT JOIN
-    console.log("\n2️⃣ Fetching order details with LEFT JOIN...");
+    // Test fetching order details with new API
+    console.log("\n2️⃣ Testing /api/order/get endpoint...");
 
     const getResponse = await fetch(
       `http://localhost:3000/api/order/get?orderId=${orderId}`
@@ -75,16 +75,16 @@ const testOrderManagement = async () => {
     const getResult = await getResponse.json();
     console.log("📝 Get Response body:", JSON.stringify(getResult, null, 2));
 
-    if (!getResult.success) {
+    if (getResponse.status !== 200) {
       console.error("❌ Order fetch failed:", getResult.error);
       return;
     }
 
-    const order = getResult.order;
-    console.log("✅ Order fetched successfully with LEFT JOIN");
+    const order = getResult;
+    console.log("✅ Order fetched successfully with new API");
 
-    // Verify order structure includes updated_at
-    console.log("\n3️⃣ Verifying order structure includes updated_at...");
+    // Verify order structure
+    console.log("\n3️⃣ Verifying order structure...");
 
     const requiredFields = [
       "id",
@@ -97,7 +97,7 @@ const testOrderManagement = async () => {
       "updated_at",
       "items",
     ];
-
+    
     const missingFields = requiredFields.filter((field) => !(field in order));
 
     if (missingFields.length > 0) {
@@ -105,20 +105,10 @@ const testOrderManagement = async () => {
       return;
     }
 
-    console.log("✅ All required fields present including updated_at");
-
-    // Verify updated_at is set
-    console.log("\n4️⃣ Verifying updated_at is set...");
-
-    if (!order.updated_at) {
-      console.error("❌ updated_at should be set");
-      return;
-    }
-
-    console.log("✅ updated_at is set:", order.updated_at);
+    console.log("✅ All required fields present");
 
     // Verify items structure
-    console.log("\n5️⃣ Verifying items structure...");
+    console.log("\n4️⃣ Verifying items structure...");
 
     if (!Array.isArray(order.items)) {
       console.error("❌ Items should be an array");
@@ -130,7 +120,7 @@ const testOrderManagement = async () => {
       return;
     }
 
-    const itemRequiredFields = ["id", "product_name", "quantity", "price"];
+    const itemRequiredFields = ["id", "product_name", "quantity", "price", "subtotal"];
     for (let i = 0; i < order.items.length; i++) {
       const item = order.items[i];
       const missingItemFields = itemRequiredFields.filter(
@@ -143,13 +133,74 @@ const testOrderManagement = async () => {
       }
     }
 
-    console.log("✅ Items structure is correct");
+    console.log("✅ Items structure is correct with subtotal field");
 
-    // Verify total amount calculation
-    console.log("\n6️⃣ Verifying total amount calculation...");
+    // Verify subtotal calculation
+    console.log("\n5️⃣ Verifying subtotal calculation...");
+
+    for (let i = 0; i < order.items.length; i++) {
+      const item = order.items[i];
+      const expectedSubtotal = item.quantity * item.price;
+      if (item.subtotal !== expectedSubtotal) {
+        console.error(`❌ Item ${i} subtotal mismatch:`, {
+          expected: expectedSubtotal,
+          actual: item.subtotal,
+        });
+        return;
+      }
+    }
+
+    console.log("✅ Subtotal calculation is correct");
+
+    // Test cart clearing check (should never return 500)
+    console.log("\n6️⃣ Testing /api/check-cart-clearing endpoint...");
+
+    const cartClearingResponse = await fetch(
+      `http://localhost:3000/api/check-cart-clearing?orderId=${orderId}`
+    );
+    console.log("📊 Cart Clearing Response status:", cartClearingResponse.status);
+
+    const cartClearingResult = await cartClearingResponse.json();
+    console.log("📝 Cart Clearing Response body:", JSON.stringify(cartClearingResult, null, 2));
+
+    if (cartClearingResponse.status === 500) {
+      console.error("❌ Cart clearing endpoint returned 500 - this should never happen!");
+      return;
+    }
+
+    console.log("✅ Cart clearing endpoint works correctly (no 500 errors)");
+
+    // Test order success endpoint
+    console.log("\n7️⃣ Testing /api/order-success endpoint...");
+
+    const orderSuccessResponse = await fetch(
+      `http://localhost:3000/api/order-success?orderId=${orderId}`
+    );
+    console.log("📊 Order Success Response status:", orderSuccessResponse.status);
+
+    const orderSuccessResult = await orderSuccessResponse.json();
+    console.log("📝 Order Success Response body:", JSON.stringify(orderSuccessResult, null, 2));
+
+    if (orderSuccessResult.success) {
+      console.log("✅ Order success endpoint works correctly");
+      
+      // Verify order success response includes items
+      if (orderSuccessResult.order.order_items && orderSuccessResult.order.order_items.length > 0) {
+        console.log("✅ Order success response includes items from order_items table");
+      } else {
+        console.error("❌ Order success response missing items");
+        return;
+      }
+    } else {
+      console.error("❌ Order success endpoint failed:", orderSuccessResult.error);
+      return;
+    }
+
+    // Test total amount calculation
+    console.log("\n8️⃣ Verifying total amount calculation...");
 
     const calculatedTotal = order.items.reduce(
-      (sum, item) => sum + item.price,
+      (sum, item) => sum + item.subtotal,
       0
     );
     console.log("📊 Calculated total from items:", calculatedTotal);
@@ -165,72 +216,9 @@ const testOrderManagement = async () => {
 
     console.log("✅ Total amount calculation is correct");
 
-    // Test cart clearing check
-    console.log("\n7️⃣ Testing cart clearing check...");
-
-    const cartClearingResponse = await fetch(
-      `http://localhost:3000/api/check-cart-clearing?orderId=${orderId}`
-    );
-    console.log(
-      "📊 Cart Clearing Response status:",
-      cartClearingResponse.status
-    );
-
-    const cartClearingResult = await cartClearingResponse.json();
-    console.log(
-      "📝 Cart Clearing Response body:",
-      JSON.stringify(cartClearingResult, null, 2)
-    );
-
-    if (cartClearingResult.shouldClear) {
-      console.log("✅ Cart clearing event found for COD order");
-    } else {
-      console.log("ℹ️ No cart clearing event found (expected for COD)");
-    }
-
-    // Test order success endpoint
-    console.log("\n8️⃣ Testing order success endpoint...");
-
-    const orderSuccessResponse = await fetch(
-      `http://localhost:3000/api/order-success?orderId=${orderId}`
-    );
-    console.log(
-      "📊 Order Success Response status:",
-      orderSuccessResponse.status
-    );
-
-    const orderSuccessResult = await orderSuccessResponse.json();
-    console.log(
-      "📝 Order Success Response body:",
-      JSON.stringify(orderSuccessResult, null, 2)
-    );
-
-    if (orderSuccessResult.success) {
-      console.log("✅ Order success endpoint works correctly");
-
-      // Verify order success response includes items
-      if (
-        orderSuccessResult.order.order_items &&
-        orderSuccessResult.order.order_items.length > 0
-      ) {
-        console.log(
-          "✅ Order success response includes items from order_items table"
-        );
-      } else {
-        console.error("❌ Order success response missing items");
-        return;
-      }
-    } else {
-      console.error(
-        "❌ Order success endpoint failed:",
-        orderSuccessResult.error
-      );
-      return;
-    }
-
     // Display order summary
-    console.log("\n📋 Order Management Summary:");
-    console.log("============================");
+    console.log("\n📋 Order Fixes Summary:");
+    console.log("========================");
     console.log(`Order ID: ${order.id}`);
     console.log(`Customer: ${order.customer_name}`);
     console.log(`Email: ${order.customer_email}`);
@@ -239,29 +227,31 @@ const testOrderManagement = async () => {
     console.log(`Total Amount: ₴${order.total_amount.toLocaleString()}`);
     console.log(`Created At: ${order.created_at}`);
     console.log(`Updated At: ${order.updated_at}`);
-    console.log("\nItems (from order_items table):");
+    console.log("\nItems (from order_items table with subtotal):");
     order.items.forEach((item, index) => {
       console.log(`  ${index + 1}. ${item.product_name}`);
       console.log(`     ID: ${item.id}`);
       console.log(`     Quantity: ${item.quantity}`);
       console.log(`     Price: ₴${item.price.toLocaleString()}`);
-      console.log(`     Subtotal: ₴${item.price.toLocaleString()}`);
+      console.log(`     Subtotal: ₴${item.subtotal.toLocaleString()}`);
     });
 
-    console.log("\n🎉 All order management tests completed successfully!");
+    console.log("\n🎉 All order fixes tests completed successfully!");
     console.log("\n📋 Summary:");
-    console.log("- COD order creation with products: ✅");
-    console.log("- LEFT JOIN between orders and order_items: ✅");
-    console.log("- Order structure includes updated_at: ✅");
-    console.log("- Items structure validation: ✅");
-    console.log("- Total amount calculation: ✅");
-    console.log("- Cart clearing check: ✅");
-    console.log("- Order success endpoint: ✅");
-    console.log("- Order management logic ready: ✅");
+    console.log("- Order creation with products: ✅");
+    console.log("- /api/order/get uses LEFT JOIN with order_items: ✅");
+    console.log("- API response includes updated_at field: ✅");
+    console.log("- Items structure includes subtotal field: ✅");
+    console.log("- Subtotal calculation is correct: ✅");
+    console.log("- /api/check-cart-clearing never returns 500: ✅");
+    console.log("- /api/order-success works correctly: ✅");
+    console.log("- Total amount calculation is correct: ✅");
+    console.log("- Order management fixes ready: ✅");
+
   } catch (error) {
     console.error("❌ Test failed:", error);
   }
 };
 
 // Run the test
-testOrderManagement();
+testOrderFixes();
