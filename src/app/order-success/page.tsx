@@ -293,7 +293,7 @@ function OrderSuccessContent() {
 
         const parsedData = JSON.parse(decodeURIComponent(orderData));
         console.log("📥 Received order success data:", parsedData);
-        
+
         // Convert to order format
         const orderData = {
           id: parsedData.orderId || "",
@@ -303,17 +303,19 @@ function OrderSuccessContent() {
           city: parsedData.customerInfo?.city || "",
           branch: parsedData.customerInfo?.warehouse || "",
           status: "confirmed",
-          payment_method: parsedData.paymentMethod === "online" ? "online" : "cod",
+          payment_method:
+            parsedData.paymentMethod === "online" ? "online" : "cod",
           total_amount: parsedData.total || 0,
           created_at: new Date().toISOString(),
-          items: parsedData.items?.map((item: any, index: number) => ({
-            id: `fallback-${index}`,
-            product_name: item.name || "Unknown Product",
-            quantity: item.quantity || 1,
-            price: item.price || 0,
-          })) || [],
+          items:
+            parsedData.items?.map((item: any, index: number) => ({
+              id: `fallback-${index}`,
+              product_name: item.name || "Unknown Product",
+              quantity: item.quantity || 1,
+              price: item.price || 0,
+            })) || [],
         };
-        
+
         setOrder(orderData);
         setCustomerInfo(parsedData.customerInfo || null);
       } catch (error) {
@@ -333,17 +335,19 @@ function OrderSuccessContent() {
               city: parsedSavedData.customerInfo?.city || "",
               branch: parsedSavedData.customerInfo?.warehouse || "",
               status: "confirmed",
-              payment_method: parsedSavedData.paymentMethod === "online" ? "online" : "cod",
+              payment_method:
+                parsedSavedData.paymentMethod === "online" ? "online" : "cod",
               total_amount: parsedSavedData.total || 0,
               created_at: new Date().toISOString(),
-              items: parsedSavedData.items?.map((item: any, index: number) => ({
-                id: `fallback-${index}`,
-                product_name: item.name || "Unknown Product",
-                quantity: item.quantity || 1,
-                price: item.price || 0,
-              })) || [],
+              items:
+                parsedSavedData.items?.map((item: any, index: number) => ({
+                  id: `fallback-${index}`,
+                  product_name: item.name || "Unknown Product",
+                  quantity: item.quantity || 1,
+                  price: item.price || 0,
+                })) || [],
             };
-            
+
             setOrder(orderData);
             setCustomerInfo(parsedSavedData.customerInfo || null);
           } catch (savedError) {
@@ -370,17 +374,19 @@ function OrderSuccessContent() {
             city: parsedSavedData.customerInfo?.city || "",
             branch: parsedSavedData.customerInfo?.warehouse || "",
             status: "confirmed",
-            payment_method: parsedSavedData.paymentMethod === "online" ? "online" : "cod",
+            payment_method:
+              parsedSavedData.paymentMethod === "online" ? "online" : "cod",
             total_amount: parsedSavedData.total || 0,
             created_at: new Date().toISOString(),
-            items: parsedSavedData.items?.map((item: any, index: number) => ({
-              id: `fallback-${index}`,
-              product_name: item.name || "Unknown Product",
-              quantity: item.quantity || 1,
-              price: item.price || 0,
-            })) || [],
+            items:
+              parsedSavedData.items?.map((item: any, index: number) => ({
+                id: `fallback-${index}`,
+                product_name: item.name || "Unknown Product",
+                quantity: item.quantity || 1,
+                price: item.price || 0,
+              })) || [],
           };
-          
+
           setOrder(orderData);
           setCustomerInfo(parsedSavedData.customerInfo || null);
         } catch (savedError) {
@@ -527,7 +533,9 @@ function OrderSuccessContent() {
                 {!order?.items || order.items.length === 0 ? (
                   <div className="text-center py-8">
                     <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 text-lg">No products found in this order.</p>
+                    <p className="text-gray-500 text-lg">
+                      No products found in this order.
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3">

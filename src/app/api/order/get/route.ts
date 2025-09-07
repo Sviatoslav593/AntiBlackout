@@ -57,11 +57,28 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch order details
-    console.log("💾 Fetching order from database...");
-    const { data: order, error: orderError } = await supabase
+    // Fetch order details with items using LEFT JOIN
+    console.log("💾 Fetching order with items from database...");
+    const { data: orderData, error: orderError } = await supabase
       .from("orders")
-      .select("*")
+      .select(`
+        id,
+        customer_name,
+        customer_email,
+        customer_phone,
+        city,
+        branch,
+        status,
+        payment_method,
+        total_amount,
+        created_at,
+        order_items (
+          id,
+          product_name,
+          quantity,
+          price
+        )
+      `)
       .eq("id", orderId)
       .single();
 
@@ -77,7 +94,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (!order) {
+    if (!orderData) {
       console.error("❌ Order not found:", orderId);
       return NextResponse.json(
         {
@@ -89,46 +106,26 @@ export async function GET(request: NextRequest) {
     }
 
     console.log("✅ Order found:", {
-      id: order.id,
-      customer_name: order.customer_name,
-      status: order.status,
-      total_amount: order.total_amount,
+      id: orderData.id,
+      customer_name: orderData.customer_name,
+      status: orderData.status,
+      total_amount: orderData.total_amount,
+      items_count: orderData.order_items?.length || 0,
     });
-
-    // Fetch order items
-    console.log("📦 Fetching order items...");
-    const { data: orderItems, error: itemsError } = await supabase
-      .from("order_items")
-      .select("id, product_name, quantity, price")
-      .eq("order_id", orderId);
-
-    if (itemsError) {
-      console.error("❌ Error fetching order items:", itemsError);
-      return NextResponse.json(
-        {
-          error: "Failed to fetch order items",
-          details: itemsError.message,
-          code: itemsError.code,
-        },
-        { status: 500 }
-      );
-    }
-
-    console.log("✅ Order items found:", orderItems?.length || 0, "items");
 
     // Format response - ensure items is always an array
     const response = {
-      id: order.id,
-      customer_name: order.customer_name,
-      customer_email: order.customer_email,
-      customer_phone: order.customer_phone,
-      city: order.city,
-      branch: order.branch,
-      status: order.status,
-      payment_method: order.payment_method,
-      total_amount: order.total_amount,
-      created_at: order.created_at,
-      items: Array.isArray(orderItems) ? orderItems : [],
+      id: orderData.id,
+      customer_name: orderData.customer_name,
+      customer_email: orderData.customer_email,
+      customer_phone: orderData.customer_phone,
+      city: orderData.city,
+      branch: orderData.branch,
+      status: orderData.status,
+      payment_method: orderData.payment_method,
+      total_amount: orderData.total_amount,
+      created_at: orderData.created_at,
+      items: Array.isArray(orderData.order_items) ? orderData.order_items : [],
     };
 
     console.log("📋 Formatted response:", {

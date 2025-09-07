@@ -1,16 +1,16 @@
-// Test script for order display fixes
-const testOrderDisplayFix = async () => {
+// Test script for order LEFT JOIN functionality
+const testOrderJoin = async () => {
   try {
-    console.log("🧪 Testing Order Display Fixes...");
-
+    console.log("🧪 Testing Order LEFT JOIN Functionality...");
+    
     // Test data for order creation
     const orderData = {
       customerData: {
-        name: "Test Display Fix Customer",
+        name: "Test JOIN Customer",
         firstName: "Test",
-        lastName: "DisplayFix",
+        lastName: "JOIN",
         phone: "+380000000000",
-        email: "test-display-fix@example.com",
+        email: "test-join@example.com",
         address: "Test Address",
         paymentMethod: "cod",
         city: "Київ",
@@ -64,8 +64,8 @@ const testOrderDisplayFix = async () => {
     const orderId = createResult.orderId;
     console.log("✅ Order created successfully with ID:", orderId);
 
-    // Test fetching order details
-    console.log("\n2️⃣ Fetching order details...");
+    // Test fetching order details with LEFT JOIN
+    console.log("\n2️⃣ Fetching order details with LEFT JOIN...");
 
     const getResponse = await fetch(
       `http://localhost:3000/api/order/get?orderId=${orderId}`
@@ -81,7 +81,7 @@ const testOrderDisplayFix = async () => {
     }
 
     const order = getResult.order;
-    console.log("✅ Order fetched successfully");
+    console.log("✅ Order fetched successfully with LEFT JOIN");
 
     // Verify order structure
     console.log("\n3️⃣ Verifying order structure...");
@@ -154,7 +154,7 @@ const testOrderDisplayFix = async () => {
 
     // Test empty items scenario
     console.log("\n6️⃣ Testing empty items scenario...");
-
+    
     // Create a mock order with empty items
     const emptyOrder = {
       id: "test-empty",
@@ -175,16 +175,43 @@ const testOrderDisplayFix = async () => {
 
     console.log("✅ Empty items check works correctly");
 
+    // Test LEFT JOIN specific functionality
+    console.log("\n7️⃣ Testing LEFT JOIN specific functionality...");
+    
+    // Verify that items come from order_items table
+    const hasValidItemIds = order.items.every(item => 
+      item.id && typeof item.id === 'string' && item.id.length > 0
+    );
+    
+    if (!hasValidItemIds) {
+      console.error("❌ Items should have valid IDs from order_items table");
+      return;
+    }
+
+    console.log("✅ Items have valid IDs from order_items table");
+
+    // Verify product names are preserved
+    const hasProductNames = order.items.every(item => 
+      item.product_name && item.product_name.length > 0
+    );
+    
+    if (!hasProductNames) {
+      console.error("❌ Items should have product names");
+      return;
+    }
+
+    console.log("✅ Product names are preserved from order_items table");
+
     // Display order summary
-    console.log("\n📋 Order Summary:");
-    console.log("==================");
+    console.log("\n📋 Order Summary (LEFT JOIN):");
+    console.log("==============================");
     console.log(`Order ID: ${order.id}`);
     console.log(`Customer: ${order.customer_name}`);
     console.log(`Email: ${order.customer_email}`);
     console.log(`Status: ${order.status}`);
     console.log(`Payment Method: ${order.payment_method}`);
     console.log(`Total Amount: ₴${order.total_amount.toLocaleString()}`);
-    console.log("\nItems:");
+    console.log("\nItems (from order_items table):");
     order.items.forEach((item, index) => {
       console.log(`  ${index + 1}. ${item.product_name}`);
       console.log(`     ID: ${item.id}`);
@@ -193,19 +220,22 @@ const testOrderDisplayFix = async () => {
       console.log(`     Subtotal: ₴${item.price.toLocaleString()}`);
     });
 
-    console.log("\n🎉 All tests completed successfully!");
+    console.log("\n🎉 All LEFT JOIN tests completed successfully!");
     console.log("\n📋 Summary:");
     console.log("- Order creation with products: ✅");
-    console.log("- Order fetching with items: ✅");
+    console.log("- LEFT JOIN between orders and order_items: ✅");
     console.log("- Order structure validation: ✅");
     console.log("- Items structure validation: ✅");
     console.log("- Total amount calculation: ✅");
     console.log("- Empty items check: ✅");
-    console.log("- Order display fixes ready: ✅");
+    console.log("- Valid item IDs from order_items: ✅");
+    console.log("- Product names preserved: ✅");
+    console.log("- LEFT JOIN functionality ready: ✅");
+
   } catch (error) {
     console.error("❌ Test failed:", error);
   }
 };
 
 // Run the test
-testOrderDisplayFix();
+testOrderJoin();
