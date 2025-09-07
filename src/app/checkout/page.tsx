@@ -8,7 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ShoppingBag, Loader2, Truck, Package } from "lucide-react";
+import { ShoppingBag, Loader2, Truck, Package, CreditCard } from "lucide-react";
 import Link from "next/link";
 import CityAutocomplete from "@/components/CityAutocomplete";
 import WarehouseAutocomplete from "@/components/WarehouseAutocomplete";
@@ -79,8 +79,8 @@ export default function CheckoutPage() {
         paymentMethod: data.paymentMethod === "online" ? "liqpay" : "cod",
         city: data.city?.Description || "",
         cityRef: data.city?.Ref || "",
-        branch: data.warehouse ? getWarehouseDisplayName(data.warehouse) : "",
-        warehouseRef: data.warehouse?.Ref || "",
+        branch: data.warehouse ? getWarehouseDisplayName(data.warehouse as NovaPoshtaWarehouse) : "",
+        warehouseRef: (data.warehouse as NovaPoshtaWarehouse)?.Ref || "",
         customAddress: data.customAddress || "",
       };
 
@@ -324,7 +324,7 @@ export default function CheckoutPage() {
                         cityRef={city?.Ref || ""}
                         value={
                           warehouse
-                            ? getWarehouseDisplayName(warehouse)
+                            ? getWarehouseDisplayName(warehouse as NovaPoshtaWarehouse)
                             : customAddress || ""
                         }
                         onChange={handleWarehouseSelect}
