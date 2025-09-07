@@ -17,7 +17,6 @@ import {
   Building,
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 
 interface OrderItem {
   id: string;
@@ -42,30 +41,16 @@ interface Order {
   items: OrderItem[];
 }
 
-interface CustomerInfo {
-  name: string;
-  phone: string;
-  address: string;
-  email?: string;
-  paymentMethod?: string;
-  city?: string;
-  warehouse?: string;
-}
-
-function OrderSuccessContent() {
+function OrderContent() {
   const searchParams = useSearchParams();
   const [order, setOrder] = useState<Order | null>(null);
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
-  const [orderNumber, setOrderNumber] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const clearCart = () => {
     try {
       localStorage.removeItem("cart");
-      console.log("🧹 Cart automatically cleared after successful payment");
-      console.log("🧹 Cart after clearing:", localStorage.getItem("cart"));
-
+      console.log("🧹 Cart cleared");
       // Dispatch custom event to notify other components about cart clearing
       window.dispatchEvent(new CustomEvent("cartCleared"));
     } catch (error) {
@@ -73,188 +58,62 @@ function OrderSuccessContent() {
     }
   };
 
-  const sendOrderEmails = async (orderData: any) => {
-    try {
-      console.log("📧 Sending order confirmation emails...");
-
-      const response = await fetch("/api/create-order-after-payment", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      if (response.ok) {
-        console.log("✅ Order confirmation emails sent successfully");
-        return true;
-      } else {
-        console.error("❌ Failed to send order confirmation emails");
-        return false;
-      }
-    } catch (error) {
-      console.error("❌ Error sending emails:", error);
-      return false;
-    }
-  };
-
-  const fetchOrderFromAPI = async (orderId: string) => {
+  const fetchOrder = async (orderId: string) => {
     try {
       setIsLoading(true);
-      console.log("🔄 Fetching order data for orderId:", orderId);
+      setError(null);
+      console.log("🔄 Fetching order with ID:", orderId);
 
-      // Always fetch order from database first
-      const orderResponse = await fetch(`/api/order/get?orderId=${orderId}`);
+      const response = await fetch(`/api/order/get?orderId=${orderId}`, {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+        },
+      });
 
-      if (orderResponse.ok) {
-        const order = await orderResponse.json();
-        console.log("📦 Order data loaded from database:", order);
-
-        // Validate order structure
-        if (!order || !order.id) {
-          throw new Error("Invalid order data received from API");
-        }
-
-        // Ensure items array exists and is properly formatted
-        const normalizedOrder = {
-          ...order,
-          items: Array.isArray(order.items) ? order.items : [],
-        };
-
-        console.log("📦 Normalized order data:", normalizedOrder);
-
-        // Set order number
-        setOrderNumber(normalizedOrder.id);
-
-        // Set order data
-        setOrder(normalizedOrder);
-
-        // Set customer info
-        setCustomerInfo({
-          name: normalizedOrder.customer_name || "Unknown Customer",
-          phone: normalizedOrder.customer_phone || "",
-          address: normalizedOrder.branch || "",
-          email: normalizedOrder.customer_email || "",
-          paymentMethod:
-            normalizedOrder.payment_method === "online"
-              ? "online"
-              : "cash_on_delivery",
-          city: normalizedOrder.city || "",
-          warehouse: normalizedOrder.branch || "",
-        });
-
-        // Check if cart should be cleared (only for online payments)
-        if (normalizedOrder.payment_method === "online") {
-          try {
-            const clearResponse = await fetch(
-              `/api/check-cart-clearing?orderId=${orderId}`
-            );
-            if (clearResponse.ok) {
-              const clearData = await clearResponse.json();
-              if (clearData.shouldClear) {
-                console.log(
-                  "🧹 Cart clearing event detected, clearing cart..."
-                );
-                clearCart();
-              }
-            }
-          } catch (clearError) {
-            console.error("⚠️ Error checking cart clearing:", clearError);
-            // Don't fail the UI if cart clearing check fails
-          }
-        }
-
-        // For COD orders, clear cart immediately
-        if (normalizedOrder.payment_method === "cod") {
-          console.log("🧹 COD order - clearing cart immediately");
-          clearCart();
-        }
-
-        return; // Exit early if we got data from database
-      } else {
-        console.error("❌ Order response not ok:", orderResponse.status);
-        const errorData = await orderResponse.json();
-        console.error("❌ Error details:", errorData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch order");
       }
 
-      // Fallback: try to get data from localStorage (only if database fails)
-      const storedOrderData = localStorage.getItem(`pending_order_${orderId}`);
-      if (storedOrderData) {
-        try {
-          const orderData = JSON.parse(storedOrderData);
-          console.log(
-            "📥 Using stored order data from localStorage as fallback:",
-            orderData
-          );
+      const orderData = await response.json();
+      console.log("📦 Order data loaded:", orderData);
 
-          // Set order number
-          setOrderNumber(orderId);
-
-          // Convert order items to the expected format
-          const items: OrderItem[] =
-            orderData.items?.map((item: any) => ({
-              id: item.id || 0,
-              product_name: item.name || "Unknown Product",
-              price: item.price || 0,
-              quantity: item.quantity || 1,
-              subtotal: (item.price || 0) * (item.quantity || 1),
-            })) || [];
-
-          setOrderItems(items);
-
-          // Set customer info
-          setCustomerInfo({
-            name: orderData.customerData?.name || "Unknown Customer",
-            phone: orderData.customerData?.phone || "",
-            address: orderData.customerData?.address || "",
-            email: orderData.customerData?.email || "",
-            paymentMethod: orderData.customerData?.paymentMethod || "online",
-            city: orderData.customerData?.city || "",
-            warehouse: orderData.customerData?.warehouse || "",
-          });
-
-          // Clear cart after successful order
-          clearCart();
-
-          localStorage.removeItem(`pending_order_${orderId}`);
-          localStorage.removeItem(`order_${orderId}`);
-          console.log("🧹 localStorage cleared:", {
-            cart: localStorage.getItem("cart"),
-            pendingOrder: localStorage.getItem(`pending_order_${orderId}`),
-            order: localStorage.getItem(`order_${orderId}`),
-          });
-          return;
-        } catch (parseError) {
-          console.error("Error parsing stored order data:", parseError);
-        }
+      // Validate order structure
+      if (!orderData || !orderData.id) {
+        throw new Error("Invalid order data received");
       }
 
-      // If all else fails, show fallback data
-      console.log("🔄 All data sources failed, showing fallback data");
-      loadFallbackData();
-    } catch (error) {
-      console.error("Error fetching order from API:", error);
-      loadFallbackData();
+      setOrder(orderData);
+
+      // Clear cart only for online payments with status "paid"
+      if (orderData.payment_method === "online" && orderData.status === "paid") {
+        console.log("🧹 Online payment confirmed - clearing cart");
+        clearCart();
+      } else if (orderData.payment_method === "cod") {
+        console.log("🧹 COD order - clearing cart immediately");
+        clearCart();
+      }
+
+    } catch (err) {
+      console.error("❌ Error fetching order:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch order");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const loadFallbackData = () => {
-    console.log("🔄 Loading fallback data...");
-    // Generate a sample order number
-    setOrderNumber(`AB-${Date.now().toString().slice(-10)}`);
-  };
-
-  const calculateTotal = () => {
-    if (!order?.items || !Array.isArray(order.items)) {
-      return 0;
+  useEffect(() => {
+    const orderId = searchParams.get("orderId");
+    
+    if (!orderId) {
+      setError("Order ID is required");
+      setIsLoading(false);
+      return;
     }
-    return order.items.reduce(
-      (total, item) => total + (item.subtotal || item.price),
-      0
-    );
-  };
+
+    fetchOrder(orderId);
+  }, [searchParams]);
 
   if (isLoading) {
     return (
@@ -263,9 +122,61 @@ function OrderSuccessContent() {
           <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">
-                Завантаження даних замовлення...
+              <p className="mt-4 text-gray-600">Завантаження даних замовлення...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="container py-8 sm:py-12">
+          <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                <Package className="w-8 h-8 text-red-600" />
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-4">
+                Помилка завантаження замовлення
+              </h1>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto mt-2">
+                {error}
               </p>
+              <div className="mt-6">
+                <Button asChild>
+                  <Link href="/">Повернутися на головну</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!order) {
+    return (
+      <Layout>
+        <div className="container py-8 sm:py-12">
+          <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                <Package className="w-8 h-8 text-gray-600" />
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-4">
+                Замовлення не знайдено
+              </h1>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto mt-2">
+                Замовлення з таким ID не існує або було видалено.
+              </p>
+              <div className="mt-6">
+                <Button asChild>
+                  <Link href="/">Повернутися на головну</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -289,14 +200,12 @@ function OrderSuccessContent() {
               Дякуємо за ваше замовлення! Ми отримали ваш запит і обробимо його
               найближчим часом.
             </p>
-            {orderNumber && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">
-                <p className="text-blue-800 font-medium">
-                  Номер замовлення:{" "}
-                  <span className="font-bold">{orderNumber}</span>
-                </p>
-              </div>
-            )}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">
+              <p className="text-blue-800 font-medium">
+                Номер замовлення:{" "}
+                <span className="font-bold">{order.id}</span>
+              </p>
+            </div>
           </div>
 
           {/* Order Details */}
@@ -308,7 +217,7 @@ function OrderSuccessContent() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {!order?.items || order.items.length === 0 ? (
+              {!order.items || order.items.length === 0 ? (
                 <div className="text-center py-8">
                   <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500 text-lg">
@@ -332,9 +241,7 @@ function OrderSuccessContent() {
                         <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                           <span>Кількість: {item.quantity}</span>
                           <span>•</span>
-                          <span>
-                            ₴{(item.price / item.quantity).toLocaleString()}
-                          </span>
+                          <span>₴{(item.price / item.quantity).toLocaleString()}</span>
                         </div>
                       </div>
                       <div className="text-right">
@@ -350,9 +257,7 @@ function OrderSuccessContent() {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Загальна сума:</span>
                   <span className="text-xl font-bold text-blue-600">
-                    ₴
-                    {order?.total_amount?.toLocaleString() ||
-                      calculateTotal().toLocaleString()}
+                    ₴{order.total_amount?.toLocaleString() || "0"}
                   </span>
                 </div>
               </div>
@@ -374,9 +279,7 @@ function OrderSuccessContent() {
                   <div>
                     <p className="text-sm text-gray-500">Ім'я</p>
                     <p className="font-medium">
-                      {customerInfo?.name ||
-                        order?.customer_name ||
-                        "Не вказано"}
+                      {order.customer_name || "Не вказано"}
                     </p>
                   </div>
                 </div>
@@ -385,9 +288,7 @@ function OrderSuccessContent() {
                   <div>
                     <p className="text-sm text-gray-500">Телефон</p>
                     <p className="font-medium">
-                      {customerInfo?.phone ||
-                        order?.customer_phone ||
-                        "Не вказано"}
+                      {order.customer_phone || "Не вказано"}
                     </p>
                   </div>
                 </div>
@@ -396,9 +297,7 @@ function OrderSuccessContent() {
                   <div>
                     <p className="text-sm text-gray-500">Email</p>
                     <p className="font-medium">
-                      {customerInfo?.email ||
-                        order?.customer_email ||
-                        "Не вказано"}
+                      {order.customer_email || "Не вказано"}
                     </p>
                   </div>
                 </div>
@@ -407,7 +306,7 @@ function OrderSuccessContent() {
                   <div>
                     <p className="text-sm text-gray-500">Місто</p>
                     <p className="font-medium">
-                      {customerInfo?.city || order?.city || "Не вказано"}
+                      {order.city || "Не вказано"}
                     </p>
                   </div>
                 </div>
@@ -416,7 +315,7 @@ function OrderSuccessContent() {
                   <div>
                     <p className="text-sm text-gray-500">Відділення</p>
                     <p className="font-medium">
-                      {customerInfo?.warehouse || order?.branch || "Не вказано"}
+                      {order.branch || "Не вказано"}
                     </p>
                   </div>
                 </div>
@@ -425,8 +324,7 @@ function OrderSuccessContent() {
                   <div>
                     <p className="text-sm text-gray-500">Спосіб оплати</p>
                     <p className="font-medium">
-                      {customerInfo?.paymentMethod === "online" ||
-                      order?.payment_method === "online"
+                      {order.payment_method === "online"
                         ? "Оплата карткою онлайн"
                         : "Післяплата"}
                     </p>
@@ -505,10 +403,10 @@ function OrderSuccessContent() {
   );
 }
 
-export default function OrderSuccessPage() {
+export default function OrderPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <OrderSuccessContent />
+      <OrderContent />
     </Suspense>
   );
 }

@@ -186,9 +186,7 @@ export default function CheckoutPage() {
         // Save to localStorage as backup
         localStorage.setItem("lastOrderData", JSON.stringify(orderSuccessData));
 
-        router.push(
-          `/order-success?orderData=${encodedData}&orderNumber=${orderSuccessData.orderId}`
-        );
+        router.push(`/order?orderId=${orderSuccessData.orderId}`);
       }
     } catch (error) {
       console.error("Failed to create order:", error);
@@ -522,7 +520,7 @@ export default function CheckoutPage() {
                       orderId
                     );
                     clearCart();
-                    router.push(`/order-success?orderId=${orderId}`);
+                    router.push(`/order?orderId=${orderId}`);
                   }}
                   onPaymentError={(error) => {
                     console.error("❌ LiqPay payment error:", error);

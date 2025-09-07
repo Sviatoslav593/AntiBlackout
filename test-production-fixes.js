@@ -2,7 +2,7 @@
 const testProductionFixes = async () => {
   try {
     console.log("🧪 Testing Production-Ready Order Management Fixes...");
-    
+
     // Test data for order creation
     const orderData = {
       customerData: {
@@ -97,7 +97,7 @@ const testProductionFixes = async () => {
       "updated_at",
       "items",
     ];
-    
+
     const missingFields = requiredFields.filter((field) => !(field in order));
 
     if (missingFields.length > 0) {
@@ -200,12 +200,18 @@ const testProductionFixes = async () => {
 
     console.log("📊 Cart Clear Response status:", cartClearResponse.status);
     const cartClearResult = await cartClearResponse.json();
-    console.log("📝 Cart Clear Response body:", JSON.stringify(cartClearResult, null, 2));
+    console.log(
+      "📝 Cart Clear Response body:",
+      JSON.stringify(cartClearResult, null, 2)
+    );
 
     if (cartClearResponse.ok) {
       console.log("✅ Cart clearing event created successfully");
     } else {
-      console.error("❌ Cart clearing event creation failed:", cartClearResult.error);
+      console.error(
+        "❌ Cart clearing event creation failed:",
+        cartClearResult.error
+      );
       return;
     }
 
@@ -228,7 +234,7 @@ const testProductionFixes = async () => {
 
     if (orderSuccessResult.success) {
       console.log("✅ Order success endpoint works correctly");
-      
+
       // Verify order success response includes items
       if (
         orderSuccessResult.order.order_items &&
@@ -295,7 +301,10 @@ const testProductionFixes = async () => {
 
     console.log("📊 COD Create Response status:", codCreateResponse.status);
     const codCreateResult = await codCreateResponse.json();
-    console.log("📝 COD Create Response body:", JSON.stringify(codCreateResult, null, 2));
+    console.log(
+      "📝 COD Create Response body:",
+      JSON.stringify(codCreateResult, null, 2)
+    );
 
     if (!codCreateResult.success) {
       console.error("❌ COD Order creation failed:", codCreateResult.error);
@@ -314,7 +323,10 @@ const testProductionFixes = async () => {
     console.log("📊 COD Get Response status:", codGetResponse.status);
 
     const codGetResult = await codGetResponse.json();
-    console.log("📝 COD Get Response body:", JSON.stringify(codGetResult, null, 2));
+    console.log(
+      "📝 COD Get Response body:",
+      JSON.stringify(codGetResult, null, 2)
+    );
 
     if (codGetResponse.status !== 200) {
       console.error("❌ COD Order fetch failed:", codGetResult.error);
@@ -358,7 +370,6 @@ const testProductionFixes = async () => {
     console.log("- /api/order-success works correctly: ✅");
     console.log("- Total amount calculation is correct: ✅");
     console.log("- Production-ready order management: ✅");
-
   } catch (error) {
     console.error("❌ Test failed:", error);
   }
