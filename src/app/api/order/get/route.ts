@@ -77,7 +77,10 @@ export async function GET(req: NextRequest) {
       console.error("[/api/order/get] items error:", itemsErr);
     }
 
-    console.log("[/api/order/get] Raw items data:", JSON.stringify(itemsData, null, 2));
+    console.log(
+      "[/api/order/get] Raw items data:",
+      JSON.stringify(itemsData, null, 2)
+    );
 
     // Handle price vs product_price columns
     const items = (itemsData ?? []).map((i: any) => {
@@ -90,16 +93,16 @@ export async function GET(req: NextRequest) {
         subtotal: Number(unitPrice) * Number(i.quantity),
         product_image: i.products?.image_url || null, // Use joined image_url from products table
       };
-      
+
       console.log("[/api/order/get] Processing item:", {
         id: i.id,
         product_name: i.product_name,
         product_id: i.product_id,
         products: i.products,
         image_url: i.products?.image_url,
-        final_image: processedItem.product_image
+        final_image: processedItem.product_image,
       });
-      
+
       return processedItem;
     });
 

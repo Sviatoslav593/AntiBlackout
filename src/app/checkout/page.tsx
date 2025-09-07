@@ -96,10 +96,11 @@ export default function CheckoutPage() {
       }));
 
       if (data.paymentMethod === "online") {
-        // For online payment, create LiqPay session and redirect
-        console.log("💳 Creating LiqPay payment session...");
+        // For online payment, create pending order first, then LiqPay session
+        console.log("💳 Creating pending order and LiqPay payment session...");
 
         try {
+          // First, create LiqPay session to get orderId
           const response = await fetch("/api/payment/liqpay-session", {
             method: "POST",
             headers: {
@@ -118,6 +119,26 @@ export default function CheckoutPage() {
             throw new Error(result.error || "Failed to create payment session");
           }
 
+          // Then create pending order in database
+          const pendingResponse = await fetch("/api/order/create-pending", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              orderId: result.orderId,
+              customerData,
+              items,
+              totalAmount: state.total,
+            }),
+          });
+
+          if (!pendingResponse.ok) {
+            const pendingError = await pendingResponse.json();
+            throw new Error(pendingError.error || "Failed to create pending order");
+          }
+
+          console.log("✅ Pending order created in database");
           console.log("✅ LiqPay session created, redirecting to payment...");
 
           // Save order data to localStorage for fallback loading
