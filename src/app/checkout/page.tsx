@@ -122,7 +122,10 @@ export default function CheckoutPage() {
 
           // Save order data to localStorage for fallback loading
           if (result.orderData) {
-            console.log("💾 Saving order data to localStorage:", result.orderData);
+            console.log(
+              "💾 Saving order data to localStorage:",
+              result.orderData
+            );
             localStorageUtils.savePendingOrder(result.orderData);
           }
 

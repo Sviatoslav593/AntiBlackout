@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
         city: customerData.city,
         branch: customerData.branch,
       },
-      items: items.map(item => ({
+      items: items.map((item) => ({
         id: item.id,
         name: item.name,
         price: item.price,
