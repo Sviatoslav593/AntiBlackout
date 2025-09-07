@@ -136,11 +136,21 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
     console.log("📊 Order search result:", { existingOrder, orderError });
 
     if (orderError || !existingOrder) {
-      console.error("❌ Order not found for:", callbackData.order_id, "Error:", orderError);
+      console.error(
+        "❌ Order not found for:",
+        callbackData.order_id,
+        "Error:",
+        orderError
+      );
       return;
     }
 
-    console.log("✅ Order found:", existingOrder.id, "Current status:", existingOrder.status);
+    console.log(
+      "✅ Order found:",
+      existingOrder.id,
+      "Current status:",
+      existingOrder.status
+    );
 
     // Update order status to paid
     console.log("🔄 Updating order status to paid...");
