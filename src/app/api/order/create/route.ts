@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
-import { createCodOrder, createOnlineOrder, normalizePaymentMethod } from "@/lib/db/orders";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 interface CreateOrderRequest {
   customerData: {
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare order data for Supabase (matching actual schema)
-    const orderData = {
+    const orderPayload = {
       customer_name: customerData.name,
       customer_email: customerData.email,
       customer_phone: customerData.phone || null,
@@ -145,65 +145,104 @@ export async function POST(request: NextRequest) {
     };
 
     console.log("📦 Prepared order data for database:", {
-      customer_name: orderData.customer_name,
-      customer_email: orderData.customer_email,
-      payment_method: orderData.payment_method,
-      total_amount: orderData.total_amount,
-      status: orderData.status,
+      customer_name: orderPayload.customer_name,
+      customer_email: orderPayload.customer_email,
+      payment_method: orderPayload.payment_method,
+      total_amount: orderPayload.total_amount,
+      status: orderPayload.status,
     });
 
     // Normalize payment method
-    const paymentMethod = normalizePaymentMethod(customerData.paymentMethod);
-    console.log(`💾 Creating ${paymentMethod} order in Supabase...`);
+    const paymentMethod = (customerData.paymentMethod || "").toLowerCase();
+    const normalizedPM = paymentMethod === "online" || paymentMethod === "card" ? "online" : "cod";
+    console.log(`💾 Creating ${normalizedPM} order in Supabase...`);
 
-    // Prepare order data
-    const orderPayload = {
-      customer_name: customerData.name,
-      customer_email: customerData.email,
-      customer_phone: customerData.phone,
-      customer_address: customerData.address,
-      customer_city: customerData.city,
-      items: items.map((item) => ({
-        product_id: item.id ? item.id.toString() : undefined,
-        product_name: item.name,
-        price: item.price, // Unit price
-        quantity: item.quantity,
-      })),
-      total_amount: totalAmount,
-    };
-
-    // Create order using data-access layer
-    const { order, error: orderError } = paymentMethod === "cod" 
-      ? await createCodOrder(orderPayload)
-      : await createOnlineOrder(orderPayload);
-
-    if (orderError || !order) {
-      console.error("❌ Error creating order in database:", orderError);
+    // Validate required fields
+    if (!customerData.name || !customerData.email) {
       return NextResponse.json(
+        { error: "Missing customer_name or customer_email" },
+        { status: 400 }
+      );
+    }
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json(
+        { error: "Items array is required" },
+        { status: 400 }
+      );
+    }
+    if (typeof totalAmount !== "number") {
+      return NextResponse.json(
+        { error: "total_amount must be a number" },
+        { status: 400 }
+      );
+    }
+
+    // 1) Create order
+    const { data: orderData, error: orderErr } = await supabaseAdmin
+      .from("orders")
+      .insert([
         {
-          error: "Failed to create order",
-          details: orderError?.message || "Unknown error",
+          customer_name: customerData.name,
+          customer_email: customerData.email,
+          customer_phone: customerData.phone ?? null,
+          customer_address: customerData.address ?? null,
+          customer_city: customerData.city ?? null,
+          status: "pending",
+          payment_method: normalizedPM,
+          total_amount: totalAmount,
         },
+      ])
+      .select()
+      .single();
+
+    if (orderErr) {
+      console.error("[/api/order/create] orders insert error:", orderErr);
+      return NextResponse.json(
+        { error: "Failed to create order", details: orderErr.message },
         { status: 500 }
       );
     }
 
-    console.log(`✅ Order created successfully with ID: ${order.id}`);
+    // 2) Insert order items (write to both price columns to be schema-compatible)
+    const itemsInsert = items.map((item) => ({
+      order_id: orderData.id,
+      product_id: item.id ? item.id.toString() : null,
+      product_name: item.name,
+      price: item.price,           // if "price" column exists
+      product_price: item.price,   // if only "product_price" exists
+      quantity: item.quantity,
+    }));
+
+    const { error: itemsErr } = await supabaseAdmin
+      .from("order_items")
+      .insert(itemsInsert);
+
+    if (itemsErr) {
+      console.error("[/api/order/create] order_items insert error:", itemsErr);
+      return NextResponse.json(
+        { error: "Failed to create order items", details: itemsErr.message },
+        { status: 500 }
+      );
+    }
+
+    console.log(`✅ Order created successfully with ID: ${orderData.id}`);
 
     // Handle different payment methods
-    if (paymentMethod === "cod") {
+    if (normalizedPM === "cod") {
       // For COD, immediately mark as confirmed and send email
-      console.log("💰 Processing COD order - marking as confirmed and sending email");
+      console.log(
+        "💰 Processing COD order - marking as confirmed and sending email"
+      );
 
       try {
         // Update order status to confirmed
-        const { error: updateError } = await supabase
+        const { error: updateError } = await supabaseAdmin
           .from("orders")
           .update({
             status: "confirmed",
             updated_at: new Date().toISOString(),
           })
-          .eq("id", order.id);
+          .eq("id", orderData.id);
 
         if (updateError) {
           console.error("❌ Error updating COD order status:", updateError);
@@ -222,15 +261,15 @@ export async function POST(request: NextRequest) {
         try {
           console.log("📧 Sending COD confirmation emails...");
           const emailOrder = formatOrderForEmail({
-            ...order,
-            items: orderPayload.items.map((item) => ({
-              product_name: item.product_name,
+            ...orderData,
+            items: items.map((item) => ({
+              product_name: item.name,
               quantity: item.quantity,
               price: item.price,
             })),
           });
           await sendOrderEmails(emailOrder);
-          console.log(`✅ COD confirmation emails sent for order ${order.id}`);
+          console.log(`✅ COD confirmation emails sent for order ${orderData.id}`);
         } catch (emailError) {
           console.error("⚠️ Email sending failed (non-critical):", emailError);
           // Don't fail the request if email fails
@@ -238,11 +277,11 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
           success: true,
-          orderId: order.id,
+          orderId: orderData.id,
           paymentMethod: "cod",
           status: "confirmed",
           message: "Order created and confirmed for COD",
-          order: order,
+          order: orderData,
         });
       } catch (codError) {
         console.error("❌ Error processing COD order:", codError);
@@ -255,17 +294,19 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-    } else if (paymentMethod === "online") {
+    } else if (normalizedPM === "online") {
       // For online payment, keep as pending and return order data for payment
-      console.log("💳 Processing online order - keeping as pending for payment");
+      console.log(
+        "💳 Processing online order - keeping as pending for payment"
+      );
 
       return NextResponse.json({
         success: true,
-        orderId: order.id,
+        orderId: orderData.id,
         paymentMethod: "online",
         status: "pending",
         message: "Order created, ready for online payment",
-        order: order,
+        order: orderData,
       });
     } else {
       console.error("❌ Invalid payment method:", customerData.paymentMethod);

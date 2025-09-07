@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createCartClearingEvent } from "@/lib/db/orders";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,8 +13,11 @@ export async function POST(request: NextRequest) {
 
     console.log("[/api/cart/clear] Clearing cart for orderId:", orderId);
 
-    // Create cart clearing event using data-access layer
-    const { error } = await createCartClearingEvent(orderId);
+    // Create cart clearing event
+    const { error } = await supabaseAdmin.from("cart_clearing_events").insert({
+      order_id: orderId,
+      created_at: new Date().toISOString(),
+    });
 
     if (error) {
       console.error(

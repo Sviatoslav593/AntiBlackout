@@ -3,18 +3,21 @@
 ## 🎯 **Issues Fixed**
 
 ### **1. Order Confirmation Page Shows Correct Data for Both Payment Methods**
+
 - ✅ **Fixed**: Order confirmation page now always loads data from database using robust data-access layer
 - ✅ **Fixed**: Customer info, total amount, and items always render correctly for both COD and online payments
 - ✅ **Fixed**: Proper handling of database column differences (price vs product_price)
 - ✅ **Fixed**: Normalized payment method values ("cod" or "online")
 
 ### **2. Cart Clears After Successful Online Payment**
+
 - ✅ **Fixed**: Cart is cleared only after online payment is confirmed ("paid")
 - ✅ **Fixed**: Cart clearing event created in LiqPay callback using data-access layer
 - ✅ **Fixed**: Frontend checks for cart clearing events for online payments
 - ✅ **Fixed**: COD orders clear cart immediately (no payment confirmation needed)
 
 ### **3. Robust Data-Access Layer**
+
 - ✅ **Fixed**: Created `lib/db/orders.ts` with abstracted column differences
 - ✅ **Fixed**: Handles both `price` and `product_price` columns with COALESCE logic
 - ✅ **Fixed**: Normalizes payment method values consistently
@@ -45,7 +48,9 @@ export async function getOrderWithItems(orderId: string) {
   // 1) Base order
   const { data: order, error: orderErr } = await supabase
     .from("orders")
-    .select("id, customer_name, customer_email, customer_phone, customer_address, customer_city, status, payment_method, total_amount, created_at, updated_at")
+    .select(
+      "id, customer_name, customer_email, customer_phone, customer_address, customer_city, status, payment_method, total_amount, created_at, updated_at"
+    )
     .eq("id", orderId)
     .single();
 
@@ -88,38 +93,47 @@ export async function createCodOrder(payload: {
   customer_phone?: string;
   customer_address?: string;
   customer_city?: string;
-  items: Array<{ product_id?: string; product_name: string; price: number; quantity: number }>;
+  items: Array<{
+    product_id?: string;
+    product_name: string;
+    price: number;
+    quantity: number;
+  }>;
   total_amount: number;
 }) {
   // Create order
   const { data: orderData, error: orderErr } = await supabase
     .from("orders")
-    .insert([{
-      customer_name: payload.customer_name,
-      customer_email: payload.customer_email,
-      customer_phone: payload.customer_phone ?? null,
-      customer_address: payload.customer_address ?? null,
-      customer_city: payload.customer_city ?? null,
-      status: "pending",
-      payment_method: "cod",
-      total_amount: payload.total_amount,
-    }])
+    .insert([
+      {
+        customer_name: payload.customer_name,
+        customer_email: payload.customer_email,
+        customer_phone: payload.customer_phone ?? null,
+        customer_address: payload.customer_address ?? null,
+        customer_city: payload.customer_city ?? null,
+        status: "pending",
+        payment_method: "cod",
+        total_amount: payload.total_amount,
+      },
+    ])
     .select()
     .single();
 
   if (orderErr) return { error: orderErr, order: null };
 
   // Insert items (support both price column names)
-  const itemsInsert = payload.items.map(it => ({
+  const itemsInsert = payload.items.map((it) => ({
     order_id: orderData.id,
     product_id: it.product_id ?? null,
     product_name: it.product_name,
-    price: it.price,           // if column "price" exists it will be used
-    product_price: it.price,   // if only "product_price" exists, it will be used
+    price: it.price, // if column "price" exists it will be used
+    product_price: it.price, // if only "product_price" exists, it will be used
     quantity: it.quantity,
   }));
 
-  const { error: itemsErr } = await supabase.from("order_items").insert(itemsInsert);
+  const { error: itemsErr } = await supabase
+    .from("order_items")
+    .insert(itemsInsert);
   if (itemsErr) return { error: itemsErr, order: null };
 
   return { order: orderData, error: null };
@@ -132,45 +146,58 @@ export async function createOnlineOrder(payload: {
   customer_phone?: string;
   customer_address?: string;
   customer_city?: string;
-  items: Array<{ product_id?: string; product_name: string; price: number; quantity: number }>;
+  items: Array<{
+    product_id?: string;
+    product_name: string;
+    price: number;
+    quantity: number;
+  }>;
   total_amount: number;
 }) {
   // Create order
   const { data: orderData, error: orderErr } = await supabase
     .from("orders")
-    .insert([{
-      customer_name: payload.customer_name,
-      customer_email: payload.customer_email,
-      customer_phone: payload.customer_phone ?? null,
-      customer_address: payload.customer_address ?? null,
-      customer_city: payload.customer_city ?? null,
-      status: "pending",
-      payment_method: "online",
-      total_amount: payload.total_amount,
-    }])
+    .insert([
+      {
+        customer_name: payload.customer_name,
+        customer_email: payload.customer_email,
+        customer_phone: payload.customer_phone ?? null,
+        customer_address: payload.customer_address ?? null,
+        customer_city: payload.customer_city ?? null,
+        status: "pending",
+        payment_method: "online",
+        total_amount: payload.total_amount,
+      },
+    ])
     .select()
     .single();
 
   if (orderErr) return { error: orderErr, order: null };
 
   // Insert items (support both price column names)
-  const itemsInsert = payload.items.map(it => ({
+  const itemsInsert = payload.items.map((it) => ({
     order_id: orderData.id,
     product_id: it.product_id ?? null,
     product_name: it.product_name,
-    price: it.price,           // if column "price" exists it will be used
-    product_price: it.price,   // if only "product_price" exists, it will be used
+    price: it.price, // if column "price" exists it will be used
+    product_price: it.price, // if only "product_price" exists, it will be used
     quantity: it.quantity,
   }));
 
-  const { error: itemsErr } = await supabase.from("order_items").insert(itemsInsert);
+  const { error: itemsErr } = await supabase
+    .from("order_items")
+    .insert(itemsInsert);
   if (itemsErr) return { error: itemsErr, order: null };
 
   return { order: orderData, error: null };
 }
 
 /** Update order status */
-export async function updateOrderStatus(orderId: string, status: string, additionalData?: Record<string, any>) {
+export async function updateOrderStatus(
+  orderId: string,
+  status: string,
+  additionalData?: Record<string, any>
+) {
   const { error } = await supabase
     .from("orders")
     .update({
@@ -185,12 +212,10 @@ export async function updateOrderStatus(orderId: string, status: string, additio
 
 /** Create cart clearing event */
 export async function createCartClearingEvent(orderId: string) {
-  const { error } = await supabase
-    .from("cart_clearing_events")
-    .insert({
-      order_id: orderId,
-      created_at: new Date().toISOString(),
-    });
+  const { error } = await supabase.from("cart_clearing_events").insert({
+    order_id: orderId,
+    created_at: new Date().toISOString(),
+  });
 
   return { error };
 }
@@ -210,6 +235,7 @@ export async function shouldClearCart(orderId: string) {
 ### **Backend API Updates**
 
 #### **1. Updated `/api/order/get` Endpoint**
+
 ```typescript
 // app/api/order/get/route.ts
 import { NextRequest } from "next/server";
@@ -268,11 +294,16 @@ export async function GET(req: NextRequest) {
 ```
 
 #### **2. Updated `/api/order/create` Endpoint**
+
 ```typescript
 // app/api/order/create/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
-import { createCodOrder, createOnlineOrder, normalizePaymentMethod } from "@/lib/db/orders";
+import {
+  createCodOrder,
+  createOnlineOrder,
+  normalizePaymentMethod,
+} from "@/lib/db/orders";
 
 export async function POST(request: NextRequest) {
   try {
@@ -299,9 +330,10 @@ export async function POST(request: NextRequest) {
     };
 
     // Create order using data-access layer
-    const { order, error: orderError } = paymentMethod === "cod" 
-      ? await createCodOrder(orderPayload)
-      : await createOnlineOrder(orderPayload);
+    const { order, error: orderError } =
+      paymentMethod === "cod"
+        ? await createCodOrder(orderPayload)
+        : await createOnlineOrder(orderPayload);
 
     if (orderError || !order) {
       console.error("❌ Error creating order in database:", orderError);
@@ -333,6 +365,7 @@ export async function POST(request: NextRequest) {
 ```
 
 #### **3. Updated LiqPay Callback**
+
 ```typescript
 // app/api/payment/callback/route.ts
 import { NextRequest, NextResponse } from "next/server";
@@ -365,7 +398,9 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
     // Create cart clearing event using data-access layer
     try {
       await createCartClearingEvent(callbackData.order_id);
-      console.log(`🧹 Cart clearing event created for order ${callbackData.order_id}`);
+      console.log(
+        `🧹 Cart clearing event created for order ${callbackData.order_id}`
+      );
     } catch (clearError) {
       console.error("⚠️ Error creating cart clearing event:", clearError);
     }
@@ -380,6 +415,7 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
 ### **Frontend Updates**
 
 #### **1. Updated Order Interface**
+
 ```typescript
 // app/order/page.tsx
 interface Order {
@@ -399,6 +435,7 @@ interface Order {
 ```
 
 #### **2. Updated Customer Information Display**
+
 ```tsx
 // Display customer information with proper field mapping
 <div className="flex items-center gap-3">
@@ -422,6 +459,7 @@ interface Order {
 ## 📊 **Data Flow**
 
 ### **1. COD Payment Flow**
+
 ```
 1. User completes checkout with COD
 2. createCodOrder() creates order with status "pending"
@@ -433,6 +471,7 @@ interface Order {
 ```
 
 ### **2. Online Payment Flow**
+
 ```
 1. User completes checkout with online payment
 2. createOnlineOrder() creates order with status "pending"
@@ -447,6 +486,7 @@ interface Order {
 ```
 
 ### **3. Order Display Flow**
+
 ```
 1. Order page loads with orderId from URL
 2. Frontend calls /api/order/get?orderId=xxx
@@ -463,6 +503,7 @@ interface Order {
 ## 🧪 **Testing**
 
 ### **1. Test Robust Order Flow**
+
 ```bash
 # Start development server
 npm run dev
@@ -474,6 +515,7 @@ node test-robust-order-flow.js
 ### **2. Manual Testing**
 
 #### **Test COD Order:**
+
 1. Go to checkout page
 2. Select "Післяплата"
 3. Add products to cart
@@ -484,6 +526,7 @@ node test-robust-order-flow.js
 8. **Expected**: Customer info displays correctly (customer_city, customer_address)
 
 #### **Test Online Payment Order:**
+
 1. Go to checkout page
 2. Select "Оплата карткою онлайн"
 3. Add products to cart
@@ -494,11 +537,13 @@ node test-robust-order-flow.js
 8. **Expected**: Customer info displays correctly
 
 #### **Test API Endpoints:**
+
 1. Test `/api/order/get?orderId=xxx` - should return order with items
 2. Test `/api/cart/clear` - should create cart clearing event
 3. Test `/api/check-cart-clearing?orderId=xxx` - should never return 500
 
 ### **3. API Testing**
+
 ```bash
 # Test order creation
 curl -X POST http://localhost:3000/api/order/create \
@@ -517,6 +562,7 @@ curl -X POST http://localhost:3000/api/cart/clear \
 ## ✅ **Verification Checklist**
 
 ### **Data-Access Layer**
+
 - ✅ Handles both `price` and `product_price` columns with COALESCE logic
 - ✅ Normalizes payment method values consistently
 - ✅ All database operations use the data-access layer
@@ -524,6 +570,7 @@ curl -X POST http://localhost:3000/api/cart/clear \
 - ✅ Supports both COD and online order creation
 
 ### **Backend**
+
 - ✅ `/api/order/get` uses data-access layer
 - ✅ Items loaded from order_items table (not orders.items)
 - ✅ Response includes updated_at field
@@ -532,6 +579,7 @@ curl -X POST http://localhost:3000/api/cart/clear \
 - ✅ Dynamic rendering prevents caching issues
 
 ### **Frontend**
+
 - ✅ Order page displays products correctly
 - ✅ Customer info, total amount, and items always render
 - ✅ Empty items check works
@@ -543,6 +591,7 @@ curl -X POST http://localhost:3000/api/cart/clear \
 - ✅ Correct field mapping (customer_city, customer_address)
 
 ### **Database**
+
 - ✅ Orders table has updated_at column
 - ✅ Order_items table has proper structure
 - ✅ Items fetched from order_items table
@@ -553,26 +602,31 @@ curl -X POST http://localhost:3000/api/cart/clear \
 ## 🚀 **Performance Benefits**
 
 ### **1. Data-Access Layer**
+
 - **Before**: Direct database queries with hardcoded column names
 - **After**: Abstracted data-access layer with column flexibility
 - **Benefit**: Easier maintenance, better error handling, column migration support
 
 ### **2. Database Efficiency**
+
 - **Before**: Multiple queries or legacy JSON fields
 - **After**: Single query with proper JOIN
 - **Benefit**: Reduced database round trips, better performance
 
 ### **3. Caching Control**
+
 - **Before**: Stale data from caching
 - **After**: No-cache headers and dynamic rendering
 - **Benefit**: Always fresh data, no stale state issues
 
 ### **4. Error Resilience**
+
 - **Before**: 500 errors could break UI
 - **After**: Graceful error handling with safe defaults
 - **Benefit**: Better user experience, no broken states
 
 ### **5. Cart Management**
+
 - **Before**: Cart clearing issues with online payments
 - **After**: Proper cart clearing based on payment method and status
 - **Benefit**: Consistent cart behavior

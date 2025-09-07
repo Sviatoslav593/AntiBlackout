@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { shouldClearCart } from "@/lib/db/orders";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,11 +23,15 @@ export async function GET(request: NextRequest) {
       orderId
     );
 
-    // Check if there's a cart clearing event for this order using data-access layer
-    const { shouldClear, error } = await shouldClearCart(orderId);
+    // Check if there's a cart clearing event for this order
+    const { data: clearingEvent, error } = await supabaseAdmin
+      .from("cart_clearing_events")
+      .select("*")
+      .eq("order_id", orderId)
+      .single();
 
     // Handle errors gracefully - don't fail the request
-    if (error) {
+    if (error && error.code !== "PGRST116") { // PGRST116 is "No rows found"
       console.warn(
         "[/api/check-cart-clearing] Warning checking cart clearing event:",
         error
@@ -42,6 +46,8 @@ export async function GET(request: NextRequest) {
         { status: 200 }
       );
     }
+
+    const shouldClear = !!clearingEvent;
 
     if (shouldClear) {
       console.log(
@@ -58,7 +64,7 @@ export async function GET(request: NextRequest) {
     return new Response(
       JSON.stringify({
         shouldClear,
-        clearingEvent: shouldClear ? { order_id: orderId } : null,
+        clearingEvent: clearingEvent || null,
       }),
       { status: 200 }
     );

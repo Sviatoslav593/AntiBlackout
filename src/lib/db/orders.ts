@@ -18,7 +18,9 @@ export async function getOrderWithItems(orderId: string) {
   // 1) Base order
   const { data: order, error: orderErr } = await supabase
     .from("orders")
-    .select("id, customer_name, customer_email, customer_phone, customer_address, customer_city, status, payment_method, total_amount, created_at, updated_at")
+    .select(
+      "id, customer_name, customer_email, customer_phone, customer_address, customer_city, status, payment_method, total_amount, created_at, updated_at"
+    )
     .eq("id", orderId)
     .single();
 
@@ -62,38 +64,47 @@ export async function createCodOrder(payload: {
   customer_phone?: string;
   customer_address?: string;
   customer_city?: string;
-  items: Array<{ product_id?: string; product_name: string; price: number; quantity: number }>;
+  items: Array<{
+    product_id?: string;
+    product_name: string;
+    price: number;
+    quantity: number;
+  }>;
   total_amount: number;
 }) {
   // Create order
   const { data: orderData, error: orderErr } = await supabase
     .from("orders")
-    .insert([{
-      customer_name: payload.customer_name,
-      customer_email: payload.customer_email,
-      customer_phone: payload.customer_phone ?? null,
-      customer_address: payload.customer_address ?? null,
-      customer_city: payload.customer_city ?? null,
-      status: "pending",
-      payment_method: "cod",
-      total_amount: payload.total_amount,
-    }])
+    .insert([
+      {
+        customer_name: payload.customer_name,
+        customer_email: payload.customer_email,
+        customer_phone: payload.customer_phone ?? null,
+        customer_address: payload.customer_address ?? null,
+        customer_city: payload.customer_city ?? null,
+        status: "pending",
+        payment_method: "cod",
+        total_amount: payload.total_amount,
+      },
+    ])
     .select()
     .single();
 
   if (orderErr) return { error: orderErr, order: null };
 
   // Insert items (support both price column names)
-  const itemsInsert = payload.items.map(it => ({
+  const itemsInsert = payload.items.map((it) => ({
     order_id: orderData.id,
     product_id: it.product_id ?? null,
     product_name: it.product_name,
-    price: it.price,           // if column "price" exists it will be used; Supabase will ignore extra fields if not present
-    product_price: it.price,   // if only "product_price" exists, it will be used
+    price: it.price, // if column "price" exists it will be used; Supabase will ignore extra fields if not present
+    product_price: it.price, // if only "product_price" exists, it will be used
     quantity: it.quantity,
   }));
 
-  const { error: itemsErr } = await supabase.from("order_items").insert(itemsInsert);
+  const { error: itemsErr } = await supabase
+    .from("order_items")
+    .insert(itemsInsert);
   if (itemsErr) return { error: itemsErr, order: null };
 
   return { order: orderData, error: null };
@@ -106,45 +117,58 @@ export async function createOnlineOrder(payload: {
   customer_phone?: string;
   customer_address?: string;
   customer_city?: string;
-  items: Array<{ product_id?: string; product_name: string; price: number; quantity: number }>;
+  items: Array<{
+    product_id?: string;
+    product_name: string;
+    price: number;
+    quantity: number;
+  }>;
   total_amount: number;
 }) {
   // Create order
   const { data: orderData, error: orderErr } = await supabase
     .from("orders")
-    .insert([{
-      customer_name: payload.customer_name,
-      customer_email: payload.customer_email,
-      customer_phone: payload.customer_phone ?? null,
-      customer_address: payload.customer_address ?? null,
-      customer_city: payload.customer_city ?? null,
-      status: "pending",
-      payment_method: "online",
-      total_amount: payload.total_amount,
-    }])
+    .insert([
+      {
+        customer_name: payload.customer_name,
+        customer_email: payload.customer_email,
+        customer_phone: payload.customer_phone ?? null,
+        customer_address: payload.customer_address ?? null,
+        customer_city: payload.customer_city ?? null,
+        status: "pending",
+        payment_method: "online",
+        total_amount: payload.total_amount,
+      },
+    ])
     .select()
     .single();
 
   if (orderErr) return { error: orderErr, order: null };
 
   // Insert items (support both price column names)
-  const itemsInsert = payload.items.map(it => ({
+  const itemsInsert = payload.items.map((it) => ({
     order_id: orderData.id,
     product_id: it.product_id ?? null,
     product_name: it.product_name,
-    price: it.price,           // if column "price" exists it will be used; Supabase will ignore extra fields if not present
-    product_price: it.price,   // if only "product_price" exists, it will be used
+    price: it.price, // if column "price" exists it will be used; Supabase will ignore extra fields if not present
+    product_price: it.price, // if only "product_price" exists, it will be used
     quantity: it.quantity,
   }));
 
-  const { error: itemsErr } = await supabase.from("order_items").insert(itemsInsert);
+  const { error: itemsErr } = await supabase
+    .from("order_items")
+    .insert(itemsInsert);
   if (itemsErr) return { error: itemsErr, order: null };
 
   return { order: orderData, error: null };
 }
 
 /** Update order status */
-export async function updateOrderStatus(orderId: string, status: string, additionalData?: Record<string, any>) {
+export async function updateOrderStatus(
+  orderId: string,
+  status: string,
+  additionalData?: Record<string, any>
+) {
   const { error } = await supabase
     .from("orders")
     .update({
@@ -159,12 +183,10 @@ export async function updateOrderStatus(orderId: string, status: string, additio
 
 /** Create cart clearing event */
 export async function createCartClearingEvent(orderId: string) {
-  const { error } = await supabase
-    .from("cart_clearing_events")
-    .insert({
-      order_id: orderId,
-      created_at: new Date().toISOString(),
-    });
+  const { error } = await supabase.from("cart_clearing_events").insert({
+    order_id: orderId,
+    created_at: new Date().toISOString(),
+  });
 
   return { error };
 }

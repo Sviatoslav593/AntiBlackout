@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { createServerSupabaseClient } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
-import { updateOrderStatus, createCartClearingEvent } from "@/lib/db/orders";
 
 interface LiqPayCallbackData {
   order_id: string;
@@ -123,10 +122,8 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
   try {
     console.log(`🔄 Handling successful payment for ${callbackData.order_id}`);
 
-    const supabase = createServerSupabaseClient();
-
     // Find existing order in orders table
-    const { data: existingOrder, error: orderError } = await supabase
+    const { data: existingOrder, error: orderError } = await supabaseAdmin
       .from("orders")
       .select("*")
       .eq("id", callbackData.order_id)
@@ -137,15 +134,16 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
       return;
     }
 
-    // Update order status to paid using data-access layer
-    const { error: updateError } = await updateOrderStatus(
-      callbackData.order_id,
-      "paid",
-      {
+    // Update order status to paid
+    const { error: updateError } = await supabaseAdmin
+      .from("orders")
+      .update({
+        status: "paid",
         payment_status: callbackData.status,
         payment_id: callbackData.payment_id || callbackData.transaction_id,
-      }
-    );
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", callbackData.order_id);
 
     if (updateError) {
       console.error("❌ Error updating order status:", updateError);
@@ -165,9 +163,12 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
       console.error("⚠️ Email sending failed (non-critical):", emailError);
     }
 
-    // Create cart clearing event using data-access layer
+    // Create cart clearing event
     try {
-      await createCartClearingEvent(callbackData.order_id);
+      await supabaseAdmin.from("cart_clearing_events").insert({
+        order_id: callbackData.order_id,
+        created_at: new Date().toISOString(),
+      });
       console.log(
         `🧹 Cart clearing event created for order ${callbackData.order_id}`
       );
@@ -192,16 +193,15 @@ async function handleFailedPayment(callbackData: LiqPayCallbackData) {
   try {
     console.log(`🔄 Handling failed payment for ${callbackData.order_id}`);
 
-    const supabase = createServerSupabaseClient();
-
-    // Update order status to failed using data-access layer
-    const { error: updateError } = await updateOrderStatus(
-      callbackData.order_id,
-      "failed",
-      {
+    // Update order status to failed
+    const { error: updateError } = await supabaseAdmin
+      .from("orders")
+      .update({
+        status: "failed",
         payment_status: callbackData.status,
-      }
-    );
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", callbackData.order_id);
 
     if (updateError) {
       console.error("❌ Error updating order status to failed:", updateError);

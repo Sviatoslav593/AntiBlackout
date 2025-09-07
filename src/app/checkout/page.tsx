@@ -144,8 +144,11 @@ export default function CheckoutPage() {
       const result = await response.json();
       console.log("Order created successfully:", result);
 
-      if (result.paymentMethod === "liqpay") {
-        // For LiqPay, show payment form
+      // Store orderId in localStorage for backup
+      localStorage.setItem("lastOrderId", result.orderId);
+
+      if (result.paymentMethod === "online") {
+        // For online payment, show payment form
         setOrderId(result.orderId);
         setShowLiqPayForm(true);
 
@@ -160,33 +163,11 @@ export default function CheckoutPage() {
           }
         }, 100);
       } else {
-        // For COD, order is already paid and email sent
-        // Clear cart and redirect to success page
+        // For COD, order is already confirmed and email sent
+        // Clear cart and redirect to order page
         clearCart();
 
-        // Encode order data for URL
-        const orderSuccessData = {
-          orderId: result.orderId,
-          items: items,
-          customerInfo: customerData,
-          total: state.total,
-          subtotal: state.total,
-          paymentMethod: data.paymentMethod,
-          city: data.city?.Description || "",
-          warehouse: data.warehouse
-            ? getWarehouseDisplayName(data.warehouse)
-            : "",
-        };
-
-        const encodedData = encodeURIComponent(
-          JSON.stringify(orderSuccessData)
-        );
-        console.log("📤 Sending order success data:", orderSuccessData);
-
-        // Save to localStorage as backup
-        localStorage.setItem("lastOrderData", JSON.stringify(orderSuccessData));
-
-        router.push(`/order?orderId=${orderSuccessData.orderId}`);
+        router.push(`/order?orderId=${result.orderId}`);
       }
     } catch (error) {
       console.error("Failed to create order:", error);

@@ -1,17 +1,17 @@
-// Test script for robust order flow with data-access layer
-const testRobustOrderFlow = async () => {
+// Test script for server-side Supabase admin client fix
+const testServerSupabaseFix = async () => {
   try {
-    console.log("🧪 Testing Robust Order Flow with Data-Access Layer...");
-
+    console.log("🧪 Testing Server-Side Supabase Admin Client Fix...");
+    
     // Test data for order creation
     const orderData = {
       customerData: {
-        name: "Test Robust Customer",
+        name: "Test Server Customer",
         firstName: "Test",
-        lastName: "Robust",
-        phone: "+380000000004",
-        email: "test-robust@example.com",
-        address: "Test Address 123",
+        lastName: "Server",
+        phone: "+380000000005",
+        email: "test-server@example.com",
+        address: "Test Server Address 123",
         paymentMethod: "cod",
         city: "Київ",
         warehouse: "Відділення №1",
@@ -19,23 +19,23 @@ const testRobustOrderFlow = async () => {
       items: [
         {
           id: 1,
-          name: "Powerbank 20000mAh",
-          price: 600,
-          quantity: 2,
+          name: "Powerbank 30000mAh",
+          price: 800,
+          quantity: 1,
           image: "test1.jpg",
         },
         {
           id: 2,
-          name: "LED Flashlight",
-          price: 800,
-          quantity: 1,
+          name: "LED Flashlight Pro",
+          price: 1200,
+          quantity: 2,
           image: "test2.jpg",
         },
       ],
-      totalAmount: 2000, // 600*2 + 800*1
+      totalAmount: 3200, // 800*1 + 1200*2
     };
 
-    console.log("\n1️⃣ Testing COD Order Creation...");
+    console.log("\n1️⃣ Testing Order Creation with Admin Client...");
     console.log("📝 Request data:", JSON.stringify(orderData, null, 2));
 
     const createResponse = await fetch(
@@ -51,21 +51,18 @@ const testRobustOrderFlow = async () => {
 
     console.log("📊 Create Response status:", createResponse.status);
     const createResult = await createResponse.json();
-    console.log(
-      "📝 Create Response body:",
-      JSON.stringify(createResult, null, 2)
-    );
+    console.log("📝 Create Response body:", JSON.stringify(createResult, null, 2));
 
     if (!createResult.success) {
-      console.error("❌ COD Order creation failed:", createResult.error);
+      console.error("❌ Order creation failed:", createResult.error);
       return;
     }
 
     const orderId = createResult.orderId;
-    console.log("✅ COD order created successfully with ID:", orderId);
+    console.log("✅ Order created successfully with ID:", orderId);
 
-    // Test fetching order details with new data-access layer
-    console.log("\n2️⃣ Testing /api/order/get with data-access layer...");
+    // Test fetching order details with admin client
+    console.log("\n2️⃣ Testing /api/order/get with admin client...");
 
     const getResponse = await fetch(
       `http://localhost:3000/api/order/get?orderId=${orderId}`,
@@ -87,9 +84,7 @@ const testRobustOrderFlow = async () => {
     }
 
     const order = getResult;
-    console.log(
-      "✅ Order fetched successfully from database using data-access layer"
-    );
+    console.log("✅ Order fetched successfully from database using admin client");
 
     // Verify order structure
     console.log("\n3️⃣ Verifying order structure...");
@@ -105,7 +100,7 @@ const testRobustOrderFlow = async () => {
       "updated_at",
       "items",
     ];
-
+    
     const missingFields = requiredFields.filter((field) => !(field in order));
 
     if (missingFields.length > 0) {
@@ -194,8 +189,8 @@ const testRobustOrderFlow = async () => {
       customerData: {
         ...orderData.customerData,
         paymentMethod: "online",
-        name: "Test Online Customer",
-        email: "test-online@example.com",
+        name: "Test Online Server Customer",
+        email: "test-online-server@example.com",
       },
     };
 
@@ -210,21 +205,12 @@ const testRobustOrderFlow = async () => {
       }
     );
 
-    console.log(
-      "📊 Online Create Response status:",
-      onlineCreateResponse.status
-    );
+    console.log("📊 Online Create Response status:", onlineCreateResponse.status);
     const onlineCreateResult = await onlineCreateResponse.json();
-    console.log(
-      "📝 Online Create Response body:",
-      JSON.stringify(onlineCreateResult, null, 2)
-    );
+    console.log("📝 Online Create Response body:", JSON.stringify(onlineCreateResult, null, 2));
 
     if (!onlineCreateResult.success) {
-      console.error(
-        "❌ Online Order creation failed:",
-        onlineCreateResult.error
-      );
+      console.error("❌ Online Order creation failed:", onlineCreateResult.error);
       return;
     }
 
@@ -246,10 +232,7 @@ const testRobustOrderFlow = async () => {
     console.log("📊 Online Get Response status:", onlineGetResponse.status);
 
     const onlineGetResult = await onlineGetResponse.json();
-    console.log(
-      "📝 Online Get Response body:",
-      JSON.stringify(onlineGetResult, null, 2)
-    );
+    console.log("📝 Online Get Response body:", JSON.stringify(onlineGetResult, null, 2));
 
     if (onlineGetResponse.status !== 200) {
       console.error("❌ Online Order fetch failed:", onlineGetResult.error);
@@ -274,18 +257,12 @@ const testRobustOrderFlow = async () => {
 
     console.log("📊 Cart Clear Response status:", cartClearResponse.status);
     const cartClearResult = await cartClearResponse.json();
-    console.log(
-      "📝 Cart Clear Response body:",
-      JSON.stringify(cartClearResult, null, 2)
-    );
+    console.log("📝 Cart Clear Response body:", JSON.stringify(cartClearResult, null, 2));
 
     if (cartClearResponse.ok) {
       console.log("✅ Cart clearing event created successfully");
     } else {
-      console.error(
-        "❌ Cart clearing event creation failed:",
-        cartClearResult.error
-      );
+      console.error("❌ Cart clearing event creation failed:", cartClearResult.error);
       return;
     }
 
@@ -316,8 +293,8 @@ const testRobustOrderFlow = async () => {
     console.log("✅ Cart clearing endpoint works correctly (no 500 errors)");
 
     // Display order summary
-    console.log("\n📋 Robust Order Flow Summary:");
-    console.log("=============================");
+    console.log("\n📋 Server-Side Supabase Fix Summary:");
+    console.log("=====================================");
     console.log(`COD Order ID: ${order.id}`);
     console.log(`Online Order ID: ${onlineOrderId}`);
     console.log(`Customer: ${order.customer_name}`);
@@ -339,9 +316,11 @@ const testRobustOrderFlow = async () => {
       console.log(`     Subtotal: ₴${item.subtotal.toLocaleString()}`);
     });
 
-    console.log("\n🎉 All robust order flow tests completed successfully!");
+    console.log("\n🎉 All server-side Supabase admin client tests completed successfully!");
     console.log("\n📋 Summary:");
-    console.log("- Data-access layer working correctly: ✅");
+    console.log("- Server-side admin client working correctly: ✅");
+    console.log("- No more 'createServerSupabaseClient is not defined' errors: ✅");
+    console.log("- No more 'Database connection failed' errors: ✅");
     console.log("- COD order creation and fetching: ✅");
     console.log("- Online order creation and fetching: ✅");
     console.log("- /api/order/get loads from database: ✅");
@@ -353,11 +332,12 @@ const testRobustOrderFlow = async () => {
     console.log("- Cart clearing event creation works: ✅");
     console.log("- Cart clearing check works (no 500 errors): ✅");
     console.log("- Order confirmation page routing: ✅");
-    console.log("- Robust order flow with data-access layer: ✅");
+    console.log("- Server-side Supabase admin client fix: ✅");
+
   } catch (error) {
     console.error("❌ Test failed:", error);
   }
 };
 
 // Run the test
-testRobustOrderFlow();
+testServerSupabaseFix();
