@@ -20,6 +20,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 interface OrderItem {
+  id: string;
   product_name: string;
   quantity: number;
   price: number;
@@ -123,9 +124,7 @@ function OrderSuccessContent() {
 
       // First, try to fetch order from database
       try {
-        const orderResponse = await fetch(
-          `/api/order/get?orderId=${orderId}`
-        );
+        const orderResponse = await fetch(`/api/order/get?orderId=${orderId}`);
         if (orderResponse.ok) {
           const orderResult = await orderResponse.json();
           if (orderResult.success && orderResult.order) {
@@ -137,15 +136,6 @@ function OrderSuccessContent() {
 
             // Set order data
             setOrder(order);
-
-            // Convert order items to the expected format
-            const items: OrderItem[] = order.items?.map((item: any) => ({
-              product_name: item.product_name || "Unknown Product",
-              price: item.price || 0,
-              quantity: item.quantity || 1,
-            })) || [];
-
-            setOrderItems(items);
 
             // Set customer info
             setCustomerInfo({
@@ -303,7 +293,28 @@ function OrderSuccessContent() {
 
         const parsedData = JSON.parse(decodeURIComponent(orderData));
         console.log("📥 Received order success data:", parsedData);
-        setOrderItems(parsedData.items || []);
+        
+        // Convert to order format
+        const orderData = {
+          id: parsedData.orderId || "",
+          customer_name: parsedData.customerInfo?.name || "",
+          customer_email: parsedData.customerInfo?.email || "",
+          customer_phone: parsedData.customerInfo?.phone || "",
+          city: parsedData.customerInfo?.city || "",
+          branch: parsedData.customerInfo?.warehouse || "",
+          status: "confirmed",
+          payment_method: parsedData.paymentMethod === "online" ? "online" : "cod",
+          total_amount: parsedData.total || 0,
+          created_at: new Date().toISOString(),
+          items: parsedData.items?.map((item: any, index: number) => ({
+            id: `fallback-${index}`,
+            product_name: item.name || "Unknown Product",
+            quantity: item.quantity || 1,
+            price: item.price || 0,
+          })) || [],
+        };
+        
+        setOrder(orderData);
         setCustomerInfo(parsedData.customerInfo || null);
       } catch (error) {
         console.error("Error parsing order data:", error);
@@ -313,7 +324,27 @@ function OrderSuccessContent() {
           try {
             const parsedSavedData = JSON.parse(savedOrderData);
             console.log("📥 Using saved order data:", parsedSavedData);
-            setOrderItems(parsedSavedData.items || []);
+            // Convert to order format
+            const orderData = {
+              id: parsedSavedData.orderId || "",
+              customer_name: parsedSavedData.customerInfo?.name || "",
+              customer_email: parsedSavedData.customerInfo?.email || "",
+              customer_phone: parsedSavedData.customerInfo?.phone || "",
+              city: parsedSavedData.customerInfo?.city || "",
+              branch: parsedSavedData.customerInfo?.warehouse || "",
+              status: "confirmed",
+              payment_method: parsedSavedData.paymentMethod === "online" ? "online" : "cod",
+              total_amount: parsedSavedData.total || 0,
+              created_at: new Date().toISOString(),
+              items: parsedSavedData.items?.map((item: any, index: number) => ({
+                id: `fallback-${index}`,
+                product_name: item.name || "Unknown Product",
+                quantity: item.quantity || 1,
+                price: item.price || 0,
+              })) || [],
+            };
+            
+            setOrder(orderData);
             setCustomerInfo(parsedSavedData.customerInfo || null);
           } catch (savedError) {
             console.error("Error parsing saved order data:", savedError);
@@ -330,7 +361,27 @@ function OrderSuccessContent() {
         try {
           const parsedSavedData = JSON.parse(savedOrderData);
           console.log("📥 Using saved order data:", parsedSavedData);
-          setOrderItems(parsedSavedData.items || []);
+          // Convert to order format
+          const orderData = {
+            id: parsedSavedData.orderId || "",
+            customer_name: parsedSavedData.customerInfo?.name || "",
+            customer_email: parsedSavedData.customerInfo?.email || "",
+            customer_phone: parsedSavedData.customerInfo?.phone || "",
+            city: parsedSavedData.customerInfo?.city || "",
+            branch: parsedSavedData.customerInfo?.warehouse || "",
+            status: "confirmed",
+            payment_method: parsedSavedData.paymentMethod === "online" ? "online" : "cod",
+            total_amount: parsedSavedData.total || 0,
+            created_at: new Date().toISOString(),
+            items: parsedSavedData.items?.map((item: any, index: number) => ({
+              id: `fallback-${index}`,
+              product_name: item.name || "Unknown Product",
+              quantity: item.quantity || 1,
+              price: item.price || 0,
+            })) || [],
+          };
+          
+          setOrder(orderData);
           setCustomerInfo(parsedSavedData.customerInfo || null);
         } catch (savedError) {
           console.error("Error parsing saved order data:", savedError);
@@ -343,24 +394,32 @@ function OrderSuccessContent() {
 
     function loadFallbackData() {
       // Fallback to sample data for demonstration
-      setOrderItems([
-        {
-          id: 1,
-          name: "Powerbank ANKER 20000mAh",
-          price: 2499,
-          quantity: 1,
-          image:
-            "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
-        },
-        {
-          id: 2,
-          name: "Кабель USB-C 2m",
-          price: 199,
-          quantity: 2,
-          image:
-            "https://images.unsplash.com/photo-1558618666-5c0c2c7e7985?w=300&h=300&fit=crop",
-        },
-      ]);
+      setOrder({
+        id: "demo-123456789",
+        customer_name: "Іван Петренко",
+        customer_email: "ivan@example.com",
+        customer_phone: "+380671234567",
+        city: "м. Київ",
+        branch: "Відділення №1: вул. Хрещатик, 1",
+        status: "confirmed",
+        payment_method: "cod",
+        total_amount: 2897,
+        created_at: new Date().toISOString(),
+        items: [
+          {
+            id: "demo-1",
+            product_name: "Powerbank ANKER 20000mAh",
+            quantity: 1,
+            price: 2499,
+          },
+          {
+            id: "demo-2",
+            product_name: "Кабель USB-C 2m",
+            quantity: 2,
+            price: 398,
+          },
+        ],
+      });
       setCustomerInfo({
         name: "Іван Петренко",
         phone: "+380671234567",
@@ -390,10 +449,10 @@ function OrderSuccessContent() {
   }, [searchParams]);
 
   const calculateTotal = () => {
-    return orderItems.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
+    if (!order?.items || !Array.isArray(order.items)) {
+      return 0;
+    }
+    return order.items.reduce((total, item) => total + item.price, 0);
   };
   if (isLoading) {
     return (
@@ -465,40 +524,51 @@ function OrderSuccessContent() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  {orderItems.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-200 rounded-md flex items-center justify-center">
-                        <Package className="h-6 w-6 text-gray-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm sm:text-base truncate">
-                          {item.product_name}
-                        </h4>
-                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                          <span>Кількість: {item.quantity}</span>
-                          <span>•</span>
-                          <span>₴{(item.price / item.quantity).toLocaleString()}</span>
+                {!order?.items || order.items.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 text-lg">No products found in this order.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {order.items.map((item, index) => (
+                      <div
+                        key={item.id || index}
+                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-200 rounded-md flex items-center justify-center">
+                          <Package className="h-6 w-6 text-gray-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm sm:text-base truncate">
+                            {item.product_name}
+                          </h4>
+                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                            <span>Кількість: {item.quantity}</span>
+                            <span>•</span>
+                            <span>
+                              ₴{(item.price / item.quantity).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-sm sm:text-base">
+                            ₴{item.price.toLocaleString()}
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-semibold text-sm sm:text-base">
-                          ₴{item.price.toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-semibold">
                       Загальна сума:
                     </span>
                     <span className="text-xl font-bold text-blue-600">
-                      ₴{order?.total_amount?.toLocaleString() || calculateTotal().toLocaleString()}
+                      ₴
+                      {order?.total_amount?.toLocaleString() ||
+                        calculateTotal().toLocaleString()}
                     </span>
                   </div>
                 </div>

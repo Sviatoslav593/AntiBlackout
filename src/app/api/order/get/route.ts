@@ -31,7 +31,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Server configuration error",
-          details: "Missing required environment variables for database connection",
+          details:
+            "Missing required environment variables for database connection",
         },
         { status: 500 }
       );
@@ -47,7 +48,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Database connection failed",
-          details: clientError instanceof Error ? clientError.message : "Unknown client error",
+          details:
+            clientError instanceof Error
+              ? clientError.message
+              : "Unknown client error",
         },
         { status: 500 }
       );
@@ -95,7 +99,7 @@ export async function GET(request: NextRequest) {
     console.log("📦 Fetching order items...");
     const { data: orderItems, error: itemsError } = await supabase
       .from("order_items")
-      .select("product_name, quantity, price")
+      .select("id, product_name, quantity, price")
       .eq("order_id", orderId);
 
     if (itemsError) {
@@ -112,7 +116,7 @@ export async function GET(request: NextRequest) {
 
     console.log("✅ Order items found:", orderItems?.length || 0, "items");
 
-    // Format response
+    // Format response - ensure items is always an array
     const response = {
       id: order.id,
       customer_name: order.customer_name,
@@ -124,7 +128,7 @@ export async function GET(request: NextRequest) {
       payment_method: order.payment_method,
       total_amount: order.total_amount,
       created_at: order.created_at,
-      items: orderItems || [],
+      items: Array.isArray(orderItems) ? orderItems : [],
     };
 
     console.log("📋 Formatted response:", {

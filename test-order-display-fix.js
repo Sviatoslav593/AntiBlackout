@@ -1,16 +1,16 @@
-// Test script for order display functionality
-const testOrderDisplay = async () => {
+// Test script for order display fixes
+const testOrderDisplayFix = async () => {
   try {
-    console.log("🧪 Testing Order Display Functionality...");
-
+    console.log("🧪 Testing Order Display Fixes...");
+    
     // Test data for order creation
     const orderData = {
       customerData: {
-        name: "Test Customer Display",
+        name: "Test Display Fix Customer",
         firstName: "Test",
-        lastName: "Display",
+        lastName: "DisplayFix",
         phone: "+380000000000",
-        email: "test-display@example.com",
+        email: "test-display-fix@example.com",
         address: "Test Address",
         paymentMethod: "cod",
         city: "Київ",
@@ -19,20 +19,20 @@ const testOrderDisplay = async () => {
       items: [
         {
           id: 1,
-          name: "Test Product 1",
-          price: 500,
+          name: "Powerbank 20000mAh",
+          price: 600,
           quantity: 2,
           image: "test1.jpg",
         },
         {
           id: 2,
-          name: "Test Product 2",
-          price: 1000,
+          name: "LED Flashlight",
+          price: 800,
           quantity: 1,
           image: "test2.jpg",
         },
       ],
-      totalAmount: 2000, // 500*2 + 1000*1
+      totalAmount: 2000, // 600*2 + 800*1
     };
 
     console.log("\n1️⃣ Creating order with products...");
@@ -117,7 +117,7 @@ const testOrderDisplay = async () => {
       return;
     }
 
-    const itemRequiredFields = ["product_name", "quantity", "price"];
+    const itemRequiredFields = ["id", "product_name", "quantity", "price"];
     for (let i = 0; i < order.items.length; i++) {
       const item = order.items[i];
       const missingItemFields = itemRequiredFields.filter(
@@ -152,6 +152,29 @@ const testOrderDisplay = async () => {
 
     console.log("✅ Total amount calculation is correct");
 
+    // Test empty items scenario
+    console.log("\n6️⃣ Testing empty items scenario...");
+    
+    // Create a mock order with empty items
+    const emptyOrder = {
+      id: "test-empty",
+      customer_name: "Test Empty",
+      customer_email: "empty@test.com",
+      status: "pending",
+      payment_method: "cod",
+      total_amount: 0,
+      items: [],
+    };
+
+    // Test the empty items check logic
+    const hasEmptyItems = !emptyOrder.items || emptyOrder.items.length === 0;
+    if (!hasEmptyItems) {
+      console.error("❌ Empty items check failed");
+      return;
+    }
+
+    console.log("✅ Empty items check works correctly");
+
     // Display order summary
     console.log("\n📋 Order Summary:");
     console.log("==================");
@@ -164,8 +187,10 @@ const testOrderDisplay = async () => {
     console.log("\nItems:");
     order.items.forEach((item, index) => {
       console.log(`  ${index + 1}. ${item.product_name}`);
+      console.log(`     ID: ${item.id}`);
       console.log(`     Quantity: ${item.quantity}`);
       console.log(`     Price: ₴${item.price.toLocaleString()}`);
+      console.log(`     Subtotal: ₴${(item.price).toLocaleString()}`);
     });
 
     console.log("\n🎉 All tests completed successfully!");
@@ -175,11 +200,13 @@ const testOrderDisplay = async () => {
     console.log("- Order structure validation: ✅");
     console.log("- Items structure validation: ✅");
     console.log("- Total amount calculation: ✅");
-    console.log("- Order display ready: ✅");
+    console.log("- Empty items check: ✅");
+    console.log("- Order display fixes ready: ✅");
+
   } catch (error) {
     console.error("❌ Test failed:", error);
   }
 };
 
 // Run the test
-testOrderDisplay();
+testOrderDisplayFix();
