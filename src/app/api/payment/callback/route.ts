@@ -123,29 +123,41 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
     console.log(`🔄 Handling successful payment for ${callbackData.order_id}`);
 
     const supabase = createServerSupabaseClient();
+    console.log("✅ Supabase client created successfully");
 
     // Find existing order in orders table
+    console.log(`🔍 Searching for order: ${callbackData.order_id}`);
     const { data: existingOrder, error: orderError } = await supabase
       .from("orders")
       .select("*")
       .eq("id", callbackData.order_id)
       .single();
 
+    console.log("📊 Order search result:", { existingOrder, orderError });
+
     if (orderError || !existingOrder) {
-      console.error("❌ Order not found for:", callbackData.order_id);
+      console.error("❌ Order not found for:", callbackData.order_id, "Error:", orderError);
       return;
     }
 
+    console.log("✅ Order found:", existingOrder.id, "Current status:", existingOrder.status);
+
     // Update order status to paid
+    console.log("🔄 Updating order status to paid...");
+    const updateData = {
+      status: "paid",
+      payment_status: callbackData.status,
+      payment_id: callbackData.payment_id || callbackData.transaction_id,
+      updated_at: new Date().toISOString(),
+    };
+    console.log("📝 Update data:", updateData);
+
     const { error: updateError } = await supabase
       .from("orders")
-      .update({
-        status: "paid",
-        payment_status: callbackData.status,
-        payment_id: callbackData.payment_id || callbackData.transaction_id,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq("id", callbackData.order_id);
+
+    console.log("📊 Update result - Error:", updateError);
 
     if (updateError) {
       console.error("❌ Error updating order status:", updateError);
