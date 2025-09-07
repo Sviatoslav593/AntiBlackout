@@ -51,6 +51,10 @@ export default function OrderSuccessContent() {
   const fetchOrder = async (orderId: string) => {
     try {
       setIsLoading(true);
+      
+      // Wait 1.5 seconds before fetching to ensure order is created
+      await new Promise(r => setTimeout(r, 1500));
+      
       const response = await fetch(`/api/order/get?orderId=${orderId}`);
 
       if (!response.ok) {
