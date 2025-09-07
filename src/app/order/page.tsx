@@ -117,7 +117,7 @@ function OrderContent() {
     // Check if this is a payment callback (return from LiqPay)
     const urlParams = new URLSearchParams(window.location.search);
     const isPaymentCallback = urlParams.get("payment") === "success";
-    
+
     if (isPaymentCallback) {
       console.log("🔄 Payment callback detected, finalizing order...");
       // Finalize the order after successful payment
@@ -131,10 +131,10 @@ function OrderContent() {
     try {
       // Get order data from localStorage (stored during payment initiation)
       const storedOrderData = localStorage.getItem(`pending_order_${orderId}`);
-      
+
       if (storedOrderData) {
         const orderData = JSON.parse(storedOrderData);
-        
+
         // Call finalize API
         const response = await fetch("/api/order/finalize", {
           method: "POST",
@@ -150,7 +150,7 @@ function OrderContent() {
         });
 
         const result = await response.json();
-        
+
         if (result.success) {
           console.log("✅ Order finalized successfully");
           // Clear stored data
@@ -160,7 +160,7 @@ function OrderContent() {
           console.error("❌ Failed to finalize order:", result.error);
         }
       }
-      
+
       // Fetch the finalized order
       await fetchOrder(orderId);
     } catch (error) {
@@ -363,9 +363,7 @@ function OrderContent() {
                   <MapPin className="h-5 w-5 text-gray-500" />
                   <div>
                     <p className="text-sm text-gray-500">Місто</p>
-                    <p className="font-medium">
-                      {order.city || "Не вказано"}
-                    </p>
+                    <p className="font-medium">{order.city || "Не вказано"}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

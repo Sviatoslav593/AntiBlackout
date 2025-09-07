@@ -81,9 +81,7 @@ export default function CheckoutPage() {
         paymentMethod: data.paymentMethod === "online" ? "liqpay" : "cod",
         city: data.city?.Description || "",
         cityRef: data.city?.Ref || "",
-        branch: data.warehouse
-          ? getWarehouseDisplayName(data.warehouse)
-          : "",
+        branch: data.warehouse ? getWarehouseDisplayName(data.warehouse) : "",
         warehouseRef: data.warehouse?.Ref || "",
         customAddress: data.customAddress || "",
       };
@@ -475,9 +473,7 @@ export default function CheckoutPage() {
                     email,
                     paymentMethod: "online",
                     city: city?.Description || "",
-                    branch: warehouse
-                      ? getWarehouseDisplayName(warehouse)
-                      : "",
+                    branch: warehouse ? getWarehouseDisplayName(warehouse) : "",
                   }}
                   items={state.items.map((item) => ({
                     id: item.id,
@@ -497,51 +493,57 @@ export default function CheckoutPage() {
                       "✅ LiqPay payment successful for order:",
                       orderId
                     );
-                    
+
                     // Finalize the order after successful payment
                     try {
-                      const finalizeResponse = await fetch("/api/order/finalize", {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                          orderId,
-                          customerData: {
-                            name: `${firstName} ${lastName}`,
-                            firstName,
-                            lastName,
-                            phone,
-                            email,
-                            paymentMethod: "liqpay",
-                            city: city?.Description || "",
-                            branch: warehouse
-                              ? getWarehouseDisplayName(warehouse)
-                              : "",
+                      const finalizeResponse = await fetch(
+                        "/api/order/finalize",
+                        {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
                           },
-                          items: state.items.map((item) => ({
-                            id: item.id,
-                            name: item.name,
-                            price: item.price,
-                            quantity: item.quantity,
-                            image: item.image,
-                          })),
-                          totalAmount: state.total,
-                        }),
-                      });
+                          body: JSON.stringify({
+                            orderId,
+                            customerData: {
+                              name: `${firstName} ${lastName}`,
+                              firstName,
+                              lastName,
+                              phone,
+                              email,
+                              paymentMethod: "liqpay",
+                              city: city?.Description || "",
+                              branch: warehouse
+                                ? getWarehouseDisplayName(warehouse)
+                                : "",
+                            },
+                            items: state.items.map((item) => ({
+                              id: item.id,
+                              name: item.name,
+                              price: item.price,
+                              quantity: item.quantity,
+                              image: item.image,
+                            })),
+                            totalAmount: state.total,
+                          }),
+                        }
+                      );
 
                       const finalizeResult = await finalizeResponse.json();
-                      
+
                       if (finalizeResult.success) {
                         console.log("✅ Order finalized successfully");
                         clearCart();
-                        
+
                         // Store order ID in localStorage for backup
                         localStorage.setItem("lastOrderId", orderId);
-                        
+
                         router.push(`/order?orderId=${orderId}`);
                       } else {
-                        console.error("❌ Failed to finalize order:", finalizeResult.error);
+                        console.error(
+                          "❌ Failed to finalize order:",
+                          finalizeResult.error
+                        );
                         // Still redirect to order page even if finalization failed
                         clearCart();
                         router.push(`/order?orderId=${orderId}`);

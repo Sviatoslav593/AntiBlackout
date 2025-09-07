@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getProductUUID, isValidUUID } from "@/lib/uuid";
 
 interface CreateOrderRequest {
   customerData: {
@@ -188,14 +189,21 @@ export async function POST(request: NextRequest) {
     }
 
     // 2) Insert order items (write to both price columns to be schema-compatible)
-    const itemsInsert = items.map((item) => ({
-      order_id: orderData.id,
-      product_id: item.id ? item.id.toString() : null,
-      product_name: item.name,
-      price: item.price, // if "price" column exists
-      product_price: item.price, // if only "product_price" exists
-      quantity: item.quantity,
-    }));
+    const itemsInsert = items.map((item) => {
+      // Convert numeric ID to UUID if needed
+      const productUUID = getProductUUID(item);
+      
+      console.log(`🔄 Converting product ID ${item.id} to UUID: ${productUUID}`);
+      
+      return {
+        order_id: orderData.id,
+        product_id: productUUID,
+        product_name: item.name,
+        price: item.price, // if "price" column exists
+        product_price: item.price, // if only "product_price" exists
+        quantity: item.quantity,
+      };
+    });
 
     const { error: itemsErr } = await supabaseAdmin
       .from("order_items")

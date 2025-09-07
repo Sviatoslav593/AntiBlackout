@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
+import { getProductUUID, isValidUUID } from "@/lib/uuid";
 
 interface FinalizeOrderRequest {
   orderId: string;
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
     if (existingOrder) {
       // Update existing order
       console.log("🔄 Updating existing order:", orderId);
-      
+
       const { data: updatedOrder, error: updateError } = await supabaseAdmin
         .from("orders")
         .update({
@@ -84,7 +85,8 @@ export async function POST(request: NextRequest) {
           customer_phone: customerData.phone || null,
           city: customerData.city || "",
           branch: customerData.branch || "",
-          payment_method: customerData.paymentMethod === "liqpay" ? "online" : "cod",
+          payment_method:
+            customerData.paymentMethod === "liqpay" ? "online" : "cod",
           total_amount: totalAmount,
           status: "paid",
           updated_at: new Date().toISOString(),
@@ -108,7 +110,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Create new order
       console.log("🔄 Creating new order:", orderId);
-      
+
       const { data: newOrder, error: createError } = await supabaseAdmin
         .from("orders")
         .insert({
@@ -118,7 +120,8 @@ export async function POST(request: NextRequest) {
           customer_phone: customerData.phone || null,
           city: customerData.city || "",
           branch: customerData.branch || "",
-          payment_method: customerData.paymentMethod === "liqpay" ? "online" : "cod",
+          payment_method:
+            customerData.paymentMethod === "liqpay" ? "online" : "cod",
           total_amount: totalAmount,
           status: "paid",
           created_at: new Date().toISOString(),
@@ -143,22 +146,26 @@ export async function POST(request: NextRequest) {
 
     // Create or update order items
     console.log("🔄 Processing order items...");
-    
+
     // First, delete existing items
-    await supabaseAdmin
-      .from("order_items")
-      .delete()
-      .eq("order_id", orderId);
+    await supabaseAdmin.from("order_items").delete().eq("order_id", orderId);
 
     // Insert new items
-    const orderItems = items.map((item) => ({
-      order_id: orderId,
-      product_id: item.id.toString(),
-      product_name: item.name,
-      product_price: item.price,
-      quantity: item.quantity,
-      price: item.price * item.quantity,
-    }));
+    const orderItems = items.map((item) => {
+      // Convert numeric ID to UUID if needed
+      const productUUID = getProductUUID(item);
+      
+      console.log(`🔄 Converting product ID ${item.id} to UUID: ${productUUID}`);
+      
+      return {
+        order_id: orderId,
+        product_id: productUUID,
+        product_name: item.name,
+        product_price: item.price,
+        quantity: item.quantity,
+        price: item.price * item.quantity,
+      };
+    });
 
     const { error: itemsError } = await supabaseAdmin
       .from("order_items")
@@ -203,7 +210,6 @@ export async function POST(request: NextRequest) {
       message: "Order finalized successfully",
       order: order,
     });
-
   } catch (error) {
     console.error("❌ Error finalizing order:", error);
     return NextResponse.json(
