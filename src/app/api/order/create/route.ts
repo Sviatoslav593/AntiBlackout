@@ -9,10 +9,9 @@ interface CreateOrderRequest {
     lastName: string;
     phone: string;
     email: string;
-    address: string;
     paymentMethod: string;
     city: string;
-    warehouse: string;
+    branch: string;
   };
   items: Array<{
     id: number;
@@ -121,7 +120,7 @@ export async function POST(request: NextRequest) {
       customer_email: customerData.email,
       customer_phone: customerData.phone || null,
       city: customerData.city || "",
-      branch: customerData.warehouse || "",
+      branch: customerData.branch || "",
       payment_method:
         customerData.paymentMethod === "liqpay" ? "online" : "cod",
       total_amount: totalAmount,
@@ -170,8 +169,8 @@ export async function POST(request: NextRequest) {
           customer_name: customerData.name,
           customer_email: customerData.email,
           customer_phone: customerData.phone ?? null,
-          customer_address: customerData.address ?? null,
-          customer_city: customerData.city ?? null,
+          city: customerData.city ?? null,
+          branch: customerData.branch ?? null,
           status: "pending",
           payment_method: normalizedPM,
           total_amount: totalAmount,

@@ -9,7 +9,7 @@ interface OrderData {
     lastName?: string;
     phone: string;
     email?: string;
-    address: string;
+    branch: string;
     paymentMethod?: string;
     city?: string;
     cityRef?: string;
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     if (
       !orderData.customer?.name ||
       !orderData.customer?.phone ||
-      !orderData.customer?.address
+      !orderData.customer?.branch
     ) {
       return NextResponse.json(
         { error: "Missing required customer information" },
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       customer_email: orderData.customer.email,
       customer_phone: orderData.customer.phone,
       city: orderData.customer.city || "Не вказано",
-      branch: orderData.customer.warehouse || orderData.customer.address,
+      branch: orderData.customer.branch,
       payment_method: orderData.customer.paymentMethod || "cash_on_delivery",
       total_amount: orderData.total,
       items: orderData.items.map((item) => ({

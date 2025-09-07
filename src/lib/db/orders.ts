@@ -19,7 +19,7 @@ export async function getOrderWithItems(orderId: string) {
   const { data: order, error: orderErr } = await supabase
     .from("orders")
     .select(
-      "id, customer_name, customer_email, customer_phone, customer_address, customer_city, status, payment_method, total_amount, created_at, updated_at"
+      "id, customer_name, customer_email, customer_phone, city, branch, status, payment_method, total_amount, created_at, updated_at"
     )
     .eq("id", orderId)
     .single();
@@ -62,8 +62,8 @@ export async function createCodOrder(payload: {
   customer_name: string;
   customer_email: string;
   customer_phone?: string;
-  customer_address?: string;
-  customer_city?: string;
+  city?: string;
+  branch?: string;
   items: Array<{
     product_id?: string;
     product_name: string;
@@ -80,8 +80,8 @@ export async function createCodOrder(payload: {
         customer_name: payload.customer_name,
         customer_email: payload.customer_email,
         customer_phone: payload.customer_phone ?? null,
-        customer_address: payload.customer_address ?? null,
-        customer_city: payload.customer_city ?? null,
+        city: payload.city ?? null,
+        branch: payload.branch ?? null,
         status: "pending",
         payment_method: "cod",
         total_amount: payload.total_amount,
@@ -115,8 +115,8 @@ export async function createOnlineOrder(payload: {
   customer_name: string;
   customer_email: string;
   customer_phone?: string;
-  customer_address?: string;
-  customer_city?: string;
+  city?: string;
+  branch?: string;
   items: Array<{
     product_id?: string;
     product_name: string;
@@ -133,8 +133,8 @@ export async function createOnlineOrder(payload: {
         customer_name: payload.customer_name,
         customer_email: payload.customer_email,
         customer_phone: payload.customer_phone ?? null,
-        customer_address: payload.customer_address ?? null,
-        customer_city: payload.customer_city ?? null,
+        city: payload.city ?? null,
+        branch: payload.branch ?? null,
         status: "pending",
         payment_method: "online",
         total_amount: payload.total_amount,

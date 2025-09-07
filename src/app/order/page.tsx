@@ -31,8 +31,8 @@ interface Order {
   customer_name: string;
   customer_email: string;
   customer_phone?: string;
-  customer_address?: string;
-  customer_city?: string;
+  city?: string;
+  branch?: string;
   status: string;
   payment_method: string;
   total_amount: number;
@@ -114,8 +114,61 @@ function OrderContent() {
       return;
     }
 
-    fetchOrder(orderId);
+    // Check if this is a payment callback (return from LiqPay)
+    const urlParams = new URLSearchParams(window.location.search);
+    const isPaymentCallback = urlParams.get("payment") === "success";
+    
+    if (isPaymentCallback) {
+      console.log("🔄 Payment callback detected, finalizing order...");
+      // Finalize the order after successful payment
+      finalizeOrder(orderId);
+    } else {
+      fetchOrder(orderId);
+    }
   }, [searchParams]);
+
+  const finalizeOrder = async (orderId: string) => {
+    try {
+      // Get order data from localStorage (stored during payment initiation)
+      const storedOrderData = localStorage.getItem(`pending_order_${orderId}`);
+      
+      if (storedOrderData) {
+        const orderData = JSON.parse(storedOrderData);
+        
+        // Call finalize API
+        const response = await fetch("/api/order/finalize", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            orderId,
+            customerData: orderData.customerData,
+            items: orderData.items,
+            totalAmount: orderData.totalAmount,
+          }),
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          console.log("✅ Order finalized successfully");
+          // Clear stored data
+          localStorage.removeItem(`pending_order_${orderId}`);
+          localStorage.removeItem(`order_${orderId}`);
+        } else {
+          console.error("❌ Failed to finalize order:", result.error);
+        }
+      }
+      
+      // Fetch the finalized order
+      await fetchOrder(orderId);
+    } catch (error) {
+      console.error("❌ Error finalizing order:", error);
+      // Still fetch the order even if finalization failed
+      await fetchOrder(orderId);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -311,16 +364,16 @@ function OrderContent() {
                   <div>
                     <p className="text-sm text-gray-500">Місто</p>
                     <p className="font-medium">
-                      {order.customer_city || "Не вказано"}
+                      {order.city || "Не вказано"}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Building className="h-5 w-5 text-gray-500" />
                   <div>
-                    <p className="text-sm text-gray-500">Адреса</p>
+                    <p className="text-sm text-gray-500">Відділення</p>
                     <p className="font-medium">
-                      {order.customer_address || "Не вказано"}
+                      {order.branch || "Не вказано"}
                     </p>
                   </div>
                 </div>

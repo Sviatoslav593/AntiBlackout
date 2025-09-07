@@ -78,13 +78,10 @@ export default function CheckoutPage() {
         lastName: data.lastName,
         phone: data.phone,
         email: data.email,
-        address: data.warehouse
-          ? getWarehouseDisplayName(data.warehouse)
-          : data.customAddress || "",
         paymentMethod: data.paymentMethod === "online" ? "liqpay" : "cod",
         city: data.city?.Description || "",
         cityRef: data.city?.Ref || "",
-        warehouse: data.warehouse
+        branch: data.warehouse
           ? getWarehouseDisplayName(data.warehouse)
           : "",
         warehouseRef: data.warehouse?.Ref || "",
@@ -166,6 +163,9 @@ export default function CheckoutPage() {
         // For COD, order is already confirmed and email sent
         // Clear cart and redirect to order page
         clearCart();
+
+        // Store order ID in localStorage for backup
+        localStorage.setItem("lastOrderId", result.orderId);
 
         router.push(`/order?orderId=${result.orderId}`);
       }
@@ -473,12 +473,9 @@ export default function CheckoutPage() {
                     lastName,
                     phone,
                     email,
-                    address: warehouse
-                      ? getWarehouseDisplayName(warehouse)
-                      : customAddress || "",
                     paymentMethod: "online",
                     city: city?.Description || "",
-                    warehouse: warehouse
+                    branch: warehouse
                       ? getWarehouseDisplayName(warehouse)
                       : "",
                   }}
@@ -495,13 +492,66 @@ export default function CheckoutPage() {
                       orderId
                     );
                   }}
-                  onPaymentSuccess={() => {
+                  onPaymentSuccess={async () => {
                     console.log(
                       "✅ LiqPay payment successful for order:",
                       orderId
                     );
-                    clearCart();
-                    router.push(`/order?orderId=${orderId}`);
+                    
+                    // Finalize the order after successful payment
+                    try {
+                      const finalizeResponse = await fetch("/api/order/finalize", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          orderId,
+                          customerData: {
+                            name: `${firstName} ${lastName}`,
+                            firstName,
+                            lastName,
+                            phone,
+                            email,
+                            paymentMethod: "liqpay",
+                            city: city?.Description || "",
+                            branch: warehouse
+                              ? getWarehouseDisplayName(warehouse)
+                              : "",
+                          },
+                          items: state.items.map((item) => ({
+                            id: item.id,
+                            name: item.name,
+                            price: item.price,
+                            quantity: item.quantity,
+                            image: item.image,
+                          })),
+                          totalAmount: state.total,
+                        }),
+                      });
+
+                      const finalizeResult = await finalizeResponse.json();
+                      
+                      if (finalizeResult.success) {
+                        console.log("✅ Order finalized successfully");
+                        clearCart();
+                        
+                        // Store order ID in localStorage for backup
+                        localStorage.setItem("lastOrderId", orderId);
+                        
+                        router.push(`/order?orderId=${orderId}`);
+                      } else {
+                        console.error("❌ Failed to finalize order:", finalizeResult.error);
+                        // Still redirect to order page even if finalization failed
+                        clearCart();
+                        router.push(`/order?orderId=${orderId}`);
+                      }
+                    } catch (error) {
+                      console.error("❌ Error finalizing order:", error);
+                      // Still redirect to order page even if finalization failed
+                      clearCart();
+                      router.push(`/order?orderId=${orderId}`);
+                    }
                   }}
                   onPaymentError={(error) => {
                     console.error("❌ LiqPay payment error:", error);

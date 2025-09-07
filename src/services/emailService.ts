@@ -11,7 +11,7 @@ interface Order {
   items: OrderItem[];
   total: number;
   customerPhone?: string;
-  address?: string;
+  branch?: string;
   paymentMethod?: string;
   city?: string;
 }
@@ -21,7 +21,7 @@ interface AdminOrderNotification {
   customerName: string;
   customerEmail: string;
   customerPhone?: string;
-  address?: string;
+  branch?: string;
   paymentMethod?: string;
   city?: string;
   items: OrderItem[];
@@ -456,8 +456,8 @@ function createAdminNotificationHTML(
                     : ""
                 }
                 ${
-                  adminOrder.address
-                    ? `<p><strong>Адреса:</strong> ${adminOrder.address}</p>`
+                  adminOrder.branch
+                    ? `<p><strong>Відділення:</strong> ${adminOrder.branch}</p>`
                     : ""
                 }
                 ${
@@ -476,8 +476,8 @@ function createAdminNotificationHTML(
                 <p><strong>Місто:</strong> ${
                   adminOrder.city || "Не вказано"
                 }</p>
-                <p><strong>Адреса доставки:</strong> ${
-                  adminOrder.address || "Не вказано"
+                <p><strong>Відділення доставки:</strong> ${
+                  adminOrder.branch || "Не вказано"
                 }</p>
                 <p><strong>Спосіб оплати:</strong> ${
                   adminOrder.paymentMethod === "online"
@@ -640,7 +640,7 @@ ${adminOrder.customerPhone ? `Телефон: ${adminOrder.customerPhone}` : ""}
 
 🚚 ДЕТАЛІ ДОСТАВКИ:
 Місто: ${adminOrder.city || "Не вказано"}
-Адреса: ${adminOrder.address || "Не вказано"}
+Відділення: ${adminOrder.branch || "Не вказано"}
 Спосіб оплати: ${
       adminOrder.paymentMethod === "online"
         ? "💳 Онлайн оплата"
@@ -714,7 +714,7 @@ export async function sendOrderEmails(order: Order): Promise<{
     customerName: order.customerName,
     customerEmail: order.customerEmail,
     customerPhone: order.customerPhone,
-    address: order.address,
+    branch: order.branch,
     paymentMethod: order.paymentMethod,
     city: order.city,
     items: order.items,
@@ -791,7 +791,7 @@ export function formatOrderForEmail(orderData: SupabaseOrderData): Order {
     customerName: orderData.customer_name,
     customerEmail: orderData.customer_email,
     customerPhone: orderData.customer_phone,
-    address: orderData.branch, // branch contains the delivery address
+    branch: orderData.branch, // branch contains the delivery address
     paymentMethod: orderData.payment_method,
     city: orderData.city,
     items:

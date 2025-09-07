@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     const { data: order, error: orderErr } = await supabaseAdmin
       .from("orders")
       .select(
-        "id, customer_name, customer_email, customer_phone, customer_address, customer_city, status, payment_method, total_amount, created_at, updated_at"
+        "id, customer_name, customer_email, customer_phone, city, branch, status, payment_method, total_amount, created_at, updated_at"
       )
       .eq("id", orderId)
       .single();

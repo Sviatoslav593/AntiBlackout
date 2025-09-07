@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       customerName: "Test Customer",
       customerEmail: "test@example.com",
       customerPhone: "+380000000000",
-      address: "Test Address",
+      branch: "Test Branch",
       paymentMethod: "online",
       city: "Київ",
       items: [

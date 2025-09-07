@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       currency: currency,
       description: description,
       order_id: orderId,
-      result_url: `${siteUrl}/order-success?orderId=${orderId}`,
+      result_url: `${siteUrl}/order?orderId=${orderId}&payment=success`,
       server_url: `${siteUrl}/api/payment/callback`,
       language: "uk",
     };

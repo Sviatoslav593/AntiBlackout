@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       customer_email: customerData.email || "customer@example.com",
       customer_phone: customerData.phone || "+380000000000",
       city: customerData.city || "Київ",
-      branch: customerData.warehouse || customerData.address || "Відділення №1",
+      branch: customerData.branch || "Відділення №1",
       payment_method: "online",
       total_amount: total,
       items: items.map((item: any) => ({

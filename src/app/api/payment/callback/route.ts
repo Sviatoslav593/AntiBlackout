@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { createServerSupabaseClient } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { sendOrderEmails, formatOrderForEmail } from "@/services/emailService";
 
 interface LiqPayCallbackData {
@@ -122,12 +122,11 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
   try {
     console.log(`🔄 Handling successful payment for ${callbackData.order_id}`);
 
-    const supabase = createServerSupabaseClient();
-    console.log("✅ Supabase client created successfully");
+    console.log("✅ Using Supabase admin client");
 
     // Find existing order in orders table
     console.log(`🔍 Searching for order: ${callbackData.order_id}`);
-    const { data: existingOrder, error: orderError } = await supabase
+    const { data: existingOrder, error: orderError } = await supabaseAdmin
       .from("orders")
       .select("*")
       .eq("id", callbackData.order_id)
@@ -162,7 +161,7 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
     };
     console.log("📝 Update data:", updateData);
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from("orders")
       .update(updateData)
       .eq("id", callbackData.order_id);
@@ -189,7 +188,7 @@ async function handleSuccessfulPayment(callbackData: LiqPayCallbackData) {
 
     // Create cart clearing event
     try {
-      await supabase.from("cart_clearing_events").insert({
+      await supabaseAdmin.from("cart_clearing_events").insert({
         order_id: callbackData.order_id,
         created_at: new Date().toISOString(),
       });
@@ -217,10 +216,8 @@ async function handleFailedPayment(callbackData: LiqPayCallbackData) {
   try {
     console.log(`🔄 Handling failed payment for ${callbackData.order_id}`);
 
-    const supabase = createServerSupabaseClient();
-
     // Update order status to failed
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from("orders")
       .update({
         status: "failed",
