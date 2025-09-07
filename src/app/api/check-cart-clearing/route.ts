@@ -31,7 +31,8 @@ export async function GET(request: NextRequest) {
       .single();
 
     // Handle errors gracefully - don't fail the request
-    if (error && error.code !== "PGRST116") { // PGRST116 is "No rows found"
+    if (error && error.code !== "PGRST116") {
+      // PGRST116 is "No rows found"
       console.warn(
         "[/api/check-cart-clearing] Warning checking cart clearing event:",
         error

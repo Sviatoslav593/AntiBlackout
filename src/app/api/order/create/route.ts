@@ -112,24 +112,8 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ Environment variables validated");
 
-    // Initialize Supabase client
-    let supabase;
-    try {
-      supabase = createServerSupabaseClient();
-      console.log("✅ Supabase client initialized successfully");
-    } catch (clientError) {
-      console.error("❌ Failed to initialize Supabase client:", clientError);
-      return NextResponse.json(
-        {
-          error: "Database connection failed",
-          details:
-            clientError instanceof Error
-              ? clientError.message
-              : "Unknown client error",
-        },
-        { status: 500 }
-      );
-    }
+    // Use admin client for database operations
+    console.log("✅ Using Supabase admin client for database operations");
 
     // Prepare order data for Supabase (matching actual schema)
     const orderPayload = {
@@ -154,7 +138,8 @@ export async function POST(request: NextRequest) {
 
     // Normalize payment method
     const paymentMethod = (customerData.paymentMethod || "").toLowerCase();
-    const normalizedPM = paymentMethod === "online" || paymentMethod === "card" ? "online" : "cod";
+    const normalizedPM =
+      paymentMethod === "online" || paymentMethod === "card" ? "online" : "cod";
     console.log(`💾 Creating ${normalizedPM} order in Supabase...`);
 
     // Validate required fields
@@ -208,8 +193,8 @@ export async function POST(request: NextRequest) {
       order_id: orderData.id,
       product_id: item.id ? item.id.toString() : null,
       product_name: item.name,
-      price: item.price,           // if "price" column exists
-      product_price: item.price,   // if only "product_price" exists
+      price: item.price, // if "price" column exists
+      product_price: item.price, // if only "product_price" exists
       quantity: item.quantity,
     }));
 
@@ -269,7 +254,9 @@ export async function POST(request: NextRequest) {
             })),
           });
           await sendOrderEmails(emailOrder);
-          console.log(`✅ COD confirmation emails sent for order ${orderData.id}`);
+          console.log(
+            `✅ COD confirmation emails sent for order ${orderData.id}`
+          );
         } catch (emailError) {
           console.error("⚠️ Email sending failed (non-critical):", emailError);
           // Don't fail the request if email fails

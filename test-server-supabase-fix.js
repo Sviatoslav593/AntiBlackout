@@ -2,7 +2,7 @@
 const testServerSupabaseFix = async () => {
   try {
     console.log("🧪 Testing Server-Side Supabase Admin Client Fix...");
-    
+
     // Test data for order creation
     const orderData = {
       customerData: {
@@ -51,7 +51,10 @@ const testServerSupabaseFix = async () => {
 
     console.log("📊 Create Response status:", createResponse.status);
     const createResult = await createResponse.json();
-    console.log("📝 Create Response body:", JSON.stringify(createResult, null, 2));
+    console.log(
+      "📝 Create Response body:",
+      JSON.stringify(createResult, null, 2)
+    );
 
     if (!createResult.success) {
       console.error("❌ Order creation failed:", createResult.error);
@@ -84,7 +87,9 @@ const testServerSupabaseFix = async () => {
     }
 
     const order = getResult;
-    console.log("✅ Order fetched successfully from database using admin client");
+    console.log(
+      "✅ Order fetched successfully from database using admin client"
+    );
 
     // Verify order structure
     console.log("\n3️⃣ Verifying order structure...");
@@ -100,7 +105,7 @@ const testServerSupabaseFix = async () => {
       "updated_at",
       "items",
     ];
-    
+
     const missingFields = requiredFields.filter((field) => !(field in order));
 
     if (missingFields.length > 0) {
@@ -205,12 +210,21 @@ const testServerSupabaseFix = async () => {
       }
     );
 
-    console.log("📊 Online Create Response status:", onlineCreateResponse.status);
+    console.log(
+      "📊 Online Create Response status:",
+      onlineCreateResponse.status
+    );
     const onlineCreateResult = await onlineCreateResponse.json();
-    console.log("📝 Online Create Response body:", JSON.stringify(onlineCreateResult, null, 2));
+    console.log(
+      "📝 Online Create Response body:",
+      JSON.stringify(onlineCreateResult, null, 2)
+    );
 
     if (!onlineCreateResult.success) {
-      console.error("❌ Online Order creation failed:", onlineCreateResult.error);
+      console.error(
+        "❌ Online Order creation failed:",
+        onlineCreateResult.error
+      );
       return;
     }
 
@@ -232,7 +246,10 @@ const testServerSupabaseFix = async () => {
     console.log("📊 Online Get Response status:", onlineGetResponse.status);
 
     const onlineGetResult = await onlineGetResponse.json();
-    console.log("📝 Online Get Response body:", JSON.stringify(onlineGetResult, null, 2));
+    console.log(
+      "📝 Online Get Response body:",
+      JSON.stringify(onlineGetResult, null, 2)
+    );
 
     if (onlineGetResponse.status !== 200) {
       console.error("❌ Online Order fetch failed:", onlineGetResult.error);
@@ -257,12 +274,18 @@ const testServerSupabaseFix = async () => {
 
     console.log("📊 Cart Clear Response status:", cartClearResponse.status);
     const cartClearResult = await cartClearResponse.json();
-    console.log("📝 Cart Clear Response body:", JSON.stringify(cartClearResult, null, 2));
+    console.log(
+      "📝 Cart Clear Response body:",
+      JSON.stringify(cartClearResult, null, 2)
+    );
 
     if (cartClearResponse.ok) {
       console.log("✅ Cart clearing event created successfully");
     } else {
-      console.error("❌ Cart clearing event creation failed:", cartClearResult.error);
+      console.error(
+        "❌ Cart clearing event creation failed:",
+        cartClearResult.error
+      );
       return;
     }
 
@@ -316,10 +339,14 @@ const testServerSupabaseFix = async () => {
       console.log(`     Subtotal: ₴${item.subtotal.toLocaleString()}`);
     });
 
-    console.log("\n🎉 All server-side Supabase admin client tests completed successfully!");
+    console.log(
+      "\n🎉 All server-side Supabase admin client tests completed successfully!"
+    );
     console.log("\n📋 Summary:");
     console.log("- Server-side admin client working correctly: ✅");
-    console.log("- No more 'createServerSupabaseClient is not defined' errors: ✅");
+    console.log(
+      "- No more 'createServerSupabaseClient is not defined' errors: ✅"
+    );
     console.log("- No more 'Database connection failed' errors: ✅");
     console.log("- COD order creation and fetching: ✅");
     console.log("- Online order creation and fetching: ✅");
@@ -333,7 +360,6 @@ const testServerSupabaseFix = async () => {
     console.log("- Cart clearing check works (no 500 errors): ✅");
     console.log("- Order confirmation page routing: ✅");
     console.log("- Server-side Supabase admin client fix: ✅");
-
   } catch (error) {
     console.error("❌ Test failed:", error);
   }

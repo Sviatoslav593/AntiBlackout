@@ -3,16 +3,19 @@
 ## 🎯 **Issues Fixed**
 
 ### **1. Database Connection Failed**
+
 - ✅ **Fixed**: Removed all usage of `createServerSupabaseClient` from server/API routes
 - ✅ **Fixed**: Created single Supabase admin client for server usage with `@supabase/supabase-js`
 - ✅ **Fixed**: Proper environment variable handling with `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
 
 ### **2. createServerSupabaseClient is not defined**
+
 - ✅ **Fixed**: Replaced all `createServerSupabaseClient` imports with `supabaseAdmin` from `lib/supabaseAdmin`
 - ✅ **Fixed**: Updated all API routes to use the admin client
 - ✅ **Fixed**: Proper error handling and meaningful JSON responses
 
 ### **3. Robust Server-Side Database Operations**
+
 - ✅ **Fixed**: All database operations now use the admin client with service role permissions
 - ✅ **Fixed**: Proper validation and error handling in all API routes
 - ✅ **Fixed**: Consistent response format across all endpoints
@@ -38,9 +41,13 @@ if (!SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 /** Server-side admin client (service role). Do NOT import in client components. */
-export const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { persistSession: false },
-});
+export const supabaseAdmin = createClient(
+  SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: { persistSession: false },
+  }
+);
 ```
 
 ### **B) Refactored API Routes**
@@ -59,7 +66,8 @@ export async function POST(request: NextRequest) {
 
     // Normalize payment method
     const paymentMethod = (customerData.paymentMethod || "").toLowerCase();
-    const normalizedPM = paymentMethod === "online" || paymentMethod === "card" ? "online" : "cod";
+    const normalizedPM =
+      paymentMethod === "online" || paymentMethod === "card" ? "online" : "cod";
     console.log(`💾 Creating ${normalizedPM} order in Supabase...`);
 
     // Validate required fields
@@ -113,8 +121,8 @@ export async function POST(request: NextRequest) {
       order_id: orderData.id,
       product_id: item.id ? item.id.toString() : null,
       product_name: item.name,
-      price: item.price,           // if "price" column exists
-      product_price: item.price,   // if only "product_price" exists
+      price: item.price, // if "price" column exists
+      product_price: item.price, // if only "product_price" exists
       quantity: item.quantity,
     }));
 
@@ -217,7 +225,8 @@ export async function GET(req: NextRequest) {
 
     // Normalize payment method
     const paymentMethod = (order.payment_method || "").toLowerCase();
-    const normalizedPM = paymentMethod === "online" || paymentMethod === "card" ? "online" : "cod";
+    const normalizedPM =
+      paymentMethod === "online" || paymentMethod === "card" ? "online" : "cod";
 
     const response = {
       ...order,
@@ -359,7 +368,8 @@ export async function GET(request: NextRequest) {
       .single();
 
     // Handle errors gracefully - don't fail the request
-    if (error && error.code !== "PGRST116") { // PGRST116 is "No rows found"
+    if (error && error.code !== "PGRST116") {
+      // PGRST116 is "No rows found"
       console.warn(
         "[/api/check-cart-clearing] Warning checking cart clearing event:",
         error
@@ -498,6 +508,7 @@ const onSubmit = async (data: CheckoutFormData) => {
 ## 📊 **Data Flow**
 
 ### **1. COD Payment Flow**
+
 ```
 1. User completes checkout with COD
 2. supabaseAdmin creates order with status "pending"
@@ -509,6 +520,7 @@ const onSubmit = async (data: CheckoutFormData) => {
 ```
 
 ### **2. Online Payment Flow**
+
 ```
 1. User completes checkout with online payment
 2. supabaseAdmin creates order with status "pending"
@@ -523,6 +535,7 @@ const onSubmit = async (data: CheckoutFormData) => {
 ```
 
 ### **3. Order Display Flow**
+
 ```
 1. Order page loads with orderId from URL
 2. Frontend calls /api/order/get?orderId=xxx
@@ -538,6 +551,7 @@ const onSubmit = async (data: CheckoutFormData) => {
 ## 🧪 **Testing**
 
 ### **1. Test Server-Side Supabase Fix**
+
 ```bash
 # Start development server
 npm run dev
@@ -549,6 +563,7 @@ node test-server-supabase-fix.js
 ### **2. Manual Testing**
 
 #### **Test COD Order:**
+
 1. Go to checkout page
 2. Select "Післяплата"
 3. Add products to cart
@@ -559,6 +574,7 @@ node test-server-supabase-fix.js
 8. **Expected**: Customer info displays correctly
 
 #### **Test Online Payment Order:**
+
 1. Go to checkout page
 2. Select "Оплата карткою онлайн"
 3. Add products to cart
@@ -569,11 +585,13 @@ node test-server-supabase-fix.js
 8. **Expected**: Customer info displays correctly
 
 #### **Test API Endpoints:**
+
 1. Test `/api/order/get?orderId=xxx` - should return order with items
 2. Test `/api/cart/clear` - should create cart clearing event
 3. Test `/api/check-cart-clearing?orderId=xxx` - should never return 500
 
 ### **3. API Testing**
+
 ```bash
 # Test order creation
 curl -X POST http://localhost:3000/api/order/create \
@@ -592,6 +610,7 @@ curl -X POST http://localhost:3000/api/cart/clear \
 ## ✅ **Verification Checklist**
 
 ### **Server-Side Admin Client**
+
 - ✅ No usage of `createServerSupabaseClient` remains in server routes
 - ✅ All API routes use `supabaseAdmin` from `lib/supabaseAdmin`
 - ✅ Proper environment variable handling with `NEXT_PUBLIC_SUPABASE_URL`
@@ -599,6 +618,7 @@ curl -X POST http://localhost:3000/api/cart/clear \
 - ✅ Proper error handling and meaningful JSON responses
 
 ### **API Endpoints**
+
 - ✅ `/api/order/create` returns `{ orderId }` with status 200
 - ✅ `/api/order/get` loads from database with proper error handling
 - ✅ Items loaded from order_items table (not orders.items)
@@ -608,6 +628,7 @@ curl -X POST http://localhost:3000/api/cart/clear \
 - ✅ Dynamic rendering prevents caching issues
 
 ### **Frontend**
+
 - ✅ Order page displays products correctly
 - ✅ Customer info, total amount, and items always render
 - ✅ Empty items check works
@@ -619,6 +640,7 @@ curl -X POST http://localhost:3000/api/cart/clear \
 - ✅ Correct field mapping (customer_city, customer_address)
 
 ### **Database**
+
 - ✅ Orders table has updated_at column
 - ✅ Order_items table has proper structure
 - ✅ Items fetched from order_items table
@@ -629,21 +651,25 @@ curl -X POST http://localhost:3000/api/cart/clear \
 ## 🚀 **Performance Benefits**
 
 ### **1. Server-Side Admin Client**
+
 - **Before**: Multiple client instances and connection issues
 - **After**: Single admin client with service role permissions
 - **Benefit**: Better performance, consistent permissions, no connection issues
 
 ### **2. Database Efficiency**
+
 - **Before**: Multiple queries or legacy JSON fields
 - **After**: Single query with proper JOIN
 - **Benefit**: Reduced database round trips, better performance
 
 ### **3. Error Handling**
+
 - **Before**: Generic "Internal Server Error" messages
 - **After**: Detailed error messages with specific details
 - **Benefit**: Better debugging, improved user experience
 
 ### **4. Environment Variables**
+
 - **Before**: Inconsistent environment variable usage
 - **After**: Consistent use of `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
 - **Benefit**: Easier deployment, consistent configuration

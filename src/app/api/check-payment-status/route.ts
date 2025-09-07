@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,8 +16,7 @@ export async function GET(request: NextRequest) {
     console.log(`🔍 Checking payment status for order: ${orderId}`);
 
     // Check if order exists in Supabase
-    const supabase = createServerSupabaseClient();
-    const { data: order, error } = await supabase
+    const { data: order, error } = await supabaseAdmin
       .from("orders")
       .select("*")
       .eq("id", orderId)

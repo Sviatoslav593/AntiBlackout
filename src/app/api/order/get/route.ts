@@ -56,7 +56,8 @@ export async function GET(req: NextRequest) {
 
     // Normalize payment method
     const paymentMethod = (order.payment_method || "").toLowerCase();
-    const normalizedPM = paymentMethod === "online" || paymentMethod === "card" ? "online" : "cod";
+    const normalizedPM =
+      paymentMethod === "online" || paymentMethod === "card" ? "online" : "cod";
 
     const response = {
       ...order,
