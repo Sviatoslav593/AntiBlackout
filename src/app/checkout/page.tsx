@@ -127,8 +127,11 @@ export default function CheckoutPage() {
           console.error("Failed to parse error response:", parseError);
           errorData = { error: `HTTP error! status: ${response.status}` };
         }
-        
-        const errorMessage = errorData.details || errorData.error || `HTTP error! status: ${response.status}`;
+
+        const errorMessage =
+          errorData.details ||
+          errorData.error ||
+          `HTTP error! status: ${response.status}`;
         console.error("Order creation failed:", {
           status: response.status,
           error: errorData.error,

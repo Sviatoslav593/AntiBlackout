@@ -2,7 +2,7 @@
 const testFixedOrderCreation = async () => {
   try {
     console.log("🧪 Testing Fixed Order Creation API...");
-    
+
     // Test data for COD order
     const codOrderData = {
       customerData: {
@@ -40,7 +40,10 @@ const testFixedOrderCreation = async () => {
     });
 
     console.log("📊 COD Response status:", codResponse.status);
-    console.log("📊 COD Response headers:", Object.fromEntries(codResponse.headers.entries()));
+    console.log(
+      "📊 COD Response headers:",
+      Object.fromEntries(codResponse.headers.entries())
+    );
 
     const codResult = await codResponse.json();
     console.log("📝 COD Response body:", JSON.stringify(codResult, null, 2));
@@ -85,19 +88,28 @@ const testFixedOrderCreation = async () => {
     console.log("\n2️⃣ Testing LiqPay order creation...");
     console.log("📝 Request data:", JSON.stringify(liqpayOrderData, null, 2));
 
-    const liqpayResponse = await fetch("http://localhost:3000/api/order/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(liqpayOrderData),
-    });
+    const liqpayResponse = await fetch(
+      "http://localhost:3000/api/order/create",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(liqpayOrderData),
+      }
+    );
 
     console.log("📊 LiqPay Response status:", liqpayResponse.status);
-    console.log("📊 LiqPay Response headers:", Object.fromEntries(liqpayResponse.headers.entries()));
+    console.log(
+      "📊 LiqPay Response headers:",
+      Object.fromEntries(liqpayResponse.headers.entries())
+    );
 
     const liqpayResult = await liqpayResponse.json();
-    console.log("📝 LiqPay Response body:", JSON.stringify(liqpayResult, null, 2));
+    console.log(
+      "📝 LiqPay Response body:",
+      JSON.stringify(liqpayResult, null, 2)
+    );
 
     if (!liqpayResult.success) {
       console.error("❌ LiqPay order creation failed:", liqpayResult.error);
@@ -113,7 +125,7 @@ const testFixedOrderCreation = async () => {
 
     // Test error handling with invalid data
     console.log("\n3️⃣ Testing error handling with invalid data...");
-    
+
     const invalidOrderData = {
       customerData: {
         name: "", // Empty name should cause validation error
@@ -124,22 +136,32 @@ const testFixedOrderCreation = async () => {
       totalAmount: 0,
     };
 
-    const invalidResponse = await fetch("http://localhost:3000/api/order/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(invalidOrderData),
-    });
+    const invalidResponse = await fetch(
+      "http://localhost:3000/api/order/create",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(invalidOrderData),
+      }
+    );
 
     console.log("📊 Invalid Response status:", invalidResponse.status);
     const invalidResult = await invalidResponse.json();
-    console.log("📝 Invalid Response body:", JSON.stringify(invalidResult, null, 2));
+    console.log(
+      "📝 Invalid Response body:",
+      JSON.stringify(invalidResult, null, 2)
+    );
 
     if (invalidResponse.status === 400) {
-      console.log("✅ Error handling works correctly - validation errors caught");
+      console.log(
+        "✅ Error handling works correctly - validation errors caught"
+      );
     } else {
-      console.error("❌ Error handling failed - should return 400 for invalid data");
+      console.error(
+        "❌ Error handling failed - should return 400 for invalid data"
+      );
     }
 
     console.log("\n🎉 All tests completed!");
@@ -148,7 +170,6 @@ const testFixedOrderCreation = async () => {
     console.log("- LiqPay order creation: ✅");
     console.log("- Error handling: ✅");
     console.log("- Database schema compliance: ✅");
-    
   } catch (error) {
     console.error("❌ Test failed:", error);
   }

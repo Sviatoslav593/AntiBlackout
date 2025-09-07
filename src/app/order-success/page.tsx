@@ -20,11 +20,23 @@ import Link from "next/link";
 import Image from "next/image";
 
 interface OrderItem {
-  id: number;
-  name: string;
-  price: number;
+  product_name: string;
   quantity: number;
-  image: string;
+  price: number;
+}
+
+interface Order {
+  id: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  city: string;
+  branch: string;
+  status: string;
+  payment_method: string;
+  total_amount: number;
+  created_at: string;
+  items: OrderItem[];
 }
 
 interface CustomerInfo {
@@ -39,7 +51,7 @@ interface CustomerInfo {
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [order, setOrder] = useState<Order | null>(null);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [orderNumber, setOrderNumber] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -112,7 +124,7 @@ function OrderSuccessContent() {
       // First, try to fetch order from database
       try {
         const orderResponse = await fetch(
-          `/api/order-success?orderId=${orderId}`
+          `/api/order/get?orderId=${orderId}`
         );
         if (orderResponse.ok) {
           const orderResult = await orderResponse.json();
@@ -123,16 +135,15 @@ function OrderSuccessContent() {
             // Set order number
             setOrderNumber(order.id);
 
+            // Set order data
+            setOrder(order);
+
             // Convert order items to the expected format
-            const items: OrderItem[] =
-              order.order_items?.map((item: any) => ({
-                id: item.id || 0,
-                name: item.product_name || "Unknown Product",
-                price: item.price || 0,
-                quantity: item.quantity || 1,
-                image:
-                  "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
-              })) || [];
+            const items: OrderItem[] = order.items?.map((item: any) => ({
+              product_name: item.product_name || "Unknown Product",
+              price: item.price || 0,
+              quantity: item.quantity || 1,
+            })) || [];
 
             setOrderItems(items);
 
@@ -455,33 +466,27 @@ function OrderSuccessContent() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
-                  {orderItems.map((item) => (
+                  {orderItems.map((item, index) => (
                     <div
-                      key={item.id}
+                      key={index}
                       className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                     >
-                      <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0">
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          fill
-                          className="object-cover rounded-md"
-                          sizes="64px"
-                        />
+                      <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-200 rounded-md flex items-center justify-center">
+                        <Package className="h-6 w-6 text-gray-500" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm sm:text-base truncate">
-                          {item.name}
+                          {item.product_name}
                         </h4>
                         <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                           <span>Кількість: {item.quantity}</span>
                           <span>•</span>
-                          <span>₴{item.price}</span>
+                          <span>₴{(item.price / item.quantity).toLocaleString()}</span>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="font-semibold text-sm sm:text-base">
-                          ₴{(item.price * item.quantity).toLocaleString()}
+                          ₴{item.price.toLocaleString()}
                         </div>
                       </div>
                     </div>
@@ -493,7 +498,7 @@ function OrderSuccessContent() {
                       Загальна сума:
                     </span>
                     <span className="text-xl font-bold text-blue-600">
-                      ₴{calculateTotal().toLocaleString()}
+                      ₴{order?.total_amount?.toLocaleString() || calculateTotal().toLocaleString()}
                     </span>
                   </div>
                 </div>

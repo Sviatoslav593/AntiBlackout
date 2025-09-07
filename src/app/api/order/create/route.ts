@@ -32,13 +32,19 @@ export async function POST(request: NextRequest) {
     let body: CreateOrderRequest;
     try {
       body = await request.json();
-      console.log("📝 Raw request body received:", JSON.stringify(body, null, 2));
+      console.log(
+        "📝 Raw request body received:",
+        JSON.stringify(body, null, 2)
+      );
     } catch (parseError) {
       console.error("❌ Failed to parse request body:", parseError);
       return NextResponse.json(
-        { 
+        {
           error: "Invalid JSON in request body",
-          details: parseError instanceof Error ? parseError.message : "Unknown parsing error"
+          details:
+            parseError instanceof Error
+              ? parseError.message
+              : "Unknown parsing error",
         },
         { status: 400 }
       );
@@ -55,7 +61,13 @@ export async function POST(request: NextRequest) {
     });
 
     // Validate required fields
-    if (!customerData || !customerData.name || !customerData.email || !items || !items.length) {
+    if (
+      !customerData ||
+      !customerData.name ||
+      !customerData.email ||
+      !items ||
+      !items.length
+    ) {
       console.error("❌ Validation failed: Missing required fields", {
         hasCustomerData: !!customerData,
         hasName: !!customerData?.name,
@@ -64,14 +76,14 @@ export async function POST(request: NextRequest) {
         itemsLength: items?.length || 0,
       });
       return NextResponse.json(
-        { 
-          error: "Missing required fields", 
+        {
+          error: "Missing required fields",
           details: "Name, email, and items are required",
           missing: {
             name: !customerData?.name,
             email: !customerData?.email,
-            items: !items || items.length === 0
-          }
+            items: !items || items.length === 0,
+          },
         },
         { status: 400 }
       );
@@ -89,9 +101,10 @@ export async function POST(request: NextRequest) {
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error("❌ Missing Supabase environment variables");
       return NextResponse.json(
-        { 
+        {
           error: "Server configuration error",
-          details: "Missing required environment variables for database connection"
+          details:
+            "Missing required environment variables for database connection",
         },
         { status: 500 }
       );
@@ -107,9 +120,12 @@ export async function POST(request: NextRequest) {
     } catch (clientError) {
       console.error("❌ Failed to initialize Supabase client:", clientError);
       return NextResponse.json(
-        { 
+        {
           error: "Database connection failed",
-          details: clientError instanceof Error ? clientError.message : "Unknown client error"
+          details:
+            clientError instanceof Error
+              ? clientError.message
+              : "Unknown client error",
         },
         { status: 500 }
       );
@@ -122,7 +138,8 @@ export async function POST(request: NextRequest) {
       customer_phone: customerData.phone || null,
       city: customerData.city || "",
       branch: customerData.warehouse || "",
-      payment_method: customerData.paymentMethod === "liqpay" ? "online" : "cod",
+      payment_method:
+        customerData.paymentMethod === "liqpay" ? "online" : "cod",
       total_amount: totalAmount,
       status: "pending" as const,
     };
@@ -146,11 +163,11 @@ export async function POST(request: NextRequest) {
     if (orderError) {
       console.error("❌ Error creating order in database:", orderError);
       return NextResponse.json(
-        { 
+        {
           error: "Failed to create order",
           details: orderError.message,
           code: orderError.code,
-          hint: orderError.hint
+          hint: orderError.hint,
         },
         { status: 500 }
       );
@@ -159,9 +176,9 @@ export async function POST(request: NextRequest) {
     if (!order) {
       console.error("❌ Order creation returned null data");
       return NextResponse.json(
-        { 
+        {
           error: "Order creation failed",
-          details: "No order data returned from database"
+          details: "No order data returned from database",
         },
         { status: 500 }
       );
@@ -169,13 +186,14 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Order created successfully with ID: ${order.id}`);
 
-    // Create order items
+    // Create order items with product details snapshot
     console.log("📦 Creating order items...");
     const orderItems = items.map((item) => ({
       order_id: order.id,
       product_id: item.id ? item.id.toString() : null,
+      product_name: item.name, // Store product name at time of purchase
       quantity: item.quantity,
-      price: item.price * item.quantity,
+      price: item.price * item.quantity, // Total price for this item
     }));
 
     console.log("📦 Order items data:", orderItems);
@@ -195,7 +213,9 @@ export async function POST(request: NextRequest) {
     // Handle different payment methods
     if (customerData.paymentMethod === "cod") {
       // For COD, immediately mark as paid and send email
-      console.log("💰 Processing COD order - marking as paid and sending email");
+      console.log(
+        "💰 Processing COD order - marking as paid and sending email"
+      );
 
       try {
         // Update order status to paid
@@ -251,14 +271,17 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: "Failed to process COD order",
-            details: codError instanceof Error ? codError.message : "Unknown error",
+            details:
+              codError instanceof Error ? codError.message : "Unknown error",
           },
           { status: 500 }
         );
       }
     } else if (customerData.paymentMethod === "liqpay") {
       // For LiqPay, keep as pending and return order data for payment
-      console.log("💳 Processing LiqPay order - keeping as pending for payment");
+      console.log(
+        "💳 Processing LiqPay order - keeping as pending for payment"
+      );
 
       return NextResponse.json({
         success: true,
@@ -271,9 +294,9 @@ export async function POST(request: NextRequest) {
     } else {
       console.error("❌ Invalid payment method:", customerData.paymentMethod);
       return NextResponse.json(
-        { 
+        {
           error: "Invalid payment method",
-          details: `Payment method '${customerData.paymentMethod}' is not supported`
+          details: `Payment method '${customerData.paymentMethod}' is not supported`,
         },
         { status: 400 }
       );
