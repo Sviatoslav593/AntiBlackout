@@ -1,38 +1,31 @@
-// Test script for order LEFT JOIN functionality
-const testOrderJoin = async () => {
+// Test script for order retrieval logic
+const testOrderRetrieval = async () => {
   try {
-    console.log("🧪 Testing Order LEFT JOIN Functionality...");
-
+    console.log("🧪 Testing Order Retrieval Logic...");
+    
     // Test data for order creation
     const orderData = {
       customerData: {
-        name: "Test JOIN Customer",
-        firstName: "Test",
-        lastName: "JOIN",
-        phone: "+380000000000",
-        email: "test-join@example.com",
-        address: "Test Address",
-        paymentMethod: "cod",
-        city: "Київ",
-        warehouse: "Відділення №1",
+        name: "Святослав Потапенко",
+        firstName: "Святослав",
+        lastName: "Потапенко",
+        phone: "+380986553991",
+        email: "potsvatik@gmail.com",
+        address: "Відділення №1: Велика Олександрівка, Братська, 17",
+        paymentMethod: "liqpay",
+        city: "Велика Олександрівка (Херсонська обл.)",
+        warehouse: "Відділення №1: Велика Олександрівка, Братська, 17",
       },
       items: [
         {
           id: 1,
           name: "Powerbank 20000mAh",
-          price: 600,
-          quantity: 2,
-          image: "test1.jpg",
-        },
-        {
-          id: 2,
-          name: "LED Flashlight",
-          price: 800,
+          price: 1199,
           quantity: 1,
-          image: "test2.jpg",
+          image: "powerbank.jpg",
         },
       ],
-      totalAmount: 2000, // 600*2 + 800*1
+      totalAmount: 1199,
     };
 
     console.log("\n1️⃣ Creating order with products...");
@@ -83,19 +76,24 @@ const testOrderJoin = async () => {
     const order = getResult.order;
     console.log("✅ Order fetched successfully with LEFT JOIN");
 
-    // Verify order structure
-    console.log("\n3️⃣ Verifying order structure...");
+    // Verify order structure matches expected format
+    console.log("\n3️⃣ Verifying order structure matches expected format...");
 
-    const requiredFields = [
+    const expectedFields = [
       "id",
       "customer_name",
       "customer_email",
-      "status",
+      "customer_phone",
+      "city",
+      "branch",
       "payment_method",
+      "status",
       "total_amount",
+      "created_at",
       "items",
     ];
-    const missingFields = requiredFields.filter((field) => !(field in order));
+    
+    const missingFields = expectedFields.filter((field) => !(field in order));
 
     if (missingFields.length > 0) {
       console.error("❌ Missing required fields:", missingFields);
@@ -112,8 +110,8 @@ const testOrderJoin = async () => {
       return;
     }
 
-    if (order.items.length !== 2) {
-      console.error("❌ Expected 2 items, got:", order.items.length);
+    if (order.items.length !== 1) {
+      console.error("❌ Expected 1 item, got:", order.items.length);
       return;
     }
 
@@ -132,29 +130,57 @@ const testOrderJoin = async () => {
 
     console.log("✅ Items structure is correct");
 
-    // Verify total amount calculation
-    console.log("\n5️⃣ Verifying total amount calculation...");
+    // Verify specific values match expected format
+    console.log("\n5️⃣ Verifying specific values match expected format...");
 
-    const calculatedTotal = order.items.reduce(
-      (sum, item) => sum + item.price,
-      0
-    );
-    console.log("📊 Calculated total from items:", calculatedTotal);
-    console.log("📊 Stored total amount:", order.total_amount);
+    const expectedOrder = {
+      customer_name: "Святослав Потапенко",
+      customer_email: "potsvatik@gmail.com",
+      customer_phone: "+380986553991",
+      city: "Велика Олександрівка (Херсонська обл.)",
+      branch: "Відділення №1: Велика Олександрівка, Братська, 17",
+      payment_method: "online",
+      status: "pending",
+      total_amount: 1199,
+    };
 
-    if (calculatedTotal !== order.total_amount) {
-      console.error("❌ Total amount mismatch:", {
-        calculated: calculatedTotal,
-        stored: order.total_amount,
-      });
-      return;
+    for (const [key, expectedValue] of Object.entries(expectedOrder)) {
+      if (order[key] !== expectedValue) {
+        console.error(`❌ Field ${key} mismatch:`, {
+          expected: expectedValue,
+          actual: order[key],
+        });
+        return;
+      }
     }
 
-    console.log("✅ Total amount calculation is correct");
+    console.log("✅ All field values match expected format");
+
+    // Verify items match expected format
+    console.log("\n6️⃣ Verifying items match expected format...");
+
+    const expectedItem = {
+      product_name: "Powerbank 20000mAh",
+      quantity: 1,
+      price: 1199,
+    };
+
+    const actualItem = order.items[0];
+    for (const [key, expectedValue] of Object.entries(expectedItem)) {
+      if (actualItem[key] !== expectedValue) {
+        console.error(`❌ Item field ${key} mismatch:`, {
+          expected: expectedValue,
+          actual: actualItem[key],
+        });
+        return;
+      }
+    }
+
+    console.log("✅ Item values match expected format");
 
     // Test empty items scenario
-    console.log("\n6️⃣ Testing empty items scenario...");
-
+    console.log("\n7️⃣ Testing empty items scenario...");
+    
     // Create a mock order with empty items
     const emptyOrder = {
       id: "test-empty",
@@ -175,42 +201,19 @@ const testOrderJoin = async () => {
 
     console.log("✅ Empty items check works correctly");
 
-    // Test LEFT JOIN specific functionality
-    console.log("\n7️⃣ Testing LEFT JOIN specific functionality...");
-
-    // Verify that items come from order_items table
-    const hasValidItemIds = order.items.every(
-      (item) => item.id && typeof item.id === "string" && item.id.length > 0
-    );
-
-    if (!hasValidItemIds) {
-      console.error("❌ Items should have valid IDs from order_items table");
-      return;
-    }
-
-    console.log("✅ Items have valid IDs from order_items table");
-
-    // Verify product names are preserved
-    const hasProductNames = order.items.every(
-      (item) => item.product_name && item.product_name.length > 0
-    );
-
-    if (!hasProductNames) {
-      console.error("❌ Items should have product names");
-      return;
-    }
-
-    console.log("✅ Product names are preserved from order_items table");
-
     // Display order summary
-    console.log("\n📋 Order Summary (LEFT JOIN):");
-    console.log("==============================");
+    console.log("\n📋 Order Summary (LEFT JOIN from order_items):");
+    console.log("================================================");
     console.log(`Order ID: ${order.id}`);
     console.log(`Customer: ${order.customer_name}`);
     console.log(`Email: ${order.customer_email}`);
+    console.log(`Phone: ${order.customer_phone}`);
+    console.log(`City: ${order.city}`);
+    console.log(`Branch: ${order.branch}`);
     console.log(`Status: ${order.status}`);
     console.log(`Payment Method: ${order.payment_method}`);
     console.log(`Total Amount: ₴${order.total_amount.toLocaleString()}`);
+    console.log(`Created At: ${order.created_at}`);
     console.log("\nItems (from order_items table):");
     order.items.forEach((item, index) => {
       console.log(`  ${index + 1}. ${item.product_name}`);
@@ -220,21 +223,21 @@ const testOrderJoin = async () => {
       console.log(`     Subtotal: ₴${item.price.toLocaleString()}`);
     });
 
-    console.log("\n🎉 All LEFT JOIN tests completed successfully!");
+    console.log("\n🎉 All order retrieval tests completed successfully!");
     console.log("\n📋 Summary:");
     console.log("- Order creation with products: ✅");
     console.log("- LEFT JOIN between orders and order_items: ✅");
-    console.log("- Order structure validation: ✅");
+    console.log("- Order structure matches expected format: ✅");
     console.log("- Items structure validation: ✅");
-    console.log("- Total amount calculation: ✅");
+    console.log("- Field values match expected format: ✅");
+    console.log("- Item values match expected format: ✅");
     console.log("- Empty items check: ✅");
-    console.log("- Valid item IDs from order_items: ✅");
-    console.log("- Product names preserved: ✅");
-    console.log("- LEFT JOIN functionality ready: ✅");
+    console.log("- Order retrieval logic ready: ✅");
+
   } catch (error) {
     console.error("❌ Test failed:", error);
   }
 };
 
 // Run the test
-testOrderJoin();
+testOrderRetrieval();

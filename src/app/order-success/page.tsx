@@ -534,7 +534,7 @@ function OrderSuccessContent() {
                   <div className="text-center py-8">
                     <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500 text-lg">
-                      No products found in this order.
+                      No products in this order.
                     </p>
                   </div>
                 ) : (

@@ -61,7 +61,8 @@ export async function GET(request: NextRequest) {
     console.log("💾 Fetching order with items from database...");
     const { data: orderData, error: orderError } = await supabase
       .from("orders")
-      .select(`
+      .select(
+        `
         id,
         customer_name,
         customer_email,
@@ -78,7 +79,8 @@ export async function GET(request: NextRequest) {
           quantity,
           price
         )
-      `)
+      `
+      )
       .eq("id", orderId)
       .single();
 
