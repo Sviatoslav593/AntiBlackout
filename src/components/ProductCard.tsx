@@ -90,7 +90,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       });
     } else {
       addToFavorites({
-        id: product.id.toString(),
+        id: product.id,
         name: product.name,
         price: product.price,
         image: product.image,

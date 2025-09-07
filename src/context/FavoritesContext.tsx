@@ -48,7 +48,7 @@ function favoritesReducer(
       };
     }
     case "REMOVE_FROM_FAVORITES": {
-      const newItems = state.items.filter((item) => item.id !== action.payload);
+      const newItems = state.items.filter((item) => item.id.toString() !== action.payload);
       return {
         items: newItems,
         count: newItems.length,
@@ -102,7 +102,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   };
 
   const isFavorite = (productId: string) => {
-    return state.items.some((item) => item.id === productId);
+    return state.items.some((item) => item.id.toString() === productId);
   };
 
   const clearFavorites = () => {
