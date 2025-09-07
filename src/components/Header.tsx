@@ -112,8 +112,8 @@ export default function Header() {
       // The cart context will handle the actual state update
     };
 
-    window.addEventListener('cartCleared', handleCartCleared);
-    return () => window.removeEventListener('cartCleared', handleCartCleared);
+    window.addEventListener("cartCleared", handleCartCleared);
+    return () => window.removeEventListener("cartCleared", handleCartCleared);
   }, []);
 
   const navigation = [

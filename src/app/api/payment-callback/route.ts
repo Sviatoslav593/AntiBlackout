@@ -167,6 +167,19 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
       } catch (emailError) {
         console.error("⚠️ Email sending failed (non-critical):", emailError);
       }
+
+      // Clear cart for this order (fallback case)
+      try {
+        await supabase
+          .from("cart_clearing_events")
+          .insert({
+            order_id: callbackData.order_id,
+            cleared_at: new Date().toISOString(),
+          });
+        console.log(`🧹 Cart clearing event created for order ${callbackData.order_id} (fallback)`);
+      } catch (clearError) {
+        console.error("⚠️ Error creating cart clearing event (fallback):", clearError);
+      }
       return;
     }
 
@@ -216,6 +229,20 @@ async function createOrderAfterPayment(callbackData: LiqPayCallbackData) {
       console.log(`📧 Confirmation emails sent for order ${order.id}`);
     } catch (emailError) {
       console.error("⚠️ Email sending failed (non-critical):", emailError);
+    }
+
+    // Clear cart for this order (if we can identify the user)
+    try {
+      // Store order ID in a way that frontend can detect and clear cart
+      await supabase
+        .from("cart_clearing_events")
+        .insert({
+          order_id: callbackData.order_id,
+          cleared_at: new Date().toISOString(),
+        });
+      console.log(`🧹 Cart clearing event created for order ${callbackData.order_id}`);
+    } catch (clearError) {
+      console.error("⚠️ Error creating cart clearing event:", clearError);
     }
 
     // Log payment details

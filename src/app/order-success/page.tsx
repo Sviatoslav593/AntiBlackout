@@ -49,9 +49,9 @@ function OrderSuccessContent() {
       localStorage.removeItem("cart");
       console.log("🧹 Cart automatically cleared after successful payment");
       console.log("🧹 Cart after clearing:", localStorage.getItem("cart"));
-      
+
       // Dispatch custom event to notify other components about cart clearing
-      window.dispatchEvent(new CustomEvent('cartCleared'));
+      window.dispatchEvent(new CustomEvent("cartCleared"));
     } catch (error) {
       console.error("❌ Error clearing cart:", error);
     }
@@ -93,6 +93,20 @@ function OrderSuccessContent() {
       setIsLoading(true);
       console.log("🔄 Fetching order data for orderId:", orderId);
 
+      // Check if cart should be cleared (from payment callback)
+      try {
+        const clearResponse = await fetch(`/api/check-cart-clearing?orderId=${orderId}`);
+        if (clearResponse.ok) {
+          const clearData = await clearResponse.json();
+          if (clearData.shouldClear) {
+            console.log("🧹 Cart clearing event detected, clearing cart...");
+            clearCart();
+          }
+        }
+      } catch (clearError) {
+        console.error("⚠️ Error checking cart clearing:", clearError);
+      }
+
       // First, try to get data from localStorage
       const storedOrderData = localStorage.getItem(`pending_order_${orderId}`);
       if (storedOrderData) {
@@ -131,11 +145,11 @@ function OrderSuccessContent() {
             warehouse: orderData.customerData?.warehouse || "",
           });
 
-          // Clear cart after successful order
+          // Clear cart after successful order (if not already cleared)
           clearCart();
 
-          // Send order confirmation emails
-          await sendOrderEmails(orderData);
+          // Don't send emails here - they should be sent by payment callback
+          console.log("📧 Emails should have been sent by payment callback");
 
           localStorage.removeItem(`pending_order_${orderId}`);
           localStorage.removeItem(`order_${orderId}`);
@@ -186,34 +200,11 @@ function OrderSuccessContent() {
           warehouse: order.branch || "",
         });
 
-        // Clear cart after successful order
+        // Clear cart after successful order (if not already cleared)
         clearCart();
 
-        // Send order confirmation emails
-        await sendOrderEmails({
-          customerData: {
-            name: order.customer_name || "Unknown Customer",
-            firstName: order.customer_name?.split(" ")[0] || "Unknown",
-            lastName: order.customer_name?.split(" ")[1] || "Customer",
-            phone: order.customer_phone || "",
-            email: order.customer_email || "",
-            address: order.branch || "",
-            paymentMethod: order.payment_method || "online",
-            city: order.city || "",
-            warehouse: order.branch || "",
-          },
-          items:
-            order.order_items?.map((item: any) => ({
-              id: item.id || 0,
-              name: item.product_name || "Unknown Product",
-              price: item.price || 0,
-              quantity: item.quantity || 1,
-              image:
-                "https://images.unsplash.com/photo-1609592094914-3ab0e6d1f0f3?w=300&h=300&fit=crop",
-            })) || [],
-          amount: order.total_amount || 0,
-          orderId: order.id,
-        });
+        // Don't send emails here - they should be sent by payment callback
+        console.log("📧 Emails should have been sent by payment callback");
       } else {
         console.error("Failed to fetch order data:", result.error);
         loadFallbackData();

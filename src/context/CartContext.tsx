@@ -186,8 +186,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
       dispatch({ type: "CLEAR_CART" });
     };
 
-    window.addEventListener('cartCleared', handleCartCleared);
-    return () => window.removeEventListener('cartCleared', handleCartCleared);
+    window.addEventListener("cartCleared", handleCartCleared);
+    return () => window.removeEventListener("cartCleared", handleCartCleared);
   }, []);
 
   const triggerCartAnimation = () => {
