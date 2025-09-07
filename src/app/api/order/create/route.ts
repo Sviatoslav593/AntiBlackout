@@ -335,26 +335,34 @@ export async function POST(request: NextRequest) {
       try {
         // Send confirmation email for online order
         console.log("📧 Sending online order confirmation emails...");
-        // Fetch product images for email
+        // Fetch product images for email (same structure as COD)
         const itemsWithImages = await Promise.all(
           items.map(async (item) => {
             try {
+              const productUUID = getProductUUID(item);
               const { data: productData } = await supabaseAdmin
                 .from("products")
                 .select("image_url")
-                .eq("id", item.product_id)
+                .eq("id", productUUID)
                 .single();
 
               return {
-                ...item,
+                product_name: item.name,
+                quantity: item.quantity,
+                price: item.price,
                 image_url: productData?.image_url || null,
               };
             } catch (error) {
               console.error(
-                `❌ Error fetching image for product ${item.product_id}:`,
+                `❌ Error fetching image for product ${item.id}:`,
                 error
               );
-              return { ...item, image_url: null };
+              return {
+                product_name: item.name,
+                quantity: item.quantity,
+                price: item.price,
+                image_url: null,
+              };
             }
           })
         );
@@ -364,11 +372,14 @@ export async function POST(request: NextRequest) {
           ...orderData,
           order_items: itemsWithImages,
         };
-        
-        console.log("📧 Order data for email formatting:", JSON.stringify(orderDataForEmail, null, 2));
-        
+
+        console.log(
+          "📧 Order data for email formatting:",
+          JSON.stringify(orderDataForEmail, null, 2)
+        );
+
         const emailOrder = formatOrderForEmail(orderDataForEmail);
-        
+
         console.log(
           "📧 Sending email with order data:",
           JSON.stringify(emailOrder, null, 2)

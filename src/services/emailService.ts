@@ -805,8 +805,11 @@ interface SupabaseOrderItem {
 
 // Helper function to format order data for email
 export function formatOrderForEmail(orderData: SupabaseOrderData): Order {
-  console.log("📧 formatOrderForEmail input:", JSON.stringify(orderData, null, 2));
-  
+  console.log(
+    "📧 formatOrderForEmail input:",
+    JSON.stringify(orderData, null, 2)
+  );
+
   const result = {
     id: orderData.id,
     customerName: orderData.customer_name,
@@ -824,8 +827,11 @@ export function formatOrderForEmail(orderData: SupabaseOrderData): Order {
       })) || [],
     total: orderData.total_amount,
   };
-  
-  console.log("📧 formatOrderForEmail output:", JSON.stringify(result, null, 2));
-  
+
+  console.log(
+    "📧 formatOrderForEmail output:",
+    JSON.stringify(result, null, 2)
+  );
+
   return result;
 }
