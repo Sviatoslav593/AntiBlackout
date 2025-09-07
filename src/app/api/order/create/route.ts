@@ -359,7 +359,25 @@ export async function POST(request: NextRequest) {
           })
         );
 
-        await sendOrderEmails(orderData.id, itemsWithImages);
+        // Create order object for email
+        const emailOrder = {
+          id: orderData.id,
+          customerName: customerData.name,
+          customerEmail: customerData.email,
+          customerPhone: customerData.phone,
+          branch: customerData.branch,
+          paymentMethod: "online",
+          city: customerData.city,
+          items: itemsWithImages.map((item) => ({
+            productName: item.product_name,
+            quantity: item.quantity,
+            price: item.product_price,
+            image_url: item.image_url,
+          })),
+          total: totalAmount,
+        };
+
+        await sendOrderEmails(emailOrder);
         console.log("✅ Online order confirmation emails sent successfully");
 
         // Create cart clearing event
@@ -388,7 +406,8 @@ export async function POST(request: NextRequest) {
         orderId: orderData.id,
         paymentMethod: "online",
         status: "pending",
-        message: "Order created, email sent, cart cleared, ready for online payment",
+        message:
+          "Order created, email sent, cart cleared, ready for online payment",
         order: orderData,
       });
     } else {
