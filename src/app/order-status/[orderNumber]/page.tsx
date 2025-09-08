@@ -51,7 +51,7 @@ export default function OrderStatusPage() {
   const params = useParams();
   const orderNumber = params.orderNumber as string;
   const supabase = createClient();
-  
+
   const [order, setOrder] = useState<Order | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,13 +85,15 @@ export default function OrderStatusPage() {
       // Fetch order items with product images
       const { data: items, error: itemsError } = await supabase
         .from("order_items")
-        .select(`
+        .select(
+          `
           product_name,
           quantity,
           price,
           product_id,
           products (image_url)
-        `)
+        `
+        )
         .eq("order_id", orderData.id);
 
       if (itemsError) {
@@ -99,7 +101,6 @@ export default function OrderStatusPage() {
       } else {
         setOrderItems(items || []);
       }
-
     } catch (err) {
       console.error("Error fetching order data:", err);
       setError("Помилка завантаження даних замовлення");
@@ -224,7 +225,10 @@ export default function OrderStatusPage() {
               <p className="text-lg text-gray-700 mb-4">
                 {error || "Замовлення не знайдено"}
               </p>
-              <Button onClick={handleRefresh} className="flex items-center gap-2">
+              <Button
+                onClick={handleRefresh}
+                className="flex items-center gap-2"
+              >
                 <RefreshCw className="w-4 h-4" />
                 Спробувати знову
               </Button>
@@ -330,8 +334,7 @@ export default function OrderStatusPage() {
                     <div className="flex items-center gap-3">
                       <MapPin className="w-4 h-4 text-gray-500" />
                       <p>
-                        <span className="font-medium">Місто:</span>{" "}
-                        {order.city}
+                        <span className="font-medium">Місто:</span> {order.city}
                       </p>
                     </div>
                   )}
@@ -355,7 +358,9 @@ export default function OrderStatusPage() {
                 </h2>
                 <div className="space-y-2 text-gray-700">
                   <div className="flex items-center gap-3">
-                    <PaymentIcon className={`w-4 h-4 ${paymentInfo.className}`} />
+                    <PaymentIcon
+                      className={`w-4 h-4 ${paymentInfo.className}`}
+                    />
                     <p>
                       <span className="font-medium">Оплата:</span>{" "}
                       {paymentInfo.label}
@@ -380,7 +385,9 @@ export default function OrderStatusPage() {
 
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Кількість товарів:</span>
-                    <span className="font-medium">{orderItems?.length || 0}</span>
+                    <span className="font-medium">
+                      {orderItems?.length || 0}
+                    </span>
                   </div>
 
                   <Separator />

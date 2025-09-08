@@ -40,7 +40,7 @@ export default function AdminDashboard() {
     },
     {
       title: "Товари",
-      description: "Управління каталогом товарів",
+      description: "Імпорт та управління товарами з XML фіду",
       href: "/admin/products",
       icon: ShoppingCart,
       color: "text-orange-600",

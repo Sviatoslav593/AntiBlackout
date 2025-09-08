@@ -279,13 +279,24 @@ const AdminOrdersPage = () => {
                           className={`text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 rounded-full ${statusInfo.className} self-start sm:self-auto`}
                         >
                           <StatusIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                          <span className="hidden sm:inline">{statusInfo.label}</span>
-                          <span className="sm:hidden">{statusInfo.label.split(' ')[0]}</span>
+                          <span className="hidden sm:inline">
+                            {statusInfo.label}
+                          </span>
+                          <span className="sm:hidden">
+                            {statusInfo.label.split(" ")[0]}
+                          </span>
                         </Badge>
-                        <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          className="w-full sm:w-auto"
+                        >
                           <Link href={`/order-status/${order.order_number}`}>
                             <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                            <span className="text-xs sm:text-sm">Переглянути</span>
+                            <span className="text-xs sm:text-sm">
+                              Переглянути
+                            </span>
                           </Link>
                         </Button>
                       </div>
@@ -297,15 +308,21 @@ const AdminOrdersPage = () => {
                       <div className="flex items-center gap-2 sm:gap-3">
                         <User className="w-4 h-4 text-gray-500 flex-shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-xs sm:text-sm text-gray-600">Клієнт</p>
-                          <p className="font-medium text-sm sm:text-base truncate">{order.customer_name}</p>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            Клієнт
+                          </p>
+                          <p className="font-medium text-sm sm:text-base truncate">
+                            {order.customer_name}
+                          </p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2 sm:gap-3">
                         <Mail className="w-4 h-4 text-gray-500 flex-shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-xs sm:text-sm text-gray-600">Email</p>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            Email
+                          </p>
                           <p className="font-medium text-xs sm:text-sm truncate">
                             {order.customer_email}
                           </p>
@@ -317,7 +334,9 @@ const AdminOrdersPage = () => {
                           className={`w-4 h-4 ${paymentInfo.className} flex-shrink-0`}
                         />
                         <div className="min-w-0">
-                          <p className="text-xs sm:text-sm text-gray-600">Оплата</p>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            Оплата
+                          </p>
                           <p className="font-medium text-xs sm:text-sm truncate">
                             {paymentInfo.label}
                           </p>
@@ -327,7 +346,9 @@ const AdminOrdersPage = () => {
                       <div className="flex items-center gap-2 sm:gap-3">
                         <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-xs sm:text-sm text-gray-600">Дата</p>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            Дата
+                          </p>
                           <p className="font-medium text-xs sm:text-sm">
                             {new Date(order.created_at).toLocaleDateString(
                               "uk-UA"
@@ -349,8 +370,12 @@ const AdminOrdersPage = () => {
                         </div>
                         {order.city && (
                           <div>
-                            <p className="text-xs sm:text-sm text-gray-600">Місто</p>
-                            <p className="font-medium text-sm sm:text-base">{order.city}</p>
+                            <p className="text-xs sm:text-sm text-gray-600">
+                              Місто
+                            </p>
+                            <p className="font-medium text-sm sm:text-base">
+                              {order.city}
+                            </p>
                           </div>
                         )}
                       </div>
@@ -381,11 +406,15 @@ const AdminOrdersPage = () => {
                               <SelectItem value="processing">
                                 В обробці
                               </SelectItem>
-                              <SelectItem value="shipped">Відправлено</SelectItem>
+                              <SelectItem value="shipped">
+                                Відправлено
+                              </SelectItem>
                               <SelectItem value="delivered">
                                 Доставлено
                               </SelectItem>
-                              <SelectItem value="cancelled">Скасовано</SelectItem>
+                              <SelectItem value="cancelled">
+                                Скасовано
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           {updating === order.id && (
@@ -403,7 +432,12 @@ const AdminOrdersPage = () => {
 
         {orders.length > 0 && (
           <div className="mt-6 sm:mt-8 text-center text-xs sm:text-sm text-gray-500">
-            <p>Всього замовлень: <span className="font-semibold text-gray-700">{orders.length}</span></p>
+            <p>
+              Всього замовлень:{" "}
+              <span className="font-semibold text-gray-700">
+                {orders.length}
+              </span>
+            </p>
           </div>
         )}
       </div>
