@@ -31,6 +31,16 @@ export async function POST(request: NextRequest) {
     const importResult = await importProductsToDatabase(valid);
     console.log("✅ Import completed:", importResult);
 
+    // Логуємо результат імпорту
+    await logImportResult({
+      status: "success",
+      message: `Imported ${importResult.imported} products, updated ${importResult.updated}`,
+      added_count: importResult.imported,
+      updated_count: importResult.updated,
+      skipped_count: invalid.length,
+      error_count: importResult.errors,
+    });
+
     return NextResponse.json({
       success: true,
       message: "Products imported successfully",
@@ -50,6 +60,19 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("❌ Error in product import:", error);
+
+    // Логуємо помилку
+    await logImportResult({
+      status: "error",
+      message: `Import failed: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+      added_count: 0,
+      updated_count: 0,
+      skipped_count: 0,
+      error_count: 1,
+    });
+
     return NextResponse.json(
       {
         success: false,
@@ -205,4 +228,38 @@ async function importProductsToDatabase(products: ParsedProduct[]): Promise<{
     `✅ Import completed: ${imported} imported, ${updated} updated, ${errors} errors`
   );
   return { imported, updated, errors };
+}
+
+/**
+ * Логує результат імпорту в таблицю import_logs
+ */
+async function logImportResult(data: {
+  status: "success" | "error";
+  message: string;
+  added_count: number;
+  updated_count: number;
+  skipped_count: number;
+  error_count: number;
+}) {
+  try {
+    const { error } = await supabaseAdmin.from("import_logs").insert([
+      {
+        status: data.status,
+        message: data.message,
+        added_count: data.added_count,
+        updated_count: data.updated_count,
+        skipped_count: data.skipped_count,
+        error_count: data.error_count,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+
+    if (error) {
+      console.error("❌ Error logging import result:", error);
+    } else {
+      console.log("✅ Import result logged successfully");
+    }
+  } catch (error) {
+    console.error("❌ Error in logImportResult:", error);
+  }
 }

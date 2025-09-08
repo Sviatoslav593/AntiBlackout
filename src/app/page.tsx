@@ -64,7 +64,7 @@ export default function Home() {
 
         // Convert database products to Product format
         const convertedProducts = data.products.map((product: any) => ({
-          id: Math.floor(Math.random() * 1000000), // Generate random ID since we can't parse UUID
+          id: product.id, // UUID string from database
           name: product.name || "",
           description: product.description || "",
           price: product.price || 0,

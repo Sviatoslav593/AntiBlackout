@@ -130,9 +130,10 @@ function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
       price = parseFloat(xmlProduct.prices.price.value) || 0;
     }
 
-    if (price < 0) {
+    // Пропускаємо товари з ціною менше 1
+    if (price < 1) {
       console.warn(
-        `⚠️ Skipping product ${xmlProduct.id}: invalid price ${price}`
+        `⚠️ Skipping product ${xmlProduct.id}: price too low (${price})`
       );
       return null;
     }
@@ -154,6 +155,12 @@ function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
       } else {
         imageUrl = xmlProduct.picture;
       }
+    }
+
+    // Пропускаємо товари без зображення
+    if (!imageUrl || imageUrl.trim().length === 0) {
+      console.warn(`⚠️ Skipping product ${xmlProduct.id}: missing image`);
+      return null;
     }
 
     // Очищаємо та валідуємо дані
@@ -208,7 +215,12 @@ export function validateProducts(products: ParsedProduct[]): {
   const invalid: ParsedProduct[] = [];
 
   products.forEach((product) => {
-    if (product.external_id && product.name && product.price >= 0) {
+    if (
+      product.external_id &&
+      product.name &&
+      product.price >= 1 &&
+      product.image_url
+    ) {
       valid.push(product);
     } else {
       invalid.push(product);

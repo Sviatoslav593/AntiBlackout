@@ -16,7 +16,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
 export interface Product {
-  id: number;
+  id: string; // UUID string
   name: string;
   description: string;
   price: number;

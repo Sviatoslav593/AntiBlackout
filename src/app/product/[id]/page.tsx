@@ -27,7 +27,7 @@ import { createClient } from "@/utils/supabase/client";
 import { generateStructuredData } from "./metadata";
 
 interface Product {
-  id: number;
+  id: string; // UUID string
   name: string;
   description: string;
   price: number;
@@ -47,7 +47,7 @@ interface Product {
 export default function ProductPage() {
   const params = useParams();
   const router = useRouter();
-  const productId = parseInt((params?.id as string) || "0");
+  const productId = params?.id as string;
   const { addItem, getItemQuantity } = useCart();
   const { showToast } = useToast();
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
@@ -65,11 +65,11 @@ export default function ProductPage() {
         setLoading(true);
         const supabase = createClient();
 
-        // Fetch the specific product
+        // Fetch the specific product by UUID
         const { data: productData, error: productError } = await supabase
           .from("products")
           .select("*")
-          .eq("id", productId.toString())
+          .eq("id", productId)
           .single();
 
         if (productError || !productData) {
@@ -79,7 +79,7 @@ export default function ProductPage() {
 
         // Convert to Product format
         const foundProduct: Product = {
-          id: parseInt(productData.id) || 0,
+          id: productData.id, // UUID string
           name: productData.name || "",
           description: productData.description || "",
           price: productData.price || 0,
@@ -103,13 +103,13 @@ export default function ProductPage() {
           .from("products")
           .select("*")
           .eq("category", productData.category)
-          .neq("id", productId.toString())
+          .neq("id", productId)
           .gt("quantity", 0)
           .limit(6);
 
         if (!similarError && similarData) {
           const similar = similarData.map((p) => ({
-            id: parseInt(p.id) || 0,
+            id: p.id, // UUID string
             name: p.name || "",
             description: p.description || "",
             price: p.price || 0,

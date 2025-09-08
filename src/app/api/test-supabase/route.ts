@@ -12,7 +12,9 @@ export async function GET(request: NextRequest) {
       .select(
         "id, name, description, price, external_id, brand, category, quantity, image_url, created_at"
       )
-      .limit(50);
+      .gt("price", 0) // Тільки товари з ціною більше 0
+      .not("image_url", "is", null) // Тільки товари з зображеннями
+      .not("name", "is", null); // Тільки товари з назвами
 
     if (error) {
       console.error("❌ Supabase error:", error);

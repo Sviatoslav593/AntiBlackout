@@ -3,12 +3,12 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("🧹 Starting cleanup of fake products...");
+    console.log("🧹 Starting cleanup of invalid products...");
 
-    // Отримуємо всі товари
+    // Отримуємо всі товари з необхідними полями для валідації
     const { data: allProducts, error: fetchError } = await supabaseAdmin
       .from("products")
-      .select("id, name, external_id, created_at");
+      .select("id, name, external_id, price, image_url, created_at");
 
     if (fetchError) {
       throw new Error(`Database error: ${fetchError.message}`);
@@ -24,10 +24,20 @@ export async function POST(request: NextRequest) {
 
     console.log(`📦 Found ${allProducts.length} products in database`);
 
-    // Визначаємо фейкові товари
-    const fakeProducts = allProducts.filter((product) => {
-      // Товари без external_id (не імпортовані)
-      if (!product.external_id) {
+    // Визначаємо невалідні товари
+    const invalidProducts = allProducts.filter((product) => {
+      // Товари без назви
+      if (!product.name || product.name.trim().length === 0) {
+        return true;
+      }
+
+      // Товари з ціною менше 1
+      if (!product.price || product.price < 1) {
+        return true;
+      }
+
+      // Товари без зображення
+      if (!product.image_url || product.image_url.trim().length === 0) {
         return true;
       }
 
@@ -48,12 +58,14 @@ export async function POST(request: NextRequest) {
       return suspiciousNames.some((suspicious) => name.includes(suspicious));
     });
 
-    console.log(`🔍 Found ${fakeProducts.length} fake products to delete`);
+    console.log(
+      `🔍 Found ${invalidProducts.length} invalid products to delete`
+    );
 
-    if (fakeProducts.length === 0) {
+    if (invalidProducts.length === 0) {
       return NextResponse.json({
         success: true,
-        message: "No fake products found",
+        message: "No invalid products found",
         stats: {
           total: allProducts.length,
           deleted: 0,
@@ -62,36 +74,38 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Видаляємо фейкові товари
-    const fakeProductIds = fakeProducts.map((p) => p.id);
+    // Видаляємо невалідні товари
+    const invalidProductIds = invalidProducts.map((p) => p.id);
 
     const { error: deleteError } = await supabaseAdmin
       .from("products")
       .delete()
-      .in("id", fakeProductIds);
+      .in("id", invalidProductIds);
 
     if (deleteError) {
       throw new Error(`Delete error: ${deleteError.message}`);
     }
 
-    const kept = allProducts.length - fakeProducts.length;
+    const kept = allProducts.length - invalidProducts.length;
 
     console.log(
-      `✅ Cleanup completed: ${fakeProducts.length} deleted, ${kept} kept`
+      `✅ Cleanup completed: ${invalidProducts.length} deleted, ${kept} kept`
     );
 
     return NextResponse.json({
       success: true,
-      message: `Successfully deleted ${fakeProducts.length} fake products`,
+      message: `Successfully deleted ${invalidProducts.length} invalid products`,
       stats: {
         total: allProducts.length,
-        deleted: fakeProducts.length,
+        deleted: invalidProducts.length,
         kept: kept,
       },
-      deletedProducts: fakeProducts.map((p) => ({
+      deletedProducts: invalidProducts.map((p) => ({
         id: p.id,
         name: p.name,
         external_id: p.external_id,
+        price: p.price,
+        hasImage: !!p.image_url,
       })),
     });
   } catch (error) {
@@ -109,12 +123,12 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("🔍 Checking for fake products...");
+    console.log("🔍 Checking for invalid products...");
 
-    // Отримуємо всі товари
+    // Отримуємо всі товари з необхідними полями для валідації
     const { data: allProducts, error: fetchError } = await supabaseAdmin
       .from("products")
-      .select("id, name, external_id, created_at");
+      .select("id, name, external_id, price, image_url, created_at");
 
     if (fetchError) {
       throw new Error(`Database error: ${fetchError.message}`);
@@ -124,16 +138,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: "No products found in database",
-        stats: { total: 0, fake: 0, real: 0 },
+        stats: { total: 0, invalid: 0, valid: 0 },
       });
     }
 
-    // Визначаємо фейкові товари
-    const fakeProducts = allProducts.filter((product) => {
-      if (!product.external_id) {
+    // Визначаємо невалідні товари
+    const invalidProducts = allProducts.filter((product) => {
+      // Товари без назви
+      if (!product.name || product.name.trim().length === 0) {
         return true;
       }
 
+      // Товари з ціною менше 1
+      if (!product.price || product.price < 1) {
+        return true;
+      }
+
+      // Товари без зображення
+      if (!product.image_url || product.image_url.trim().length === 0) {
+        return true;
+      }
+
+      // Товари з підозрілими назвами
       const suspiciousNames = [
         "test",
         "dummy",
@@ -150,22 +176,24 @@ export async function GET(request: NextRequest) {
       return suspiciousNames.some((suspicious) => name.includes(suspicious));
     });
 
-    const realProducts = allProducts.filter(
-      (product) => !fakeProducts.includes(product)
+    const validProducts = allProducts.filter(
+      (product) => !invalidProducts.includes(product)
     );
 
     return NextResponse.json({
       success: true,
-      message: "Fake products analysis completed",
+      message: "Invalid products analysis completed",
       stats: {
         total: allProducts.length,
-        fake: fakeProducts.length,
-        real: realProducts.length,
+        invalid: invalidProducts.length,
+        valid: validProducts.length,
       },
-      fakeProducts: fakeProducts.map((p) => ({
+      invalidProducts: invalidProducts.map((p) => ({
         id: p.id,
         name: p.name,
         external_id: p.external_id,
+        price: p.price,
+        hasImage: !!p.image_url,
         created_at: p.created_at,
       })),
     });
