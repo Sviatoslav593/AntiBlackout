@@ -143,6 +143,14 @@ async function importProductsToDatabase(products: ParsedProduct[]): Promise<{
 
   for (const product of products) {
     try {
+      // Пропускаємо товари з category_id=80
+      if (product.category_id === 80) {
+        console.log(
+          `⏭️ Skipping product with category_id=80: ${product.name} (${product.external_id})`
+        );
+        continue;
+      }
+
       // Перевіряємо, чи існує товар з таким external_id
       const { data: existingProduct, error: checkError } = await supabaseAdmin
         .from("products")
@@ -165,7 +173,7 @@ async function importProductsToDatabase(products: ParsedProduct[]): Promise<{
         description: product.description,
         price: product.price,
         brand: product.brand,
-        category: product.category,
+        category_id: product.category_id,
         quantity: product.quantity,
         image_url: product.image_url,
         images: product.images || [product.image_url],
@@ -249,7 +257,8 @@ async function logImportResult(data: {
         imported: data.added_count + data.updated_count, // Загальна кількість імпортованих
         updated: data.updated_count,
         errors: data.error_count,
-        total_processed: data.added_count + data.updated_count + data.skipped_count,
+        total_processed:
+          data.added_count + data.updated_count + data.skipped_count,
         error_message: data.status === "error" ? data.message : null,
       },
     ]);

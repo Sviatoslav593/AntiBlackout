@@ -68,10 +68,15 @@ export default function ProductPage() {
         setLoading(true);
         const supabase = createClient();
 
-        // Fetch the specific product by UUID
+        // Fetch the specific product by UUID with category join
         const { data: productData, error: productError } = await supabase
           .from("products")
-          .select("*")
+          .select(
+            `
+            *,
+            categories!inner(id, name, parent_id)
+          `
+          )
           .eq("id", productId)
           .single();
 
@@ -91,7 +96,7 @@ export default function ProductPage() {
           images: productData.images || [productData.image_url || ""],
           rating: 4.5,
           reviewCount: Math.floor(Math.random() * 100) + 10,
-          category: productData.category || "Uncategorized",
+          category: productData.categories?.name || "Uncategorized",
           brand: productData.brand || "Unknown",
           capacity: 0,
           popularity: Math.floor(Math.random() * 100),
@@ -102,11 +107,16 @@ export default function ProductPage() {
 
         setProduct(foundProduct);
 
-        // Fetch similar products
+        // Fetch similar products by category_id
         const { data: similarData, error: similarError } = await supabase
           .from("products")
-          .select("*")
-          .eq("category", productData.category)
+          .select(
+            `
+            *,
+            categories!inner(id, name, parent_id)
+          `
+          )
+          .eq("category_id", productData.category_id)
           .neq("id", productId)
           .gt("quantity", 0)
           .limit(6);
@@ -121,7 +131,7 @@ export default function ProductPage() {
             image: p.image_url || "",
             rating: 4.5,
             reviewCount: Math.floor(Math.random() * 100) + 10,
-            category: p.category || "Uncategorized",
+            category: p.categories?.name || "Uncategorized",
             brand: p.brand || "Unknown",
             capacity: 0,
             popularity: Math.floor(Math.random() * 100),

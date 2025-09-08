@@ -15,7 +15,9 @@ export async function POST(request: NextRequest) {
       throw fetchError;
     }
 
-    console.log(`📦 Found ${products?.length || 0} products with Uncategorized to fix`);
+    console.log(
+      `📦 Found ${products?.length || 0} products with Uncategorized to fix`
+    );
 
     let updatedCount = 0;
     let errorCount = 0;
@@ -27,13 +29,33 @@ export async function POST(request: NextRequest) {
         const name = product.name.toLowerCase();
 
         // Визначаємо категорію на основі назви товару
-        if (name.includes("power bank") || name.includes("повербанк") || name.includes("батарея") || name.includes("акумулятор")) {
+        if (
+          name.includes("power bank") ||
+          name.includes("повербанк") ||
+          name.includes("батарея") ||
+          name.includes("акумулятор")
+        ) {
           newCategory = "Портативні батареї";
-        } else if (name.includes("зарядний") || name.includes("зарядка") || name.includes("адаптер") || name.includes("charger")) {
+        } else if (
+          name.includes("зарядний") ||
+          name.includes("зарядка") ||
+          name.includes("адаптер") ||
+          name.includes("charger")
+        ) {
           newCategory = "Мережеві зарядні пристрої";
-        } else if (name.includes("кабель") || name.includes("cable") || name.includes("usb") || name.includes("lightning") || name.includes("type-c")) {
+        } else if (
+          name.includes("кабель") ||
+          name.includes("cable") ||
+          name.includes("usb") ||
+          name.includes("lightning") ||
+          name.includes("type-c")
+        ) {
           newCategory = "Кабелі USB";
-        } else if (name.includes("бездротовий") || name.includes("wireless") || name.includes("qi")) {
+        } else if (
+          name.includes("бездротовий") ||
+          name.includes("wireless") ||
+          name.includes("qi")
+        ) {
           newCategory = "Бездротові зарядні пристрої";
         }
 
@@ -44,11 +66,19 @@ export async function POST(request: NextRequest) {
             .eq("id", product.id);
 
           if (updateError) {
-            console.error(`❌ Error updating product ${product.id}:`, updateError);
+            console.error(
+              `❌ Error updating product ${product.id}:`,
+              updateError
+            );
             errorCount++;
           } else {
             updatedCount++;
-            console.log(`✅ Updated product ${product.id}: ${product.name.substring(0, 50)}... -> ${newCategory}`);
+            console.log(
+              `✅ Updated product ${product.id}: ${product.name.substring(
+                0,
+                50
+              )}... -> ${newCategory}`
+            );
           }
         }
       } catch (error) {
@@ -57,7 +87,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`✅ Category fix completed: ${updatedCount} updated, ${errorCount} errors`);
+    console.log(
+      `✅ Category fix completed: ${updatedCount} updated, ${errorCount} errors`
+    );
 
     return NextResponse.json({
       success: true,
@@ -65,10 +97,9 @@ export async function POST(request: NextRequest) {
       stats: {
         total: products?.length || 0,
         updated: updatedCount,
-        errors: errorCount
-      }
+        errors: errorCount,
+      },
     });
-
   } catch (error) {
     console.error("❌ Error fixing categories:", error);
     return NextResponse.json(

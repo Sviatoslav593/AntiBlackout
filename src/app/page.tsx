@@ -73,7 +73,7 @@ export default function Home() {
       try {
         setLoading(true);
 
-        const response = await fetch("/api/test-supabase");
+        const response = await fetch("/api/products");
         const data = await response.json();
 
         if (!data.success) {
@@ -81,30 +81,9 @@ export default function Home() {
           return;
         }
 
-        console.log("Fetched products from API:", data.count);
+        console.log("Fetched products from API:", data.products.length);
 
-        // Convert database products to Product format
-        const convertedProducts = data.products.map((product: any) => ({
-          id: product.id, // UUID string from database
-          name: product.name || "",
-          description: product.description || "",
-          price: product.price || 0,
-          originalPrice: undefined,
-          image: product.image_url || "",
-          images: product.images || [product.image_url || ""],
-          rating: 4.5, // Default rating
-          reviewCount: Math.floor(Math.random() * 100) + 10, // Random review count
-          category: product.category || "Uncategorized",
-          brand: product.brand || "Unknown",
-          capacity: 0, // Default capacity
-          popularity: Math.floor(Math.random() * 100), // Random popularity
-          badge: undefined,
-          inStock: (product.quantity || 0) > 0,
-          createdAt: product.created_at || new Date().toISOString(),
-        })) as Product[];
-
-        console.log("Converted products:", convertedProducts.length);
-        setAllProducts(convertedProducts);
+        setAllProducts(data.products);
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {

@@ -19,11 +19,11 @@ export async function POST(request: NextRequest) {
     // Мапінг категорій з XML фіду
     const categoryMap: { [key: string]: string } = {
       "1": "Акумулятори та powerbank",
-      "3": "Портативні батареї", 
+      "3": "Портативні батареї",
       "14": "Зарядки та кабелі",
       "15": "Мережеві зарядні пристрої",
       "16": "Кабелі USB",
-      "80": "Бездротові зарядні пристрої"
+      "80": "Бездротові зарядні пристрої",
     };
 
     let updatedCount = 0;
@@ -34,9 +34,12 @@ export async function POST(request: NextRequest) {
       try {
         // Отримуємо categoryId з external_id (якщо потрібно) або використовуємо поточну категорію
         let categoryId = null;
-        
+
         // Якщо поточна категорія - це ID, використовуємо її
-        if (product.category && Object.keys(categoryMap).includes(product.category)) {
+        if (
+          product.category &&
+          Object.keys(categoryMap).includes(product.category)
+        ) {
           categoryId = product.category;
         } else {
           // Спробуємо отримати categoryId з XML фіду для цього товару
@@ -52,11 +55,16 @@ export async function POST(request: NextRequest) {
             .eq("id", product.id);
 
           if (updateError) {
-            console.error(`❌ Error updating product ${product.id}:`, updateError);
+            console.error(
+              `❌ Error updating product ${product.id}:`,
+              updateError
+            );
             errorCount++;
           } else {
             updatedCount++;
-            console.log(`✅ Updated product ${product.id}: ${product.category} -> ${newCategory}`);
+            console.log(
+              `✅ Updated product ${product.id}: ${product.category} -> ${newCategory}`
+            );
           }
         }
       } catch (error) {
@@ -65,7 +73,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`✅ Category fix completed: ${updatedCount} updated, ${errorCount} errors`);
+    console.log(
+      `✅ Category fix completed: ${updatedCount} updated, ${errorCount} errors`
+    );
 
     return NextResponse.json({
       success: true,
@@ -73,10 +83,9 @@ export async function POST(request: NextRequest) {
       stats: {
         total: products?.length || 0,
         updated: updatedCount,
-        errors: errorCount
-      }
+        errors: errorCount,
+      },
     });
-
   } catch (error) {
     console.error("❌ Error fixing categories:", error);
     return NextResponse.json(

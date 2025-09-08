@@ -23,7 +23,7 @@ export interface ParsedProduct {
   price: number;
   currency: string;
   brand: string;
-  category: string;
+  category_id: number;
   quantity: number;
   image_url: string;
   images: string[];
@@ -203,12 +203,12 @@ function convertToParsedProduct(
       price: price,
       currency: "UAH", // Жорстко закодовано як UAH
       brand: String(xmlProduct.vendor || "Unknown").trim(),
-      category:
-        categoryMap[
+      category_id:
+        parseInt(
           Array.isArray(xmlProduct.categoryId)
             ? xmlProduct.categoryId[0]
             : xmlProduct.categoryId
-        ] || String(xmlProduct.category || "Uncategorized").trim(),
+        ) || 0,
       quantity: quantity,
       image_url: imageUrl.trim(),
       images: imageUrls.map((img) => img.trim()),
