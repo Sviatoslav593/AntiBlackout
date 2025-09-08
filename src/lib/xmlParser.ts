@@ -65,6 +65,28 @@ export async function parseXMLFeed(xmlUrl: string): Promise<ParsedProduct[]> {
       throw new Error("Invalid XML structure: items not found");
     }
 
+    // Створюємо мапінг категорій з catalog
+    const categoryMap: { [key: string]: string } = {};
+    if (parsedData.price.catalog && parsedData.price.catalog.category) {
+      const categories = Array.isArray(parsedData.price.catalog.category)
+        ? parsedData.price.catalog.category
+        : [parsedData.price.catalog.category];
+
+      for (const cat of categories) {
+        if (cat && cat.$ && cat.$.id && cat._) {
+          const id = cat.$.id;
+          const name = cat._;
+          categoryMap[id] = name;
+        }
+      }
+      console.log(
+        `📂 Built category map with ${
+          Object.keys(categoryMap).length
+        } categories:`,
+        categoryMap
+      );
+    }
+
     const products = Array.isArray(parsedData.price.items.item)
       ? parsedData.price.items.item
       : [parsedData.price.items.item];
@@ -73,7 +95,7 @@ export async function parseXMLFeed(xmlUrl: string): Promise<ParsedProduct[]> {
     // Конвертуємо в наш формат
     const parsedProducts: ParsedProduct[] = products
       .map((product: any) => {
-        return convertToParsedProduct(product);
+        return convertToParsedProduct(product, categoryMap);
       })
       .filter(Boolean); // Видаляємо null/undefined
 
@@ -111,7 +133,10 @@ function parseXMLString(xmlString: string): Promise<any> {
 /**
  * Конвертує XML товар в наш формат
  */
-function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
+function convertToParsedProduct(
+  xmlProduct: any,
+  categoryMap: { [key: string]: string } = {}
+): ParsedProduct | null {
   try {
     // Валідація обов'язкових полів
     if (!xmlProduct.id || !xmlProduct.name) {
@@ -178,7 +203,9 @@ function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
       price: price,
       currency: "UAH", // Жорстко закодовано як UAH
       brand: String(xmlProduct.vendor || "Unknown").trim(),
-      category: String(xmlProduct.category || "Uncategorized").trim(),
+      category:
+        categoryMap[xmlProduct.categoryId] ||
+        String(xmlProduct.category || "Uncategorized").trim(),
       quantity: quantity,
       image_url: imageUrl.trim(),
       images: imageUrls.map((img) => img.trim()),

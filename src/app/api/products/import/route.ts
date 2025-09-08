@@ -245,13 +245,12 @@ async function logImportResult(data: {
   try {
     const { error } = await supabaseAdmin.from("import_logs").insert([
       {
-        status: data.status,
-        message: data.message,
-        added_count: data.added_count,
-        updated_count: data.updated_count,
-        skipped_count: data.skipped_count,
-        error_count: data.error_count,
-        timestamp: new Date().toISOString(),
+        success: data.status === "success",
+        imported: data.added_count + data.updated_count, // Загальна кількість імпортованих
+        updated: data.updated_count,
+        errors: data.error_count,
+        total_processed: data.added_count + data.updated_count + data.skipped_count,
+        error_message: data.status === "error" ? data.message : null,
       },
     ]);
 

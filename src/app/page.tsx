@@ -127,8 +127,10 @@ export default function Home() {
 
   // Calculate available options for filters
   const availableCategories = useMemo(() => {
-    const categories = [...new Set(allProducts.map(p => p.category).filter(Boolean))];
-    return categories.filter(cat => cat && cat.trim().length > 0);
+    const categories = [
+      ...new Set(allProducts.map((p) => p.category).filter(Boolean)),
+    ];
+    return categories.filter((cat) => cat && cat.trim().length > 0);
   }, [allProducts]);
 
   const availableBrands = useMemo(() => {

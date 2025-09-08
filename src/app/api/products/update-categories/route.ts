@@ -28,12 +28,15 @@ export async function POST(request: NextRequest) {
     console.log(`📦 Found ${products.length} products`);
 
     // Перевіряємо, скільки товарів мають числові категорії (ID)
-    const numericCategories = products.filter(p => p.category && p.category.match(/^\d+$/));
-    
+    const numericCategories = products.filter(
+      (p) => p.category && p.category.match(/^\d+$/)
+    );
+
     if (numericCategories.length === 0) {
       return NextResponse.json({
         success: true,
-        message: "All categories are already in correct format (names, not IDs)",
+        message:
+          "All categories are already in correct format (names, not IDs)",
         stats: { total: products.length, updated: 0 },
       });
     }
@@ -41,10 +44,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: `Found ${numericCategories.length} products with numeric categories. Please run product import to update categories with proper names from XML.`,
-      stats: { 
-        total: products.length, 
+      stats: {
+        total: products.length,
         updated: 0,
-        needsImport: numericCategories.length 
+        needsImport: numericCategories.length,
       },
     });
   } catch (error) {
