@@ -114,6 +114,30 @@ const AdminProductsPage = () => {
     }
   };
 
+  const handleUpdateCategories = async () => {
+    try {
+      setActionLoading("update-categories");
+      const response = await fetch("/api/products/update-categories", {
+        method: "POST",
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        alert(
+          `Оновлення категорій завершено!\nОновлено: ${data.stats.updated}\nВсього перевірено: ${data.stats.total}`
+        );
+        await fetchData();
+      } else {
+        alert(`Помилка оновлення: ${data.message}`);
+      }
+    } catch (error) {
+      console.error("Error updating categories:", error);
+      alert("Помилка при оновленні категорій");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleCleanupFakeProducts = async () => {
     if (
       !confirm(
@@ -292,6 +316,33 @@ const AdminProductsPage = () => {
                   <Download className="w-4 h-4 mr-2" />
                 )}
                 Імпортувати товари
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <RefreshCw className="w-5 h-5 text-blue-600" />
+                Оновлення категорій
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600 mb-4">
+                Оновити категорії товарів з ID на назви
+              </p>
+              <Button
+                onClick={handleUpdateCategories}
+                disabled={actionLoading === "update-categories"}
+                variant="outline"
+                className="w-full"
+              >
+                {actionLoading === "update-categories" ? (
+                  <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                )}
+                Оновити категорії
               </Button>
             </CardContent>
           </Card>

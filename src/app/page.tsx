@@ -127,7 +127,14 @@ export default function Home() {
 
   // Calculate available options for filters
   const availableCategories = useMemo(() => {
-    return Array.from(new Set(allProducts.map((p) => p.category)));
+    const categories = Array.from(new Set(allProducts.map((p) => p.category)));
+    // Фільтруємо тільки категорії з назвами (не ID)
+    return categories.filter(cat => 
+      cat && 
+      !cat.match(/^\d+$/) && // Не тільки цифри
+      cat !== "Uncategorized" &&
+      cat.trim().length > 0
+    );
   }, [allProducts]);
 
   const availableBrands = useMemo(() => {

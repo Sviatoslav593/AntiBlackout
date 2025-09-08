@@ -152,9 +152,13 @@ function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
     let imageUrls: string[] = [];
     if (xmlProduct.picture) {
       if (Array.isArray(xmlProduct.picture)) {
-        imageUrls = xmlProduct.picture.filter(img => img && img.trim().length > 0);
+        imageUrls = xmlProduct.picture.filter(
+          (img) => img && img.trim().length > 0
+        );
       } else {
-        imageUrls = [xmlProduct.picture].filter(img => img && img.trim().length > 0);
+        imageUrls = [xmlProduct.picture].filter(
+          (img) => img && img.trim().length > 0
+        );
       }
     }
 
@@ -192,7 +196,7 @@ function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
         String(xmlProduct.category || "Uncategorized").trim(),
       quantity: quantity,
       image_url: imageUrl.trim(),
-      images: imageUrls.map(img => img.trim()),
+      images: imageUrls.map((img) => img.trim()),
     };
 
     // Додаткова валідація
