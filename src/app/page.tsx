@@ -51,29 +51,29 @@ export default function Home() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        
-        const response = await fetch('/api/test-supabase');
+
+        const response = await fetch("/api/test-supabase");
         const data = await response.json();
 
         if (!data.success) {
-          console.error('Error fetching products:', data.error);
+          console.error("Error fetching products:", data.error);
           return;
         }
 
-        console.log('Fetched products from API:', data.count);
+        console.log("Fetched products from API:", data.count);
 
         // Convert database products to Product format
         const convertedProducts = data.products.map((product: any) => ({
           id: Math.floor(Math.random() * 1000000), // Generate random ID since we can't parse UUID
-          name: product.name || '',
-          description: product.description || '',
+          name: product.name || "",
+          description: product.description || "",
           price: product.price || 0,
           originalPrice: undefined,
-          image: product.image_url || '',
+          image: product.image_url || "",
           rating: 4.5, // Default rating
           reviewCount: Math.floor(Math.random() * 100) + 10, // Random review count
-          category: product.category || 'Uncategorized',
-          brand: product.brand || 'Unknown',
+          category: product.category || "Uncategorized",
+          brand: product.brand || "Unknown",
           capacity: 0, // Default capacity
           popularity: Math.floor(Math.random() * 100), // Random popularity
           badge: undefined,
@@ -81,10 +81,10 @@ export default function Home() {
           createdAt: product.created_at || new Date().toISOString(),
         })) as Product[];
 
-        console.log('Converted products:', convertedProducts.length);
+        console.log("Converted products:", convertedProducts.length);
         setAllProducts(convertedProducts);
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error("Error fetching products:", error);
       } finally {
         setLoading(false);
       }
@@ -124,22 +124,6 @@ export default function Home() {
       max: capacities.length > 0 ? Math.max(...capacities) : 50000,
     };
   }, [allProducts]);
-
-  // Show loading state
-  if (loading) {
-    return (
-      <Layout>
-        <div className="max-w-7xl mx-auto py-8 px-4">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-lg text-gray-600">Завантаження товарів...</p>
-            </div>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   // Filter products based on current filters and search query
   const filteredProducts = useMemo(() => {
@@ -214,6 +198,22 @@ export default function Home() {
   const scrollToProducts = () => {
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <Layout>
+        <div className="max-w-7xl mx-auto py-8 px-4">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-lg text-gray-600">Завантаження товарів...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

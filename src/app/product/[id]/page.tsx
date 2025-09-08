@@ -64,31 +64,31 @@ export default function ProductPage() {
       try {
         setLoading(true);
         const supabase = createClient();
-        
+
         // Fetch the specific product
         const { data: productData, error: productError } = await supabase
-          .from('products')
-          .select('*')
-          .eq('id', productId.toString())
+          .from("products")
+          .select("*")
+          .eq("id", productId.toString())
           .single();
 
         if (productError || !productData) {
-          console.error('Error fetching product:', productError);
+          console.error("Error fetching product:", productError);
           return;
         }
 
         // Convert to Product format
         const foundProduct: Product = {
           id: parseInt(productData.id) || 0,
-          name: productData.name || '',
-          description: productData.description || '',
+          name: productData.name || "",
+          description: productData.description || "",
           price: productData.price || 0,
           originalPrice: undefined,
-          image: productData.image_url || '',
+          image: productData.image_url || "",
           rating: 4.5,
           reviewCount: Math.floor(Math.random() * 100) + 10,
-          category: productData.category || 'Uncategorized',
-          brand: productData.brand || 'Unknown',
+          category: productData.category || "Uncategorized",
+          brand: productData.brand || "Unknown",
           capacity: 0,
           popularity: Math.floor(Math.random() * 100),
           badge: undefined,
@@ -100,25 +100,25 @@ export default function ProductPage() {
 
         // Fetch similar products
         const { data: similarData, error: similarError } = await supabase
-          .from('products')
-          .select('*')
-          .eq('category', productData.category)
-          .neq('id', productId.toString())
-          .gt('quantity', 0)
+          .from("products")
+          .select("*")
+          .eq("category", productData.category)
+          .neq("id", productId.toString())
+          .gt("quantity", 0)
           .limit(6);
 
         if (!similarError && similarData) {
           const similar = similarData.map((p) => ({
             id: parseInt(p.id) || 0,
-            name: p.name || '',
-            description: p.description || '',
+            name: p.name || "",
+            description: p.description || "",
             price: p.price || 0,
             originalPrice: undefined,
-            image: p.image_url || '',
+            image: p.image_url || "",
             rating: 4.5,
             reviewCount: Math.floor(Math.random() * 100) + 10,
-            category: p.category || 'Uncategorized',
-            brand: p.brand || 'Unknown',
+            category: p.category || "Uncategorized",
+            brand: p.brand || "Unknown",
             capacity: 0,
             popularity: Math.floor(Math.random() * 100),
             badge: undefined,
@@ -129,7 +129,7 @@ export default function ProductPage() {
           setSimilarProducts(similar);
         }
       } catch (error) {
-        console.error('Error fetching product:', error);
+        console.error("Error fetching product:", error);
       } finally {
         setLoading(false);
       }
@@ -162,9 +162,13 @@ export default function ProductPage() {
       <Layout>
         <div className="max-w-7xl mx-auto py-8 px-4">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Товар не знайдено</h1>
-            <p className="text-gray-600 mb-6">Запитаний товар не існує або був видалений.</p>
-            <Button onClick={() => router.push('/')} variant="outline">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Товар не знайдено
+            </h1>
+            <p className="text-gray-600 mb-6">
+              Запитаний товар не існує або був видалений.
+            </p>
+            <Button onClick={() => router.push("/")} variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Повернутися до каталогу
             </Button>
