@@ -204,8 +204,11 @@ function convertToParsedProduct(
       currency: "UAH", // Жорстко закодовано як UAH
       brand: String(xmlProduct.vendor || "Unknown").trim(),
       category:
-        categoryMap[xmlProduct.categoryId] ||
-        String(xmlProduct.category || "Uncategorized").trim(),
+        categoryMap[
+          Array.isArray(xmlProduct.categoryId)
+            ? xmlProduct.categoryId[0]
+            : xmlProduct.categoryId
+        ] || String(xmlProduct.category || "Uncategorized").trim(),
       quantity: quantity,
       image_url: imageUrl.trim(),
       images: imageUrls.map((img) => img.trim()),
