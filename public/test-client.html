@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Client</title>
+</head>
+<body>
+    <h1>Test Client</h1>
+    <div id="status">Loading...</div>
+    <div id="products"></div>
+
+    <script>
+        async function testAPI() {
+            try {
+                console.log('🔄 Testing API...');
+                const response = await fetch('/api/test-supabase');
+                const data = await response.json();
+                
+                console.log('API Response:', data);
+                
+                if (data.success) {
+                    document.getElementById('status').innerHTML = `✅ API Success: ${data.count} products`;
+                    
+                    const productsDiv = document.getElementById('products');
+                    data.products.forEach((product, index) => {
+                        const productDiv = document.createElement('div');
+                        productDiv.innerHTML = `
+                            <h3>${product.name}</h3>
+                            <p>Price: ${product.price} UAH</p>
+                            <p>Brand: ${product.brand}</p>
+                            <p>Category: ${product.category}</p>
+                            <hr>
+                        `;
+                        productsDiv.appendChild(productDiv);
+                    });
+                } else {
+                    document.getElementById('status').innerHTML = `❌ API Error: ${data.error}`;
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                document.getElementById('status').innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        testAPI();
+    </script>
+</body>
+</html>
