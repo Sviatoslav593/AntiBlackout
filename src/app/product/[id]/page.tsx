@@ -23,7 +23,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
-import products from "@/data/products.json";
+import { createClient } from "@/utils/supabase/client";
 import { generateStructuredData } from "./metadata";
 
 interface Product {
@@ -57,24 +57,122 @@ export default function ProductPage() {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Find the product by ID
-    const foundProduct = products.find((p) => p.id === productId);
-    if (foundProduct) {
-      setProduct(foundProduct);
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const supabase = createClient();
+        
+        // Fetch the specific product
+        const { data: productData, error: productError } = await supabase
+          .from('products')
+          .select('*')
+          .eq('id', productId.toString())
+          .single();
 
-      // Find similar products (same category, excluding current product)
-      const similar = products
-        .filter(
-          (p) =>
-            p.category === foundProduct.category && p.id !== foundProduct.id
-        )
-        .sort((a, b) => b.popularity - a.popularity)
-        .slice(0, 6);
-      setSimilarProducts(similar);
+        if (productError || !productData) {
+          console.error('Error fetching product:', productError);
+          return;
+        }
+
+        // Convert to Product format
+        const foundProduct: Product = {
+          id: parseInt(productData.id) || 0,
+          name: productData.name || '',
+          description: productData.description || '',
+          price: productData.price || 0,
+          originalPrice: undefined,
+          image: productData.image_url || '',
+          rating: 4.5,
+          reviewCount: Math.floor(Math.random() * 100) + 10,
+          category: productData.category || 'Uncategorized',
+          brand: productData.brand || 'Unknown',
+          capacity: 0,
+          popularity: Math.floor(Math.random() * 100),
+          badge: undefined,
+          inStock: (productData.quantity || 0) > 0,
+          createdAt: productData.created_at || new Date().toISOString(),
+        };
+
+        setProduct(foundProduct);
+
+        // Fetch similar products
+        const { data: similarData, error: similarError } = await supabase
+          .from('products')
+          .select('*')
+          .eq('category', productData.category)
+          .neq('id', productId.toString())
+          .gt('quantity', 0)
+          .limit(6);
+
+        if (!similarError && similarData) {
+          const similar = similarData.map((p) => ({
+            id: parseInt(p.id) || 0,
+            name: p.name || '',
+            description: p.description || '',
+            price: p.price || 0,
+            originalPrice: undefined,
+            image: p.image_url || '',
+            rating: 4.5,
+            reviewCount: Math.floor(Math.random() * 100) + 10,
+            category: p.category || 'Uncategorized',
+            brand: p.brand || 'Unknown',
+            capacity: 0,
+            popularity: Math.floor(Math.random() * 100),
+            badge: undefined,
+            inStock: (p.quantity || 0) > 0,
+            createdAt: p.created_at || new Date().toISOString(),
+          })) as Product[];
+
+          setSimilarProducts(similar);
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (productId) {
+      fetchProduct();
     }
   }, [productId]);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <Layout>
+        <div className="max-w-7xl mx-auto py-8 px-4">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-lg text-gray-600">Завантаження товару...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show not found if product doesn't exist
+  if (!product) {
+    return (
+      <Layout>
+        <div className="max-w-7xl mx-auto py-8 px-4">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Товар не знайдено</h1>
+            <p className="text-gray-600 mb-6">Запитаний товар не існує або був видалений.</p>
+            <Button onClick={() => router.push('/')} variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Повернутися до каталогу
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   // Generate structured data
   const structuredData = product

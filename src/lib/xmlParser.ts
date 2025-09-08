@@ -64,8 +64,8 @@ export async function parseXMLFeed(xmlUrl: string): Promise<ParsedProduct[]> {
       throw new Error("Invalid XML structure: items not found");
     }
 
-    const products = Array.isArray(parsedData.price.items.item) 
-      ? parsedData.price.items.item 
+    const products = Array.isArray(parsedData.price.items.item)
+      ? parsedData.price.items.item
       : [parsedData.price.items.item];
     console.log(`📦 Found ${products.length} products in XML feed`);
 
@@ -114,9 +114,7 @@ function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
   try {
     // Валідація обов'язкових полів
     if (!xmlProduct.id || !xmlProduct.name) {
-      console.warn(
-        "⚠️ Skipping product: missing required fields (id or name)"
-      );
+      console.warn("⚠️ Skipping product: missing required fields (id or name)");
       return null;
     }
 
@@ -124,10 +122,14 @@ function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
     let price = 0;
     if (xmlProduct.priceuah) {
       price = parseFloat(xmlProduct.priceuah) || 0;
-    } else if (xmlProduct.prices && xmlProduct.prices.price && xmlProduct.prices.price.value) {
+    } else if (
+      xmlProduct.prices &&
+      xmlProduct.prices.price &&
+      xmlProduct.prices.price.value
+    ) {
       price = parseFloat(xmlProduct.prices.price.value) || 0;
     }
-    
+
     if (price < 0) {
       console.warn(
         `⚠️ Skipping product ${xmlProduct.id}: invalid price ${price}`

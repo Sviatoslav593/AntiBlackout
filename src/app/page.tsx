@@ -9,10 +9,10 @@ import SortDropdown, {
   sortProducts,
 } from "@/components/SortDropdown";
 import { Battery, Zap, Shield, Truck } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearch } from "@/context/SearchContext";
-import productsData from "@/data/products.json";
 import { SITE_CONFIG } from "@/lib/seo";
+import { createClient } from "@/utils/supabase/client";
 
 const features = [
   {
@@ -39,15 +39,63 @@ const features = [
 ];
 
 export default function Home() {
-  // Cast the imported JSON data to Product[] with proper type handling
-  const allProducts = productsData.map((product) => ({
-    ...product,
-    originalPrice: product.originalPrice || undefined,
-    badge: product.badge || undefined,
-  })) as Product[];
+  // State for products
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Search context
   const { searchQuery, clearSearch } = useSearch();
+
+  // Fetch products from database
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const supabase = createClient();
+        
+        const { data: products, error } = await supabase
+          .from('products')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50); // Limit to first 50 products for testing
+
+        if (error) {
+          console.error('Error fetching products:', error);
+          return;
+        }
+
+        console.log('Fetched products from database:', products?.length || 0);
+
+        // Convert database products to Product format
+        const convertedProducts = products.map((product) => ({
+          id: parseInt(product.id) || 0,
+          name: product.name || '',
+          description: product.description || '',
+          price: product.price || 0,
+          originalPrice: undefined,
+          image: product.image_url || '',
+          rating: 4.5, // Default rating
+          reviewCount: Math.floor(Math.random() * 100) + 10, // Random review count
+          category: product.category || 'Uncategorized',
+          brand: product.brand || 'Unknown',
+          capacity: 0, // Default capacity
+          popularity: Math.floor(Math.random() * 100), // Random popularity
+          badge: undefined,
+          inStock: (product.quantity || 0) > 0,
+          createdAt: product.created_at || new Date().toISOString(),
+        })) as Product[];
+
+        console.log('Converted products:', convertedProducts.length);
+        setAllProducts(convertedProducts);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Filter and sort state
   const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
@@ -80,6 +128,22 @@ export default function Home() {
       max: capacities.length > 0 ? Math.max(...capacities) : 50000,
     };
   }, [allProducts]);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <Layout>
+        <div className="max-w-7xl mx-auto py-8 px-4">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-lg text-gray-600">Завантаження товарів...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   // Filter products based on current filters and search query
   const filteredProducts = useMemo(() => {

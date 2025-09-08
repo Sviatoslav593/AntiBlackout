@@ -3,11 +3,13 @@
 ## 🚨 Проблема: Товари не з'являються на сайті
 
 ### ✅ Що працює:
+
 - XML фід доступний: `https://mma.in.ua/feed/xml/iDxAyRECF.xml`
 - XML парсер працює: знайдено 2934 товари
 - Код імпорту написаний правильно
 
 ### ❌ Що не працює:
+
 - Змінні середовища не налаштовані
 - SQL скрипти не виконані
 - База даних не оновлена
@@ -47,6 +49,7 @@ CRON_SECRET=your-secure-cron-secret-here
 Виконайте в Supabase Dashboard → SQL Editor:
 
 #### A. Оновлення схеми products таблиці:
+
 ```sql
 -- Виконати update-products-schema.sql
 ALTER TABLE products
@@ -65,6 +68,7 @@ CREATE INDEX IF NOT EXISTS idx_products_price ON products(price);
 ```
 
 #### B. Створення таблиці логів:
+
 ```sql
 -- Виконати create-import-logs-table.sql
 CREATE TABLE IF NOT EXISTS import_logs (
@@ -109,16 +113,19 @@ curl "http://localhost:3000/api/products/import" | jq
 ## 🔍 Діагностика проблем
 
 ### Перевірка змінних середовища:
+
 ```bash
 node -e "console.log('SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)"
 ```
 
 ### Перевірка схеми бази даних:
+
 ```bash
 node check-database-schema.js
 ```
 
 ### Перевірка XML парсера:
+
 ```bash
 node test-xml-simple.js
 ```
@@ -128,6 +135,7 @@ node test-xml-simple.js
 Після успішного налаштування:
 
 1. **API імпорту** поверне:
+
 ```json
 {
   "success": true,
@@ -144,6 +152,7 @@ node test-xml-simple.js
 ```
 
 2. **Статистика товарів** покаже:
+
 ```json
 {
   "success": true,
@@ -164,6 +173,7 @@ node test-xml-simple.js
 Після налаштування можна налаштувати автоматичний імпорт:
 
 ### Vercel Cron Jobs:
+
 ```json
 {
   "crons": [
@@ -176,6 +186,7 @@ node test-xml-simple.js
 ```
 
 ### External Cron Service:
+
 - URL: `https://antiblackout.shop/api/cron/import-products`
 - Headers: `Authorization: Bearer your-secure-cron-secret`
 - Schedule: `0 */2 * * *` (кожні 2 години)
