@@ -50,21 +50,21 @@ export default function Home() {
 
   // Scroll restoration
   useEffect(() => {
-    const savedScrollPosition = sessionStorage.getItem('scrollPosition');
+    const savedScrollPosition = sessionStorage.getItem("scrollPosition");
     if (savedScrollPosition) {
       window.scrollTo(0, parseInt(savedScrollPosition));
-      sessionStorage.removeItem('scrollPosition');
+      sessionStorage.removeItem("scrollPosition");
     }
   }, []);
 
   // Save scroll position when navigating away
   useEffect(() => {
     const handleBeforeUnload = () => {
-      sessionStorage.setItem('scrollPosition', window.scrollY.toString());
+      sessionStorage.setItem("scrollPosition", window.scrollY.toString());
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
 
   // Fetch products from database
@@ -91,6 +91,7 @@ export default function Home() {
           price: product.price || 0,
           originalPrice: undefined,
           image: product.image_url || "",
+          images: product.images || [product.image_url || ""],
           rating: 4.5, // Default rating
           reviewCount: Math.floor(Math.random() * 100) + 10, // Random review count
           category: product.category || "Uncategorized",
@@ -226,21 +227,7 @@ export default function Home() {
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Show loading state only for initial load
-  if (loading && allProducts.length === 0) {
-    return (
-      <Layout>
-        <div className="max-w-7xl mx-auto py-8 px-4">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-lg text-gray-600">Завантаження товарів...</p>
-            </div>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
+  // Remove the full page loading state - page loads immediately
 
   return (
     <Layout>
@@ -360,13 +347,10 @@ export default function Home() {
               </div>
 
               {/* Products Grid */}
-              {loading ? (
+              {loading && allProducts.length === 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                   {Array.from({ length: 6 }).map((_, index) => (
-                    <div
-                      key={index}
-                      className="animate-pulse"
-                    >
+                    <div key={index} className="animate-pulse">
                       <div className="bg-gray-200 rounded-lg aspect-square mb-4"></div>
                       <div className="space-y-2">
                         <div className="h-4 bg-gray-200 rounded w-3/4"></div>

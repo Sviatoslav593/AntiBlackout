@@ -170,12 +170,24 @@ export default function Filters({
                 className="rounded border-gray-300"
               />
               <span className="text-sm capitalize">
-                {category === "powerbank"
+                {category === "Power Banks"
                   ? "Павербанки"
-                  : category === "charger"
-                  ? "Зарядки"
-                  : category === "cable"
+                  : category === "Зарядні пристрої"
+                  ? "Зарядні пристрої"
+                  : category === "Кабелі"
                   ? "Кабелі"
+                  : category === "Адаптери"
+                  ? "Адаптери"
+                  : category === "Держателі"
+                  ? "Держателі"
+                  : category === "Чохли"
+                  ? "Чохли"
+                  : category === "Навушники"
+                  ? "Навушники"
+                  : category === "Колонки"
+                  ? "Колонки"
+                  : category === "Аксесуари"
+                  ? "Аксесуари"
                   : category}
               </span>
             </label>
@@ -209,10 +221,10 @@ export default function Filters({
       <Separator />
 
       {/* Capacity Range (for powerbanks only) */}
-      {filters.categories.some(cat => 
-        cat.toLowerCase().includes('power') || 
-        cat.toLowerCase().includes('bank') ||
-        cat === 'Power Banks'
+      {filters.categories.some(
+        (cat) =>
+          cat === "Power Banks" ||
+          cat === "Павербанки"
       ) && (
         <CapacityFilter
           value={filters.capacityRange}

@@ -26,6 +26,7 @@ export interface ParsedProduct {
   category: string;
   quantity: number;
   image_url: string;
+  images: string[];
 }
 
 /**
@@ -147,21 +148,23 @@ function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
       return null;
     }
 
-    // Отримуємо перше зображення
-    let imageUrl = "";
+    // Отримуємо всі зображення
+    let imageUrls: string[] = [];
     if (xmlProduct.picture) {
       if (Array.isArray(xmlProduct.picture)) {
-        imageUrl = xmlProduct.picture[0];
+        imageUrls = xmlProduct.picture.filter(img => img && img.trim().length > 0);
       } else {
-        imageUrl = xmlProduct.picture;
+        imageUrls = [xmlProduct.picture].filter(img => img && img.trim().length > 0);
       }
     }
 
-    // Пропускаємо товари без зображення
-    if (!imageUrl || imageUrl.trim().length === 0) {
-      console.warn(`⚠️ Skipping product ${xmlProduct.id}: missing image`);
+    // Пропускаємо товари без зображень
+    if (imageUrls.length === 0) {
+      console.warn(`⚠️ Skipping product ${xmlProduct.id}: missing images`);
       return null;
     }
+
+    const imageUrl = imageUrls[0]; // Основне зображення
 
     // Мапінг категорій з ID на назви
     const categoryMap: { [key: string]: string } = {
@@ -189,6 +192,7 @@ function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
         String(xmlProduct.category || "Uncategorized").trim(),
       quantity: quantity,
       image_url: imageUrl.trim(),
+      images: imageUrls.map(img => img.trim()),
     };
 
     // Додаткова валідація

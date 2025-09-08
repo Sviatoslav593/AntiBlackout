@@ -168,6 +168,7 @@ async function importProductsToDatabase(products: ParsedProduct[]): Promise<{
         category: product.category,
         quantity: product.quantity,
         image_url: product.image_url,
+        images: product.images || [product.image_url],
         updated_at: new Date().toISOString(),
       };
 

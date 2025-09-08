@@ -7,6 +7,7 @@ import Layout from "@/components/Layout";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
 import { useFavorites } from "@/context/FavoritesContext";
+import ProductImageGallery from "@/components/ProductImageGallery";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -33,6 +34,7 @@ interface Product {
   price: number;
   originalPrice?: number;
   image: string;
+  images?: string[];
   rating: number;
   reviewCount: number;
   inStock: boolean;
@@ -86,6 +88,7 @@ export default function ProductPage() {
           price: productData.price || 0,
           originalPrice: undefined,
           image: productData.image_url || "",
+          images: productData.images || [productData.image_url || ""],
           rating: 4.5,
           reviewCount: Math.floor(Math.random() * 100) + 10,
           category: productData.category || "Uncategorized",
@@ -322,28 +325,18 @@ export default function ProductPage() {
 
         {/* Product Details Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
-          {/* Product Image */}
+          {/* Product Image Gallery */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
             className="relative"
           >
-            <div className="aspect-square rounded-xl overflow-hidden bg-muted max-h-[400px]">
-              <Image
-                src={product.image}
-                alt={product.name}
-                fill
-                className={`object-contain transition-opacity duration-300 ${
-                  isImageLoading ? "opacity-0" : "opacity-100"
-                }`}
-                onLoad={() => setIsImageLoading(false)}
-                priority
-              />
-              {isImageLoading && (
-                <div className="absolute inset-0 bg-muted animate-pulse" />
-              )}
-            </div>
+            <ProductImageGallery
+              images={product.images || [product.image]}
+              productName={product.name}
+              className="w-full"
+            />
 
             {/* Badge */}
             {product.badge && (
@@ -422,16 +415,17 @@ export default function ProductPage() {
             {/* Description */}
             <div>
               <p className="text-muted-foreground leading-relaxed">
-                {isDescriptionExpanded 
-                  ? product.description 
-                  : product.description.length > 200 
-                    ? `${product.description.substring(0, 200)}...` 
-                    : product.description
-                }
+                {isDescriptionExpanded
+                  ? product.description
+                  : product.description.length > 200
+                  ? `${product.description.substring(0, 200)}...`
+                  : product.description}
               </p>
               {product.description.length > 200 && (
                 <button
-                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                  onClick={() =>
+                    setIsDescriptionExpanded(!isDescriptionExpanded)
+                  }
                   className="mt-2 text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
                 >
                   {isDescriptionExpanded ? "Показати менше" : "Показати більше"}

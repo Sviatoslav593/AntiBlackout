@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const { data: products, error } = await supabase
       .from("products")
       .select(
-        "id, name, description, price, external_id, brand, category, quantity, image_url, created_at"
+        "id, name, description, price, external_id, brand, category, quantity, image_url, images, created_at"
       )
       .gt("price", 0) // Тільки товари з ціною більше 0
       .not("image_url", "is", null) // Тільки товари з зображеннями
