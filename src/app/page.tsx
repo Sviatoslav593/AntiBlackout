@@ -51,24 +51,20 @@ export default function Home() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const supabase = createClient();
         
-        const { data: products, error } = await supabase
-          .from('products')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(50); // Limit to first 50 products for testing
+        const response = await fetch('/api/test-supabase');
+        const data = await response.json();
 
-        if (error) {
-          console.error('Error fetching products:', error);
+        if (!data.success) {
+          console.error('Error fetching products:', data.error);
           return;
         }
 
-        console.log('Fetched products from database:', products?.length || 0);
+        console.log('Fetched products from API:', data.count);
 
         // Convert database products to Product format
-        const convertedProducts = products.map((product) => ({
-          id: parseInt(product.id) || 0,
+        const convertedProducts = data.products.map((product: any) => ({
+          id: Math.floor(Math.random() * 1000000), // Generate random ID since we can't parse UUID
           name: product.name || '',
           description: product.description || '',
           price: product.price || 0,
