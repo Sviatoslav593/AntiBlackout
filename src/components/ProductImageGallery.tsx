@@ -37,12 +37,13 @@ export default function ProductImageGallery({
   return (
     <div className={`relative ${className}`}>
       {/* Main Image */}
-      <div className="relative w-full h-[400px] rounded-xl overflow-hidden bg-muted">
+      <div className="w-full max-w-[450px] mx-auto h-auto">
         <Image
           src={images[currentImageIndex]}
           alt={`${productName} - Image ${currentImageIndex + 1}`}
-          fill
-          className="object-contain transition-opacity duration-300"
+          width={450}
+          height={450}
+          className="w-full h-auto object-contain rounded-lg"
           priority
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
