@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
       )
       .gt("price", 0) // Тільки товари з ціною більше 0
       .not("image_url", "is", null) // Тільки товари з зображеннями
-      .not("name", "is", null); // Тільки товари з назвами
+      .not("name", "is", null) // Тільки товари з назвами
+      .order("quantity", { ascending: false }); // Товари в наявності першими
 
     if (error) {
       console.error("❌ Supabase error:", error);

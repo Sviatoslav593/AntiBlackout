@@ -208,13 +208,19 @@ export default function Filters({
 
       <Separator />
 
-      {/* Capacity Range (for powerbanks) */}
-      <CapacityFilter
-        value={filters.capacityRange}
-        onChange={handleCapacityChange}
-        min={capacityRange.min}
-        max={capacityRange.max}
-      />
+      {/* Capacity Range (for powerbanks only) */}
+      {filters.categories.some(cat => 
+        cat.toLowerCase().includes('power') || 
+        cat.toLowerCase().includes('bank') ||
+        cat === 'Power Banks'
+      ) && (
+        <CapacityFilter
+          value={filters.capacityRange}
+          onChange={handleCapacityChange}
+          min={capacityRange.min}
+          max={capacityRange.max}
+        />
+      )}
 
       <Separator />
 

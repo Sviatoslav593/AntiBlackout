@@ -163,6 +163,19 @@ function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
       return null;
     }
 
+    // Мапінг категорій з ID на назви
+    const categoryMap: { [key: string]: string } = {
+      "3": "Power Banks",
+      "15": "Зарядні пристрої",
+      "16": "Кабелі",
+      "17": "Адаптери",
+      "18": "Держателі",
+      "19": "Чохли",
+      "20": "Навушники",
+      "21": "Колонки",
+      "22": "Аксесуари",
+    };
+
     // Очищаємо та валідуємо дані
     const cleanProduct: ParsedProduct = {
       external_id: String(xmlProduct.id).trim(),
@@ -171,7 +184,9 @@ function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
       price: price,
       currency: "UAH", // Жорстко закодовано як UAH
       brand: String(xmlProduct.vendor || "Unknown").trim(),
-      category: String(xmlProduct.categoryId || "Uncategorized").trim(),
+      category:
+        categoryMap[xmlProduct.categoryId] ||
+        String(xmlProduct.category || "Uncategorized").trim(),
       quantity: quantity,
       image_url: imageUrl.trim(),
     };

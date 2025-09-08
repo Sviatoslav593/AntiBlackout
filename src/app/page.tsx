@@ -13,6 +13,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useSearch } from "@/context/SearchContext";
 import { SITE_CONFIG } from "@/lib/seo";
 import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 const features = [
   {
@@ -42,9 +43,29 @@ export default function Home() {
   // State for products
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   // Search context
   const { searchQuery, clearSearch } = useSearch();
+
+  // Scroll restoration
+  useEffect(() => {
+    const savedScrollPosition = sessionStorage.getItem('scrollPosition');
+    if (savedScrollPosition) {
+      window.scrollTo(0, parseInt(savedScrollPosition));
+      sessionStorage.removeItem('scrollPosition');
+    }
+  }, []);
+
+  // Save scroll position when navigating away
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      sessionStorage.setItem('scrollPosition', window.scrollY.toString());
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   // Fetch products from database
   useEffect(() => {
@@ -190,17 +211,23 @@ export default function Home() {
     });
   }, [allProducts, filters, searchQuery]);
 
-  // Sort filtered products
+  // Sort filtered products - in-stock products first
   const sortedProducts = useMemo(() => {
-    return sortProducts(filteredProducts, sortBy);
+    const sorted = sortProducts(filteredProducts, sortBy);
+    // Always show in-stock products first
+    return sorted.sort((a, b) => {
+      if (a.inStock && !b.inStock) return -1;
+      if (!a.inStock && b.inStock) return 1;
+      return 0;
+    });
   }, [filteredProducts, sortBy]);
 
   const scrollToProducts = () => {
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Show loading state
-  if (loading) {
+  // Show loading state only for initial load
+  if (loading && allProducts.length === 0) {
     return (
       <Layout>
         <div className="max-w-7xl mx-auto py-8 px-4">
@@ -333,7 +360,23 @@ export default function Home() {
               </div>
 
               {/* Products Grid */}
-              {sortedProducts.length > 0 ? (
+              {loading ? (
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="animate-pulse"
+                    >
+                      <div className="bg-gray-200 rounded-lg aspect-square mb-4"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : sortedProducts.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                   {sortedProducts.map((product: Product, index) => (
                     <div

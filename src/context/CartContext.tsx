@@ -10,7 +10,7 @@ import React, {
 } from "react";
 
 export interface Product {
-  id: number;
+  id: string;
   name: string;
   description: string;
   price: number;
@@ -39,18 +39,18 @@ interface CartState {
 
 type CartAction =
   | { type: "ADD_ITEM"; payload: Product }
-  | { type: "REMOVE_ITEM"; payload: number }
-  | { type: "UPDATE_QUANTITY"; payload: { id: number; quantity: number } }
+  | { type: "REMOVE_ITEM"; payload: string }
+  | { type: "UPDATE_QUANTITY"; payload: { id: string; quantity: number } }
   | { type: "CLEAR_CART" }
   | { type: "LOAD_CART"; payload: CartItem[] };
 
 interface CartContextType {
   state: CartState;
   addItem: (product: Product, showToast?: boolean) => void;
-  removeItem: (id: number) => void;
-  updateQuantity: (id: number, quantity: number) => void;
+  removeItem: (id: string) => void;
+  updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
-  getItemQuantity: (id: number) => number;
+  getItemQuantity: (id: string) => number;
   triggerCartAnimation: () => void;
   isCartAnimating: boolean;
 }
@@ -200,11 +200,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     triggerCartAnimation();
   };
 
-  const removeItem = (id: number) => {
+  const removeItem = (id: string) => {
     dispatch({ type: "REMOVE_ITEM", payload: id });
   };
 
-  const updateQuantity = (id: number, quantity: number) => {
+  const updateQuantity = (id: string, quantity: number) => {
     dispatch({ type: "UPDATE_QUANTITY", payload: { id, quantity } });
   };
 
@@ -212,7 +212,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     dispatch({ type: "CLEAR_CART" });
   };
 
-  const getItemQuantity = (id: number): number => {
+  const getItemQuantity = (id: string): number => {
     const item = state.items.find((item) => item.id === id);
     return item ? item.quantity : 0;
   };

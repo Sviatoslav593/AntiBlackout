@@ -74,6 +74,8 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const handleDetailsClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click (though it does the same thing)
+    // Save scroll position before navigating
+    sessionStorage.setItem('scrollPosition', window.scrollY.toString());
     router.push(`/product/${product.id}`);
   };
 
@@ -122,6 +124,8 @@ export default function ProductCard({ product }: ProductCardProps) {
     const isButton = target.closest("button") || target.tagName === "BUTTON";
 
     if (!isButton) {
+      // Save scroll position before navigating
+      sessionStorage.setItem('scrollPosition', window.scrollY.toString());
       router.push(`/product/${product.id}`);
     }
   };

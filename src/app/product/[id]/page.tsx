@@ -58,6 +58,7 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -328,12 +329,12 @@ export default function ProductPage() {
             transition={{ duration: 0.5 }}
             className="relative"
           >
-            <div className="aspect-square rounded-xl overflow-hidden bg-muted">
+            <div className="aspect-square rounded-xl overflow-hidden bg-muted max-h-[400px]">
               <Image
                 src={product.image}
                 alt={product.name}
                 fill
-                className={`object-cover transition-opacity duration-300 ${
+                className={`object-contain transition-opacity duration-300 ${
                   isImageLoading ? "opacity-0" : "opacity-100"
                 }`}
                 onLoad={() => setIsImageLoading(false)}
@@ -421,8 +422,21 @@ export default function ProductPage() {
             {/* Description */}
             <div>
               <p className="text-muted-foreground leading-relaxed">
-                {product.description}
+                {isDescriptionExpanded 
+                  ? product.description 
+                  : product.description.length > 200 
+                    ? `${product.description.substring(0, 200)}...` 
+                    : product.description
+                }
               </p>
+              {product.description.length > 200 && (
+                <button
+                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                  className="mt-2 text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
+                >
+                  {isDescriptionExpanded ? "Показати менше" : "Показати більше"}
+                </button>
+              )}
             </div>
 
             <Separator />
