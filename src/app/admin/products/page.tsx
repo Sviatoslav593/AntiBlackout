@@ -6,16 +6,16 @@ import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Package, 
-  Download, 
-  Trash2, 
-  RefreshCw, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Package,
+  Download,
+  Trash2,
+  RefreshCw,
+  CheckCircle,
+  XCircle,
   AlertCircle,
   BarChart3,
-  Clock
+  Clock,
 } from "lucide-react";
 
 interface ProductStats {
@@ -51,10 +51,7 @@ const AdminProductsPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      await Promise.all([
-        fetchProductStats(),
-        fetchImportLogs(),
-      ]);
+      await Promise.all([fetchProductStats(), fetchImportLogs()]);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -66,7 +63,7 @@ const AdminProductsPage = () => {
     try {
       const response = await fetch("/api/products/import");
       const data = await response.json();
-      
+
       if (data.success) {
         setStats(data.stats);
       }
@@ -100,9 +97,11 @@ const AdminProductsPage = () => {
         method: "POST",
       });
       const data = await response.json();
-      
+
       if (data.success) {
-        alert(`Импорт завершен успешно!\nИмпортировано: ${data.details.imported}\nОбновлено: ${data.details.updated}\nОшибок: ${data.details.errors}`);
+        alert(
+          `Импорт завершен успешно!\nИмпортировано: ${data.details.imported}\nОбновлено: ${data.details.updated}\nОшибок: ${data.details.errors}`
+        );
         await fetchData();
       } else {
         alert(`Ошибка импорта: ${data.message}`);
@@ -116,7 +115,11 @@ const AdminProductsPage = () => {
   };
 
   const handleCleanupFakeProducts = async () => {
-    if (!confirm("Вы уверены, что хотите удалить все фейковые товары? Это действие нельзя отменить.")) {
+    if (
+      !confirm(
+        "Вы уверены, что хотите удалить все фейковые товары? Это действие нельзя отменить."
+      )
+    ) {
       return;
     }
 
@@ -126,9 +129,11 @@ const AdminProductsPage = () => {
         method: "POST",
       });
       const data = await response.json();
-      
+
       if (data.success) {
-        alert(`Очистка завершена!\nУдалено: ${data.stats.deleted}\nОставлено: ${data.stats.kept}`);
+        alert(
+          `Очистка завершена!\nУдалено: ${data.stats.deleted}\nОставлено: ${data.stats.kept}`
+        );
         await fetchData();
       } else {
         alert(`Ошибка очистки: ${data.message}`);
@@ -146,9 +151,11 @@ const AdminProductsPage = () => {
       setActionLoading("check");
       const response = await fetch("/api/products/cleanup");
       const data = await response.json();
-      
+
       if (data.success) {
-        alert(`Анализ завершен!\nВсего товаров: ${data.stats.total}\nФейковых: ${data.stats.fake}\nНастоящих: ${data.stats.real}`);
+        alert(
+          `Анализ завершен!\nВсего товаров: ${data.stats.total}\nФейковых: ${data.stats.fake}\nНастоящих: ${data.stats.real}`
+        );
       } else {
         alert(`Ошибка анализа: ${data.message}`);
       }
@@ -186,7 +193,11 @@ const AdminProductsPage = () => {
               Імпорт та управління товарами з XML фіду
             </p>
           </div>
-          <Button onClick={fetchData} variant="outline" className="flex items-center gap-2">
+          <Button
+            onClick={fetchData}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
             <RefreshCw className="w-4 h-4" />
             Оновити
           </Button>
@@ -270,7 +281,7 @@ const AdminProductsPage = () => {
               <p className="text-sm text-gray-600 mb-4">
                 Імпортувати товари з XML фіду
               </p>
-              <Button 
+              <Button
                 onClick={handleImportProducts}
                 disabled={actionLoading === "import"}
                 className="w-full"
@@ -296,7 +307,7 @@ const AdminProductsPage = () => {
               <p className="text-sm text-gray-600 mb-4">
                 Перевірити наявність фейкових товарів
               </p>
-              <Button 
+              <Button
                 onClick={handleCheckFakeProducts}
                 disabled={actionLoading === "check"}
                 variant="outline"
@@ -323,7 +334,7 @@ const AdminProductsPage = () => {
               <p className="text-sm text-gray-600 mb-4">
                 Видалити всі фейкові товари
               </p>
-              <Button 
+              <Button
                 onClick={handleCleanupFakeProducts}
                 disabled={actionLoading === "cleanup"}
                 variant="destructive"
@@ -356,7 +367,10 @@ const AdminProductsPage = () => {
             ) : (
               <div className="space-y-3">
                 {importLogs.map((log) => (
-                  <div key={log.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div
+                    key={log.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
                     <div className="flex items-center gap-3">
                       {log.success ? (
                         <CheckCircle className="w-5 h-5 text-green-600" />

@@ -67,20 +67,20 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
 ### XML → Database Mapping
 
-| XML Field | Database Column | Type | Notes |
-|-----------|----------------|------|-------|
-| `<code>` | `external_id` | TEXT | Унікальний ідентифікатор |
-| `<name>` | `name` | TEXT | Назва товару |
-| `<description>` | `description` | TEXT | Опис товару |
-| `<price>` | `price` | NUMERIC(10,2) | Ціна в UAH |
-| `<brand>` | `brand` | TEXT | Бренд |
-| `<category>` | `category` | TEXT | Категорія |
-| `<quantity_in_stock>` | `quantity` | INTEGER | Кількість на складі |
-| `<image>` | `image_url` | TEXT | URL зображення |
-| - | `currency` | TEXT | Жорстко "UAH" |
-| - | `id` | UUID | Генерується автоматично |
-| - | `created_at` | TIMESTAMP | Час створення |
-| - | `updated_at` | TIMESTAMP | Час оновлення |
+| XML Field             | Database Column | Type          | Notes                    |
+| --------------------- | --------------- | ------------- | ------------------------ |
+| `<code>`              | `external_id`   | TEXT          | Унікальний ідентифікатор |
+| `<name>`              | `name`          | TEXT          | Назва товару             |
+| `<description>`       | `description`   | TEXT          | Опис товару              |
+| `<price>`             | `price`         | NUMERIC(10,2) | Ціна в UAH               |
+| `<brand>`             | `brand`         | TEXT          | Бренд                    |
+| `<category>`          | `category`      | TEXT          | Категорія                |
+| `<quantity_in_stock>` | `quantity`      | INTEGER       | Кількість на складі      |
+| `<image>`             | `image_url`     | TEXT          | URL зображення           |
+| -                     | `currency`      | TEXT          | Жорстко "UAH"            |
+| -                     | `id`            | UUID          | Генерується автоматично  |
+| -                     | `created_at`    | TIMESTAMP     | Час створення            |
+| -                     | `updated_at`    | TIMESTAMP     | Час оновлення            |
 
 ### Валідація даних
 
@@ -99,6 +99,7 @@ POST /api/products/import
 ```
 
 **Відповідь:**
+
 ```json
 {
   "success": true,
@@ -121,6 +122,7 @@ GET /api/products/import
 ```
 
 **Відповідь:**
+
 ```json
 {
   "success": true,
@@ -141,6 +143,7 @@ POST /api/products/cleanup
 ```
 
 **Відповідь:**
+
 ```json
 {
   "success": true,
@@ -164,6 +167,7 @@ Authorization: Bearer your-secure-cron-secret
 ### Доступ: `/admin/products`
 
 **Функції:**
+
 - **Статистика товарів** - загальна інформація
 - **Ручний імпорт** - запуск імпорту вручну
 - **Перевірка фейкових** - аналіз фейкових товарів
@@ -197,7 +201,7 @@ const { valid, invalid, stats } = validateProducts(products);
 ```typescript
 for (const product of valid) {
   const existing = await findProductByExternalId(product.external_id);
-  
+
   if (existing) {
     await updateProduct(existing.id, product);
   } else {
@@ -214,7 +218,7 @@ await logImportResult({
   imported: 20,
   updated: 125,
   errors: 0,
-  timestamp: new Date().toISOString()
+  timestamp: new Date().toISOString(),
 });
 ```
 
@@ -244,6 +248,7 @@ await logImportResult({
 ### 1. Логи в базі даних
 
 Таблиця `import_logs` містить:
+
 - **success** - успішність імпорту
 - **imported** - кількість нових товарів
 - **updated** - кількість оновлених товарів
@@ -292,8 +297,8 @@ curl "https://antiblackout.shop/api/products/import"
 ### 3. Перевірка логів
 
 ```sql
-SELECT * FROM import_logs 
-ORDER BY created_at DESC 
+SELECT * FROM import_logs
+ORDER BY created_at DESC
 LIMIT 10;
 ```
 
@@ -308,6 +313,7 @@ LIMIT 10;
 ## 📞 Підтримка
 
 При проблемах:
+
 1. Перевірте логи в `import_logs` таблиці
 2. Перевірте консольні логи сервера
 3. Переконайтеся, що XML фід доступний

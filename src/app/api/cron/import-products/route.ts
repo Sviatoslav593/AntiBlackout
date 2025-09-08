@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     // Перевіряємо, чи це дійсно cron запит
     const authHeader = request.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET || "default-cron-secret";
-    
+
     if (authHeader !== `Bearer ${cronSecret}`) {
       console.log("❌ Unauthorized cron request");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -58,7 +58,6 @@ export async function GET(request: NextRequest) {
         errors: importResult.errors,
       },
     });
-
   } catch (error) {
     console.error("❌ Error in scheduled import:", error);
 
@@ -69,11 +68,14 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
 
-    return NextResponse.json({
-      success: false,
-      message: "Scheduled import failed",
-      error: error instanceof Error ? error.message : "Unknown error",
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Scheduled import failed",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -100,8 +102,11 @@ async function importProductsToDatabase(products: any[]): Promise<{
         .eq("external_id", product.external_id)
         .single();
 
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.error(`❌ Error checking product ${product.external_id}:`, checkError);
+      if (checkError && checkError.code !== "PGRST116") {
+        console.error(
+          `❌ Error checking product ${product.external_id}:`,
+          checkError
+        );
         errors++;
         continue;
       }
@@ -126,7 +131,10 @@ async function importProductsToDatabase(products: any[]): Promise<{
           .eq("id", existingProduct.id);
 
         if (updateError) {
-          console.error(`❌ Error updating product ${product.external_id}:`, updateError);
+          console.error(
+            `❌ Error updating product ${product.external_id}:`,
+            updateError
+          );
           errors++;
         } else {
           updated++;
@@ -135,27 +143,36 @@ async function importProductsToDatabase(products: any[]): Promise<{
         // Створюємо новий товар
         const { error: insertError } = await supabaseAdmin
           .from("products")
-          .insert([{
-            ...productData,
-            id: crypto.randomUUID(),
-            created_at: new Date().toISOString(),
-          }]);
+          .insert([
+            {
+              ...productData,
+              id: crypto.randomUUID(),
+              created_at: new Date().toISOString(),
+            },
+          ]);
 
         if (insertError) {
-          console.error(`❌ Error inserting product ${product.external_id}:`, insertError);
+          console.error(
+            `❌ Error inserting product ${product.external_id}:`,
+            insertError
+          );
           errors++;
         } else {
           imported++;
         }
       }
-
     } catch (error) {
-      console.error(`❌ Unexpected error processing product ${product.external_id}:`, error);
+      console.error(
+        `❌ Unexpected error processing product ${product.external_id}:`,
+        error
+      );
       errors++;
     }
   }
 
-  console.log(`✅ Import completed: ${imported} imported, ${updated} updated, ${errors} errors`);
+  console.log(
+    `✅ Import completed: ${imported} imported, ${updated} updated, ${errors} errors`
+  );
   return { imported, updated, errors };
 }
 
@@ -172,9 +189,8 @@ async function logImportResult(result: {
   timestamp: string;
 }) {
   try {
-    const { error } = await supabaseAdmin
-      .from("import_logs")
-      .insert([{
+    const { error } = await supabaseAdmin.from("import_logs").insert([
+      {
         id: crypto.randomUUID(),
         success: result.success,
         imported: result.imported || 0,
@@ -183,7 +199,8 @@ async function logImportResult(result: {
         total_processed: result.totalProcessed || 0,
         error_message: result.error || null,
         created_at: result.timestamp,
-      }]);
+      },
+    ]);
 
     if (error) {
       console.error("❌ Error logging import result:", error);

@@ -2,7 +2,7 @@
  * XML Parser для імпорту товарів з зовнішнього фіду
  */
 
-import { parseString } from 'xml2js';
+import { parseString } from "xml2js";
 
 export interface XMLProduct {
   code: string;
@@ -34,12 +34,12 @@ export interface ParsedProduct {
 export async function parseXMLFeed(xmlUrl: string): Promise<ParsedProduct[]> {
   try {
     console.log(`🔄 Fetching XML feed from: ${xmlUrl}`);
-    
+
     // Отримуємо XML дані
     const response = await fetch(xmlUrl, {
       headers: {
-        'User-Agent': 'Antiblackout-Product-Importer/1.0',
-        'Accept': 'application/xml, text/xml, */*',
+        "User-Agent": "Antiblackout-Product-Importer/1.0",
+        Accept: "application/xml, text/xml, */*",
       },
     });
 
@@ -48,28 +48,38 @@ export async function parseXMLFeed(xmlUrl: string): Promise<ParsedProduct[]> {
     }
 
     const xmlData = await response.text();
-    console.log(`✅ XML feed fetched successfully (${xmlData.length} characters)`);
+    console.log(
+      `✅ XML feed fetched successfully (${xmlData.length} characters)`
+    );
 
     // Парсимо XML
     const parsedData = await parseXMLString(xmlData);
-    
-    if (!parsedData || !parsedData.products || !Array.isArray(parsedData.products.product)) {
-      throw new Error('Invalid XML structure: products not found');
+
+    if (
+      !parsedData ||
+      !parsedData.price ||
+      !parsedData.price.items ||
+      !parsedData.price.items.item
+    ) {
+      throw new Error("Invalid XML structure: items not found");
     }
 
-    const products = parsedData.products.product;
+    const products = Array.isArray(parsedData.price.items.item) 
+      ? parsedData.price.items.item 
+      : [parsedData.price.items.item];
     console.log(`📦 Found ${products.length} products in XML feed`);
 
     // Конвертуємо в наш формат
-    const parsedProducts: ParsedProduct[] = products.map((product: any) => {
-      return convertToParsedProduct(product);
-    }).filter(Boolean); // Видаляємо null/undefined
+    const parsedProducts: ParsedProduct[] = products
+      .map((product: any) => {
+        return convertToParsedProduct(product);
+      })
+      .filter(Boolean); // Видаляємо null/undefined
 
     console.log(`✅ Successfully parsed ${parsedProducts.length} products`);
     return parsedProducts;
-
   } catch (error) {
-    console.error('❌ Error parsing XML feed:', error);
+    console.error("❌ Error parsing XML feed:", error);
     throw error;
   }
 }
@@ -79,17 +89,21 @@ export async function parseXMLFeed(xmlUrl: string): Promise<ParsedProduct[]> {
  */
 function parseXMLString(xmlString: string): Promise<any> {
   return new Promise((resolve, reject) => {
-    parseString(xmlString, {
-      explicitArray: false,
-      mergeAttrs: true,
-      trim: true,
-    }, (err, result) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(result);
+    parseString(
+      xmlString,
+      {
+        explicitArray: false,
+        mergeAttrs: true,
+        trim: true,
+      },
+      (err, result) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
+        }
       }
-    });
+    );
   });
 }
 
@@ -99,41 +113,65 @@ function parseXMLString(xmlString: string): Promise<any> {
 function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
   try {
     // Валідація обов'язкових полів
-    if (!xmlProduct.code || !xmlProduct.name) {
-      console.warn('⚠️ Skipping product: missing required fields (code or name)');
+    if (!xmlProduct.id || !xmlProduct.name) {
+      console.warn(
+        "⚠️ Skipping product: missing required fields (id or name)"
+      );
       return null;
     }
 
-    // Парсимо ціну
-    const price = parseFloat(xmlProduct.price) || 0;
+    // Парсимо ціну - використовуємо priceuah або prices.price.value
+    let price = 0;
+    if (xmlProduct.priceuah) {
+      price = parseFloat(xmlProduct.priceuah) || 0;
+    } else if (xmlProduct.prices && xmlProduct.prices.price && xmlProduct.prices.price.value) {
+      price = parseFloat(xmlProduct.prices.price.value) || 0;
+    }
+    
     if (price < 0) {
-      console.warn(`⚠️ Skipping product ${xmlProduct.code}: invalid price ${xmlProduct.price}`);
+      console.warn(
+        `⚠️ Skipping product ${xmlProduct.id}: invalid price ${price}`
+      );
       return null;
     }
 
     // Парсимо кількість
-    const quantity = parseInt(xmlProduct.quantity_in_stock) || 0;
+    const quantity = parseInt(xmlProduct.stock_quantity) || 0;
     if (quantity < 0) {
-      console.warn(`⚠️ Skipping product ${xmlProduct.code}: invalid quantity ${xmlProduct.quantity_in_stock}`);
+      console.warn(
+        `⚠️ Skipping product ${xmlProduct.id}: invalid quantity ${xmlProduct.stock_quantity}`
+      );
       return null;
+    }
+
+    // Отримуємо перше зображення
+    let imageUrl = "";
+    if (xmlProduct.picture) {
+      if (Array.isArray(xmlProduct.picture)) {
+        imageUrl = xmlProduct.picture[0];
+      } else {
+        imageUrl = xmlProduct.picture;
+      }
     }
 
     // Очищаємо та валідуємо дані
     const cleanProduct: ParsedProduct = {
-      external_id: String(xmlProduct.code).trim(),
-      name: String(xmlProduct.name || '').trim(),
-      description: String(xmlProduct.description || '').trim(),
+      external_id: String(xmlProduct.id).trim(),
+      name: String(xmlProduct.name || "").trim(),
+      description: String(xmlProduct.description || "").trim(),
       price: price,
-      currency: 'UAH', // Жорстко закодовано як UAH
-      brand: String(xmlProduct.brand || 'Unknown').trim(),
-      category: String(xmlProduct.category || 'Uncategorized').trim(),
+      currency: "UAH", // Жорстко закодовано як UAH
+      brand: String(xmlProduct.vendor || "Unknown").trim(),
+      category: String(xmlProduct.categoryId || "Uncategorized").trim(),
       quantity: quantity,
-      image_url: String(xmlProduct.image || '').trim(),
+      image_url: imageUrl.trim(),
     };
 
     // Додаткова валідація
     if (cleanProduct.name.length === 0) {
-      console.warn(`⚠️ Skipping product ${cleanProduct.external_id}: empty name`);
+      console.warn(
+        `⚠️ Skipping product ${cleanProduct.external_id}: empty name`
+      );
       return null;
     }
 
@@ -143,9 +181,8 @@ function convertToParsedProduct(xmlProduct: any): ParsedProduct | null {
     }
 
     return cleanProduct;
-
   } catch (error) {
-    console.error('❌ Error converting product:', error, xmlProduct);
+    console.error("❌ Error converting product:", error, xmlProduct);
     return null;
   }
 }
@@ -168,7 +205,7 @@ export function validateProducts(products: ParsedProduct[]): {
   const valid: ParsedProduct[] = [];
   const invalid: ParsedProduct[] = [];
 
-  products.forEach(product => {
+  products.forEach((product) => {
     if (product.external_id && product.name && product.price >= 0) {
       valid.push(product);
     } else {
@@ -180,9 +217,10 @@ export function validateProducts(products: ParsedProduct[]): {
     total: products.length,
     valid: valid.length,
     invalid: invalid.length,
-    withImages: valid.filter(p => p.image_url && p.image_url.length > 0).length,
-    withPrice: valid.filter(p => p.price > 0).length,
-    inStock: valid.filter(p => p.quantity > 0).length,
+    withImages: valid.filter((p) => p.image_url && p.image_url.length > 0)
+      .length,
+    withPrice: valid.filter((p) => p.price > 0).length,
+    inStock: valid.filter((p) => p.quantity > 0).length,
   };
 
   return { valid, invalid, stats };

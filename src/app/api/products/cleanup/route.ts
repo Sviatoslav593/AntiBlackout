@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     console.log(`📦 Found ${allProducts.length} products in database`);
 
     // Визначаємо фейкові товари
-    const fakeProducts = allProducts.filter(product => {
+    const fakeProducts = allProducts.filter((product) => {
       // Товари без external_id (не імпортовані)
       if (!product.external_id) {
         return true;
@@ -33,12 +33,19 @@ export async function POST(request: NextRequest) {
 
       // Товари з підозрілими назвами
       const suspiciousNames = [
-        'test', 'dummy', 'placeholder', 'example', 'sample',
-        'тест', 'приклад', 'заглушка', 'образец'
+        "test",
+        "dummy",
+        "placeholder",
+        "example",
+        "sample",
+        "тест",
+        "приклад",
+        "заглушка",
+        "образец",
       ];
 
       const name = product.name.toLowerCase();
-      return suspiciousNames.some(suspicious => name.includes(suspicious));
+      return suspiciousNames.some((suspicious) => name.includes(suspicious));
     });
 
     console.log(`🔍 Found ${fakeProducts.length} fake products to delete`);
@@ -47,17 +54,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: "No fake products found",
-        stats: { 
-          total: allProducts.length, 
-          deleted: 0, 
-          kept: allProducts.length 
+        stats: {
+          total: allProducts.length,
+          deleted: 0,
+          kept: allProducts.length,
         },
       });
     }
 
     // Видаляємо фейкові товари
-    const fakeProductIds = fakeProducts.map(p => p.id);
-    
+    const fakeProductIds = fakeProducts.map((p) => p.id);
+
     const { error: deleteError } = await supabaseAdmin
       .from("products")
       .delete()
@@ -69,7 +76,9 @@ export async function POST(request: NextRequest) {
 
     const kept = allProducts.length - fakeProducts.length;
 
-    console.log(`✅ Cleanup completed: ${fakeProducts.length} deleted, ${kept} kept`);
+    console.log(
+      `✅ Cleanup completed: ${fakeProducts.length} deleted, ${kept} kept`
+    );
 
     return NextResponse.json({
       success: true,
@@ -79,20 +88,22 @@ export async function POST(request: NextRequest) {
         deleted: fakeProducts.length,
         kept: kept,
       },
-      deletedProducts: fakeProducts.map(p => ({
+      deletedProducts: fakeProducts.map((p) => ({
         id: p.id,
         name: p.name,
         external_id: p.external_id,
       })),
     });
-
   } catch (error) {
     console.error("❌ Error in cleanup:", error);
-    return NextResponse.json({
-      success: false,
-      message: "Failed to cleanup fake products",
-      error: error instanceof Error ? error.message : "Unknown error",
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to cleanup fake products",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -118,21 +129,30 @@ export async function GET(request: NextRequest) {
     }
 
     // Визначаємо фейкові товари
-    const fakeProducts = allProducts.filter(product => {
+    const fakeProducts = allProducts.filter((product) => {
       if (!product.external_id) {
         return true;
       }
 
       const suspiciousNames = [
-        'test', 'dummy', 'placeholder', 'example', 'sample',
-        'тест', 'приклад', 'заглушка', 'образец'
+        "test",
+        "dummy",
+        "placeholder",
+        "example",
+        "sample",
+        "тест",
+        "приклад",
+        "заглушка",
+        "образец",
       ];
 
       const name = product.name.toLowerCase();
-      return suspiciousNames.some(suspicious => name.includes(suspicious));
+      return suspiciousNames.some((suspicious) => name.includes(suspicious));
     });
 
-    const realProducts = allProducts.filter(product => !fakeProducts.includes(product));
+    const realProducts = allProducts.filter(
+      (product) => !fakeProducts.includes(product)
+    );
 
     return NextResponse.json({
       success: true,
@@ -142,20 +162,22 @@ export async function GET(request: NextRequest) {
         fake: fakeProducts.length,
         real: realProducts.length,
       },
-      fakeProducts: fakeProducts.map(p => ({
+      fakeProducts: fakeProducts.map((p) => ({
         id: p.id,
         name: p.name,
         external_id: p.external_id,
         created_at: p.created_at,
       })),
     });
-
   } catch (error) {
     console.error("❌ Error checking fake products:", error);
-    return NextResponse.json({
-      success: false,
-      message: "Failed to check fake products",
-      error: error instanceof Error ? error.message : "Unknown error",
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to check fake products",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }
