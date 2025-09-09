@@ -6,6 +6,7 @@ import React, {
   useState,
   ReactNode,
   useMemo,
+  useCallback,
 } from "react";
 
 interface SearchContextType {
@@ -24,11 +25,11 @@ interface SearchProviderProps {
 export function SearchProvider({ children }: SearchProviderProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     setSearchQuery("");
-  };
+  }, []);
 
-  const scrollToProducts = () => {
+  const scrollToProducts = useCallback(() => {
     // Add a small delay to allow DOM to update after search
     setTimeout(() => {
       const productsSection = document.getElementById("products");
@@ -39,7 +40,7 @@ export function SearchProvider({ children }: SearchProviderProps) {
 
         // Find the filters section within the products section
         const filtersSection = productsSection.querySelector('[class*="mb-8"]');
-        
+
         let targetElement = productsSection;
         let additionalOffset = 0;
 
@@ -63,7 +64,7 @@ export function SearchProvider({ children }: SearchProviderProps) {
         });
       }
     }, 150); // Small delay to allow DOM updates
-  };
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -72,7 +73,7 @@ export function SearchProvider({ children }: SearchProviderProps) {
       clearSearch,
       scrollToProducts,
     }),
-    [searchQuery]
+    [searchQuery, clearSearch, scrollToProducts]
   );
 
   return (

@@ -77,13 +77,19 @@ export default function Header() {
     // Always keep the field expanded when user is typing
     setIsSearchExpanded(true);
 
+    // Reset scroll state if query becomes empty
+    if (!query.trim()) {
+      setHasScrolledToProducts(false);
+      return;
+    }
+
     // If there's a search query and we haven't scrolled yet, scroll to products
     if (query.trim() && !hasScrolledToProducts) {
       // Scroll to products section - delay is handled in SearchContext
       setTimeout(() => {
         scrollToProducts();
         setHasScrolledToProducts(true);
-      }, 200);
+      }, 300); // Increased delay for better stability
     }
   };
 
