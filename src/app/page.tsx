@@ -303,7 +303,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-16">
             {(() => {
               // Flatten all categories including subcategories
               const allCategories: Category[] = [];
@@ -321,19 +321,30 @@ export default function Home() {
                 return (
                   <div
                     key={category.id}
-                    className="group cursor-pointer bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200"
-                    onClick={() =>
-                      router.push(`/category/${getCategorySlug(category.name)}`)
-                    }
+                    className="group cursor-pointer bg-white rounded-xl p-3 sm:p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200"
+                    onClick={() => {
+                      // Set category filter and scroll to products
+                      setFilters(prev => ({
+                        ...prev,
+                        categories: [category.name]
+                      }));
+                      // Scroll to products section
+                      setTimeout(() => {
+                        const el = document.getElementById("products");
+                        if (el) {
+                          el.scrollIntoView({ behavior: "smooth" });
+                        }
+                      }, 100);
+                    }}
                   >
                     <div className="text-center">
-                      <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-600 group-hover:scale-110 transition-all duration-300 mb-4">
-                        <IconComponent className="h-8 w-8 text-blue-600 group-hover:text-white transition-colors" />
+                      <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-600 group-hover:scale-110 transition-all duration-300 mb-2 sm:mb-4">
+                        <IconComponent className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 group-hover:text-white transition-colors" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
+                      <h3 className="text-sm sm:text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-1 sm:mb-2">
                         {category.name}
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-xs sm:text-sm text-gray-500">
                         {category.parent_id ? "Підкатегорія" : "Категорія"}
                       </p>
                     </div>
@@ -397,12 +408,16 @@ export default function Home() {
                 <div className="flex items-center justify-center h-64">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Завантаження товарів...</p>
+                    <p className="text-muted-foreground">
+                      Завантаження товарів...
+                    </p>
                   </div>
                 </div>
               ) : filteredAndSortedProducts.length === 0 ? (
                 <div className="text-center py-16">
-                  <h3 className="text-xl font-semibold mb-2">Товари не знайдені</h3>
+                  <h3 className="text-xl font-semibold mb-2">
+                    Товари не знайдені
+                  </h3>
                   <p className="text-muted-foreground mb-4">
                     Спробуйте змінити фільтри або пошуковий запит
                   </p>

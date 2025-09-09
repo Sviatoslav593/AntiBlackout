@@ -270,16 +270,6 @@ export default function ProductPage() {
   const getSpecifications = (product: Product) => {
     const specs = [
       { label: "Бренд", value: product.brand, icon: Smartphone },
-      {
-        label: "Категорія",
-        value:
-          product.category === "powerbank"
-            ? "Павербанк"
-            : product.category === "charger"
-            ? "Зарядка"
-            : "Кабель",
-        icon: Zap,
-      },
     ];
 
     if (product.capacity > 0) {
@@ -341,35 +331,6 @@ export default function ProductPage() {
             Головна
           </button>
           <span>/</span>
-          {currentCategory ? (
-            <>
-              <button
-                onClick={() =>
-                  router.push(
-                    `/category/${getCategorySlug(currentCategory.name)}`
-                  )
-                }
-                className="hover:text-foreground transition-colors"
-              >
-                {currentCategory.name}
-              </button>
-              <span>/</span>
-            </>
-          ) : product?.categories ? (
-            <>
-              <button
-                onClick={() =>
-                  router.push(
-                    `/category/${getCategorySlug(product.categories.name)}`
-                  )
-                }
-                className="hover:text-foreground transition-colors"
-              >
-                {product.categories.name}
-              </button>
-              <span>/</span>
-            </>
-          ) : null}
           <span className="text-foreground">{product?.name}</span>
         </nav>
 
