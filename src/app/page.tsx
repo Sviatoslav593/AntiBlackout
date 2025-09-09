@@ -107,7 +107,7 @@ export default function Home() {
   // Calculate available options for filters
   const availableCategories = useMemo(() => {
     const categories = [
-      ...new Set(allProducts.map((p) => p.category).filter(Boolean)),
+      ...new Set(allProducts.map((p) => p.categories?.name).filter(Boolean)),
     ];
     return categories.filter((cat) => cat && cat.trim().length > 0);
   }, [allProducts]);
@@ -139,7 +139,7 @@ export default function Home() {
         const matchesDescription =
           product.description?.toLowerCase().includes(query) || false;
         const matchesBrand = product.brand.toLowerCase().includes(query);
-        const matchesCategory = product.category.toLowerCase().includes(query);
+        const matchesCategory = product.categories?.name?.toLowerCase().includes(query) || false;
 
         if (
           !matchesName &&
@@ -162,7 +162,7 @@ export default function Home() {
       // Category filter
       if (
         filters.categories.length > 0 &&
-        !filters.categories.includes(product.category)
+        !filters.categories.includes(product.categories?.name)
       ) {
         return false;
       }

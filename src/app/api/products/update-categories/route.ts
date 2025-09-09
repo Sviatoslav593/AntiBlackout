@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
       try {
         const newCategoryId = categoryMap.get(product.external_id);
 
-          if (newCategoryId && newCategoryId !== product.category_id) {
-            // Не пропускаємо товари з category_id=80
+        if (newCategoryId && newCategoryId !== product.category_id) {
+          // Не пропускаємо товари з category_id=80
 
           const { error: updateError } = await supabaseAdmin
             .from("products")

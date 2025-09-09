@@ -7,7 +7,9 @@ export async function POST(request: NextRequest) {
     console.log("🔧 Fixing all product categories...");
 
     // Отримуємо XML дані
-    const products = await parseXMLFeed("https://mma.in.ua/feed/xml/iDxAyRECF.xml");
+    const products = await parseXMLFeed(
+      "https://mma.in.ua/feed/xml/iDxAyRECF.xml"
+    );
     console.log(`📦 Parsed ${products.length} products from XML feed`);
 
     // Створюємо мапу external_id -> category_id
@@ -61,7 +63,9 @@ export async function POST(request: NextRequest) {
           console.log(`⚠️ No XML data for product: ${product.external_id}`);
           skipped++;
         } else {
-          console.log(`ℹ️ Product ${product.external_id} already has correct category`);
+          console.log(
+            `ℹ️ Product ${product.external_id} already has correct category`
+          );
           skipped++;
         }
       } catch (error) {

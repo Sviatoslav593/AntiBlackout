@@ -31,6 +31,9 @@ export async function GET(request: NextRequest) {
     // Фільтри
     if (categoryId) {
       query = query.eq("category_id", categoryId);
+    } else {
+      // Показуємо тільки товари з категоріями, якщо не вказано конкретну категорію
+      query = query.in("category_id", [1, 3, 14, 15, 16, 80]);
     }
 
     if (brand) {
@@ -92,6 +95,8 @@ export async function GET(request: NextRequest) {
         rating: 4.5,
         reviewCount: Math.floor(Math.random() * 100) + 10,
         category: product.categories?.name || "Uncategorized",
+        category_id: product.category_id,
+        categories: product.categories,
         brand: product.brand || "Unknown",
         capacity: 0,
         popularity: Math.floor(Math.random() * 100),

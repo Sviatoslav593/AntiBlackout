@@ -7,7 +7,9 @@ export async function POST(request: NextRequest) {
     console.log("🔧 Fixing ALL product categories in batches...");
 
     // Отримуємо XML дані
-    const products = await parseXMLFeed("https://mma.in.ua/feed/xml/iDxAyRECF.xml");
+    const products = await parseXMLFeed(
+      "https://mma.in.ua/feed/xml/iDxAyRECF.xml"
+    );
     console.log(`📦 Parsed ${products.length} products from XML feed`);
 
     // Створюємо мапу external_id -> category_id
@@ -87,7 +89,9 @@ export async function POST(request: NextRequest) {
       totalErrors += batchErrors;
       totalSkipped += batchSkipped;
 
-      console.log(`✅ Batch completed: ${batchUpdated} updated, ${batchSkipped} skipped, ${batchErrors} errors`);
+      console.log(
+        `✅ Batch completed: ${batchUpdated} updated, ${batchSkipped} skipped, ${batchErrors} errors`
+      );
 
       offset += batchSize;
     }
