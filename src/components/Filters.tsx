@@ -109,12 +109,28 @@ export default function Filters({
     // Apply filter via API
     if (onApplyFilters) {
       console.log("Category filter changed:", newCategories);
-      // Apply filter immediately
-      const filterParams: any = {};
-      if (newCategories.length > 0) {
-        filterParams.categoryIds = newCategories;
+      // Convert category names to category IDs by fetching all products first
+      try {
+        const response = await fetch("/api/products");
+        const data = await response.json();
+        if (data.success && data.products) {
+          const categoryIds = newCategories
+            .map(categoryName => {
+              const product = data.products.find((p: any) => p.categories?.name === categoryName);
+              return product?.category_id;
+            })
+            .filter(Boolean)
+            .map(String);
+          
+          const filterParams: any = {};
+          if (categoryIds.length > 0) {
+            filterParams.categoryIds = categoryIds;
+          }
+          await onApplyFilters(filterParams);
+        }
+      } catch (error) {
+        console.error("Error getting category IDs:", error);
       }
-      onApplyFilters(filterParams);
     }
   };
 

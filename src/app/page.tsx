@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Layout from "@/components/Layout";
@@ -95,6 +95,7 @@ export default function Home() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [isMounted, setIsMounted] = useState(false);
+  const prevFilterState = useRef<string>("");
 
   // Context hooks
   const { searchQuery } = useSearch();
@@ -321,6 +322,23 @@ export default function Home() {
     // Skip if we haven't loaded initial products yet or if this is initial load
     if (allProducts.length === 0 || isInitialLoad) return;
 
+    // Create a unique string to represent the current filter state
+    const currentFilterState = JSON.stringify({
+      categories: filters.categories,
+      brands: filters.brands,
+      inStockOnly: filters.inStockOnly,
+      priceRange: filters.priceRange,
+      search: debouncedSearchQuery,
+    });
+
+    // Skip if the filter state hasn't actually changed
+    if (prevFilterState.current === currentFilterState) {
+      return;
+    }
+
+    // Update the previous filter state
+    prevFilterState.current = currentFilterState;
+
     // Check if we have any active filters
     const hasActiveFilters =
       filters.categories.length > 0 ||
@@ -337,13 +355,9 @@ export default function Home() {
       search: debouncedSearchQuery,
     });
 
-    // If no active filters, reload all products
+    // If no active filters, don't do anything - products are already loaded
     if (!hasActiveFilters) {
-      console.log("No active filters, reloading all products");
-      setCurrentPage(1);
-      setHasMoreProducts(true);
-      // Don't call fetchProducts here to avoid infinite loop
-      // Products are already loaded from initial load
+      console.log("No active filters, keeping current products");
       return;
     }
 
@@ -647,14 +661,6 @@ export default function Home() {
                           <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 text-sm lg:text-base">
                             {category}
                           </h3>
-                          <p className="text-xs lg:text-sm text-gray-500 mt-1">
-                            {
-                              allProducts.filter(
-                                (p) => p.categories?.name === category
-                              ).length
-                            }{" "}
-                            товарів
-                          </p>
                         </div>
                       </div>
                     </div>
@@ -677,27 +683,6 @@ export default function Home() {
                       ? "Завантаження..."
                       : `Знайдено ${filteredAndSortedProducts.length} товарів`}
                   </p>
-                  <div className="text-red-500 text-sm">
-                    Debug: allProducts.length = {allProducts.length}, loading ={" "}
-                    {loading.toString()}, isMounted = {isMounted.toString()},
-                    typeof window = {typeof window}
-                  </div>
-                  <div className="text-blue-500 text-sm">
-                    {typeof window === "undefined" 
-                      ? "This is server-side rendering. Products will load on client side."
-                      : "This is client-side rendering. Products should be loaded."}
-                  </div>
-                  {/* Debug info for filters */}
-                  {process.env.NODE_ENV === "development" && (
-                    <div className="text-xs text-gray-500 mt-2 space-y-1">
-                      <div>Фільтри: {JSON.stringify(filters, null, 2)}</div>
-                      <div>Всього товарів: {allProducts.length}</div>
-                      <div>
-                        Відфільтровано: {filteredAndSortedProducts.length}
-                      </div>
-                      <div>Пошук: "{searchQuery}"</div>
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -727,17 +712,22 @@ export default function Home() {
                         <div
                           key={index}
                           className="bg-white rounded-lg p-4 animate-pulse"
+                          style={{ animationDelay: `${index * 100}ms` }}
                         >
-                          <div className="aspect-square bg-gray-200 rounded-lg mb-4" />
-                          <div className="h-4 bg-gray-200 rounded mb-2" />
-                          <div className="h-4 bg-gray-200 rounded w-3/4" />
+                          <div className="aspect-square bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg mb-4 animate-pulse" />
+                          <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded mb-2 animate-pulse" />
+                          <div className="h-4 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-3/4 animate-pulse" />
                         </div>
                       ))}
                     </div>
                   ) : filteredAndSortedProducts.length > 0 ? (
                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                       {filteredAndSortedProducts.map((product, index) => (
-                        <div key={product.id}>
+                        <div 
+                          key={product.id}
+                          className="animate-fade-in"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
                           <ProductCard
                             product={{
                               ...product,

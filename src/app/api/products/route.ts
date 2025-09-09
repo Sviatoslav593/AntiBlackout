@@ -37,14 +37,16 @@ export async function GET(request: NextRequest) {
       if (categoryId) {
         query = query.eq("category_id", categoryId);
       } else if (categoryIds) {
-        const categoryIdArray = categoryIds.split(',').map(id => parseInt(id.trim()));
+        const categoryIdArray = categoryIds
+          .split(",")
+          .map((id) => parseInt(id.trim()));
         query = query.in("category_id", categoryIdArray);
       }
 
       if (brand) {
         query = query.eq("brand", brand);
       } else if (brands) {
-        const brandArray = brands.split(',').map(b => b.trim());
+        const brandArray = brands.split(",").map((b) => b.trim());
         query = query.in("brand", brandArray);
       }
 
@@ -151,14 +153,16 @@ export async function GET(request: NextRequest) {
       if (categoryId) {
         query = query.eq("category_id", categoryId);
       } else if (categoryIds) {
-        const categoryIdArray = categoryIds.split(',').map(id => parseInt(id.trim()));
+        const categoryIdArray = categoryIds
+          .split(",")
+          .map((id) => parseInt(id.trim()));
         query = query.in("category_id", categoryIdArray);
       }
 
       if (brand) {
         query = query.eq("brand", brand);
       } else if (brands) {
-        const brandArray = brands.split(',').map(b => b.trim());
+        const brandArray = brands.split(",").map((b) => b.trim());
         query = query.in("brand", brandArray);
       }
 

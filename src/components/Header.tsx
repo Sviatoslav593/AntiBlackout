@@ -234,23 +234,32 @@ export default function Header() {
       // First fetch all products to get category ID
       const response = await fetch("/api/products");
       const data = await response.json();
-      
+
       if (data.success && data.products) {
-        const categoryId = data.products.find((p: any) => 
-          p.categories?.name === categoryName
+        const categoryId = data.products.find(
+          (p: any) => p.categories?.name === categoryName
         )?.category_id;
-        
+
         if (categoryId) {
-          console.log("Header filtering by category:", categoryName, "ID:", categoryId);
+          console.log(
+            "Header filtering by category:",
+            categoryName,
+            "ID:",
+            categoryId
+          );
           // Apply filter via API
-          const filterResponse = await fetch(`/api/products?categoryId=${categoryId}`);
+          const filterResponse = await fetch(
+            `/api/products?categoryId=${categoryId}`
+          );
           const filterData = await filterResponse.json();
-          
+
           if (filterData.success && filterData.products) {
             // Trigger a custom event to update products in parent component
-            window.dispatchEvent(new CustomEvent('categoryFilterApplied', {
-              detail: { products: filterData.products, categoryName }
-            }));
+            window.dispatchEvent(
+              new CustomEvent("categoryFilterApplied", {
+                detail: { products: filterData.products, categoryName },
+              })
+            );
           }
         }
       }
