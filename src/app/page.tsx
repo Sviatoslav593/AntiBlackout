@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import Layout from "@/components/Layout";
@@ -271,7 +270,12 @@ export default function Home() {
   };
 
   // Handle category button clicks
-  const handleCategoryClick = (categoryName: string) => {
+  const handleCategoryClick = (categoryName: string, e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     // Set category filter
     setFilters((prev) => ({
       ...prev,
@@ -362,53 +366,47 @@ export default function Home() {
         {/* Categories Section */}
         <section className="py-16 bg-white">
           <div className="container">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-                Категорії товарів
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Категорії Товарів
               </h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 Оберіть категорію, яка вас цікавить
               </p>
-            </motion.div>
+            </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-              {availableCategories.map((category, index) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+              {availableCategories.map((category) => {
                 const Icon = getCategoryIcon(category);
                 return (
-                  <motion.button
+                  <div
                     key={category}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                    onClick={() => handleCategoryClick(category)}
-                    className="group relative bg-white border-2 border-gray-100 rounded-2xl p-6 hover:border-blue-200 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                    className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105"
+                    onClick={(e) => handleCategoryClick(category, e)}
                   >
-                    <div className="flex flex-col items-center text-center space-y-4">
-                      <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <div className="bg-white border border-gray-200 rounded-lg p-6 h-full flex flex-col items-center text-center">
+                      <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 mb-4">
                         <Icon className="w-8 h-8 text-white" />
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 text-sm lg:text-base">
-                          {category}
-                        </h3>
-                        <p className="text-xs lg:text-sm text-gray-500 mt-1">
-                          {
-                            allProducts.filter(
-                              (p) => p.categories?.name === category
-                            ).length
-                          }{" "}
-                          товарів
-                        </p>
+                      <h3 className="text-xl font-semibold group-hover:text-blue-600 transition-colors mb-2">
+                        {category}
+                      </h3>
+                      <p className="text-muted-foreground mb-4">
+                        {
+                          allProducts.filter(
+                            (p) => p.categories?.name === category
+                          ).length
+                        }{" "}
+                        товарів
+                      </p>
+                      <div className="mt-auto">
+                        <div className="inline-flex items-center text-blue-600 group-hover:text-blue-700 transition-colors">
+                          Переглянути
+                          <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        </div>
                       </div>
                     </div>
-                  </motion.button>
+                  </div>
                 );
               })}
             </div>
@@ -418,13 +416,7 @@ export default function Home() {
         {/* Products Section */}
         <section id="products" className="py-16 bg-gray-50">
           <div className="container">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 space-y-4 lg:space-y-0"
-            >
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 space-y-4 lg:space-y-0">
               <div>
                 <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
                   Наші товари
@@ -439,7 +431,7 @@ export default function Home() {
               <div className="flex items-center gap-4">
                 <SortDropdown value={sortBy} onValueChange={setSortBy} />
               </div>
-            </motion.div>
+            </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
               {/* Filters Sidebar */}
@@ -470,19 +462,9 @@ export default function Home() {
                     ))}
                   </div>
                 ) : filteredAndSortedProducts.length > 0 ? (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.6 }}
-                    className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"
-                  >
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                     {filteredAndSortedProducts.map((product, index) => (
-                      <motion.div
-                        key={product.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: index * 0.1 }}
-                      >
+                      <div key={product.id}>
                         <ProductCard
                           product={{
                             ...product,
@@ -490,16 +472,11 @@ export default function Home() {
                               product.categories?.name || "Uncategorized",
                           }}
                         />
-                      </motion.div>
+                      </div>
                     ))}
-                  </motion.div>
+                  </div>
                 ) : (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center py-16"
-                  >
+                  <div className="text-center py-16">
                     <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
                       <ShoppingBag className="w-12 h-12 text-gray-400" />
                     </div>
@@ -516,7 +493,7 @@ export default function Home() {
                     >
                       Оновити сторінку
                     </Button>
-                  </motion.div>
+                  </div>
                 )}
               </div>
             </div>
@@ -526,13 +503,7 @@ export default function Home() {
         {/* CTA Section */}
         <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
           <div className="container">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-center text-white"
-            >
+            <div className="text-center text-white">
               <h2 className="text-3xl lg:text-4xl font-bold mb-4">
                 Готові Забезпечити Безперебійну Роботу?
               </h2>
@@ -548,7 +519,7 @@ export default function Home() {
                 <ShoppingBag className="w-5 h-5 mr-2" />
                 Переглянути каталог
               </Button>
-            </motion.div>
+            </div>
           </div>
         </section>
 
