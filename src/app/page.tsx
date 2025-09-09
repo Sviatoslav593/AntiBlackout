@@ -81,7 +81,7 @@ const sortProducts = (products: Product[], sortBy: SortOption): Product[] => {
 };
 
 export default function Home() {
-  console.log("Home component rendering");
+  console.log("Home component rendering, typeof window:", typeof window);
   
   // State for products
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -94,6 +94,7 @@ export default function Home() {
   const [hasMoreProducts, setHasMoreProducts] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
 
   // Context hooks
   const { searchQuery } = useSearch();
@@ -204,10 +205,14 @@ export default function Home() {
     [isInitialLoad]
   );
 
+  // Set mounted state
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Fetch products on component mount
   useEffect(() => {
-    // Only run on client side
-    if (typeof window === "undefined") return;
+    if (!isMounted) return;
     
     console.log("Component mounted, fetching products...");
     const loadProducts = async () => {
@@ -232,7 +237,7 @@ export default function Home() {
     };
     
     loadProducts();
-  }, []);
+  }, [isMounted]);
 
   // Listen for category filter events from header
   useEffect(() => {
