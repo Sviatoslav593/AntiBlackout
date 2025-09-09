@@ -1,5 +1,6 @@
 export interface Product {
   id: string;
+  external_id?: string;
   name: string;
   description: string;
   price: number;
@@ -21,4 +22,7 @@ export interface Product {
     name: string;
     parent_id?: number;
   };
+  vendor_code?: string;
+  quantity?: number;
+  characteristics?: Record<string, any>;
 }

@@ -30,6 +30,7 @@ import { generateStructuredData } from "./metadata";
 
 interface Product {
   id: string; // UUID string
+  external_id?: string;
   name: string;
   description: string;
   price: number;
@@ -51,6 +52,9 @@ interface Product {
     name: string;
     parent_id?: number;
   };
+  vendor_code?: string;
+  quantity?: number;
+  characteristics?: Record<string, any>;
 }
 
 export default function ProductPage() {
@@ -270,11 +274,42 @@ export default function ProductPage() {
   const getSpecifications = (product: Product) => {
     const specs = [{ label: "Бренд", value: product.brand, icon: Smartphone }];
 
+    // Add vendor code if available
+    if (product.vendor_code) {
+      specs.push({
+        label: "Артикул",
+        value: product.vendor_code,
+        icon: Zap,
+      });
+    }
+
+    // Add legacy capacity if available
     if (product.capacity > 0) {
       specs.push({
         label: "Ємність",
         value: `${product.capacity.toLocaleString()} мАг`,
         icon: Battery,
+      });
+    }
+
+    // Add characteristics from JSONB field
+    if (product.characteristics && typeof product.characteristics === 'object') {
+      Object.entries(product.characteristics).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+          let displayValue: string;
+          
+          if (Array.isArray(value)) {
+            displayValue = value.join(', ');
+          } else {
+            displayValue = String(value);
+          }
+          
+          specs.push({
+            label: key,
+            value: displayValue,
+            icon: Zap, // Default icon for characteristics
+          });
+        }
       });
     }
 

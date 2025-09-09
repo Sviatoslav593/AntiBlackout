@@ -291,7 +291,9 @@ export default function Header() {
                                     key={subcategory.id}
                                     className="block w-full text-left px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
                                     onClick={() => {
-                                      handleMobileCategoryClick(subcategory.name);
+                                      handleMobileCategoryClick(
+                                        subcategory.name
+                                      );
                                       setIsProductsDropdownOpen(false);
                                     }}
                                   >

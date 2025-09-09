@@ -86,6 +86,7 @@ export async function GET(request: NextRequest) {
       const convertedProducts =
         products?.map((product) => ({
           id: product.id,
+          external_id: product.external_id,
           name: product.name || "",
           description: product.description || "",
           price: product.price || 0,
@@ -103,6 +104,9 @@ export async function GET(request: NextRequest) {
           badge: undefined,
           inStock: (product.quantity || 0) > 0,
           createdAt: product.created_at || new Date().toISOString(),
+          vendor_code: product.vendor_code,
+          quantity: product.quantity,
+          characteristics: product.characteristics,
         })) || [];
 
       return NextResponse.json({
@@ -201,6 +205,7 @@ export async function GET(request: NextRequest) {
     const convertedProducts =
       products?.map((product) => ({
         id: product.id,
+        external_id: product.external_id,
         name: product.name || "",
         description: product.description || "",
         price: product.price || 0,
@@ -218,6 +223,9 @@ export async function GET(request: NextRequest) {
         badge: undefined,
         inStock: (product.quantity || 0) > 0,
         createdAt: product.created_at || new Date().toISOString(),
+        vendor_code: product.vendor_code,
+        quantity: product.quantity,
+        characteristics: product.characteristics,
       })) || [];
 
     return NextResponse.json({

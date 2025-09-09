@@ -124,7 +124,6 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
   const { filters, setFilters } = useFilters();
 
-
   // Available categories for filtering
   const availableCategories = useMemo(() => {
     const categorySet = new Set<string>();
