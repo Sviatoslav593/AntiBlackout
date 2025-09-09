@@ -108,7 +108,7 @@ export default function Home() {
   const availableCategories = useMemo(() => {
     const categories = [
       ...new Set(allProducts.map((p) => p.categories?.name).filter(Boolean)),
-    ];
+    ] as string[];
     return categories.filter((cat) => cat && cat.trim().length > 0);
   }, [allProducts]);
 
@@ -163,7 +163,8 @@ export default function Home() {
       // Category filter
       if (
         filters.categories.length > 0 &&
-        !filters.categories.includes(product.categories?.name)
+        product.categories?.name &&
+        !filters.categories.includes(product.categories.name)
       ) {
         return false;
       }
@@ -322,8 +323,11 @@ export default function Home() {
                     </p>
                   )}
                   <p className="text-muted-foreground">
-                    Знайдено {sortedProducts.length} з {allProducts.length}{" "}
-                    товарів
+                    {sortedProducts.length === 0 
+                      ? "Товари не знайдено" 
+                      : sortedProducts.length === 1 
+                        ? "Знайдено 1 товар" 
+                        : `Знайдено ${sortedProducts.length} товарів`}
                   </p>
                 </div>
                 <SortDropdown value={sortBy} onValueChange={setSortBy} />

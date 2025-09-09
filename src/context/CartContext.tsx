@@ -25,6 +25,12 @@ export interface Product {
   popularity: number;
   createdAt: string;
   category: string;
+  category_id?: number;
+  categories?: {
+    id: number;
+    name: string;
+    parent_id?: number;
+  };
 }
 
 export interface CartItem extends Product {
