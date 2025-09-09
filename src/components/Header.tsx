@@ -33,8 +33,7 @@ export default function Header() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [hasScrolledToProducts, setHasScrolledToProducts] = useState(false);
   const { state, isCartAnimating } = useCart();
-  const { searchQuery, setSearchQuery, clearSearch, scrollToProducts } =
-    useSearch();
+  const { searchQuery, setSearchQuery, clearSearch } = useSearch();
   const { count: favoritesCount } = useFavorites();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -76,21 +75,6 @@ export default function Header() {
 
     // Always keep the field expanded when user is typing
     setIsSearchExpanded(true);
-
-    // Reset scroll state if query becomes empty
-    if (!query.trim()) {
-      setHasScrolledToProducts(false);
-      return;
-    }
-
-    // If there's a search query and we haven't scrolled yet, scroll to products
-    if (query.trim() && !hasScrolledToProducts) {
-      // Scroll to products section - delay is handled in SearchContext
-      setTimeout(() => {
-        scrollToProducts();
-        setHasScrolledToProducts(true);
-      }, 300); // Increased delay for better stability
-    }
   };
 
   // Handle search clear
@@ -103,13 +87,35 @@ export default function Header() {
     setTimeout(() => searchInputRef.current?.focus(), 100);
   };
 
+  // Scroll to products when search starts (only once)
+  useEffect(() => {
+    if (searchQuery.length > 0 && !hasScrolledToProducts) {
+      const el = document.getElementById("products");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+        setHasScrolledToProducts(true);
+      }
+    }
+  }, [searchQuery, hasScrolledToProducts]);
+
+  // Reset scroll state when search is cleared
+  useEffect(() => {
+    if (searchQuery.length === 0) {
+      setHasScrolledToProducts(false);
+    }
+  }, [searchQuery]);
+
   // Handle Enter key
   const handleSearchKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       searchInputRef.current?.blur();
       // Scroll to products section when user presses Enter
-      if (searchQuery.trim()) {
-        scrollToProducts();
+      if (searchQuery.trim() && !hasScrolledToProducts) {
+        const el = document.getElementById("products");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+          setHasScrolledToProducts(true);
+        }
       }
     } else if (e.key === "Escape") {
       // Close search field when Escape is pressed
@@ -186,7 +192,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-white shadow-md">
         <div className="container flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
