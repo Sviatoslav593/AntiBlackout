@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Layout from "@/components/Layout";
@@ -85,6 +85,7 @@ export default function Home() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Context hooks
   const { searchQuery } = useSearch();
@@ -115,7 +116,7 @@ export default function Home() {
   }, [setFilters]);
 
   // Fetch products with filters
-  const fetchProducts = async (filterParams?: {
+  const fetchProducts = useCallback(async (filterParams?: {
     categoryId?: string;
     brand?: string;
     search?: string;
@@ -125,21 +126,27 @@ export default function Home() {
   }) => {
     try {
       setLoading(true);
-      
+
       const params = new URLSearchParams();
-      if (filterParams?.categoryId) params.append('categoryId', filterParams.categoryId);
-      if (filterParams?.brand) params.append('brand', filterParams.brand);
-      if (filterParams?.search) params.append('search', filterParams.search);
-      if (filterParams?.inStockOnly) params.append('inStockOnly', 'true');
-      if (filterParams?.minPrice) params.append('minPrice', filterParams.minPrice.toString());
-      if (filterParams?.maxPrice) params.append('maxPrice', filterParams.maxPrice.toString());
+      if (filterParams?.categoryId)
+        params.append("categoryId", filterParams.categoryId);
+      if (filterParams?.brand) params.append("brand", filterParams.brand);
+      if (filterParams?.search) params.append("search", filterParams.search);
+      if (filterParams?.inStockOnly) params.append("inStockOnly", "true");
+      if (filterParams?.minPrice)
+        params.append("minPrice", filterParams.minPrice.toString());
+      if (filterParams?.maxPrice)
+        params.append("maxPrice", filterParams.maxPrice.toString());
 
       const response = await fetch(`/api/products?${params.toString()}`);
       const data = await response.json();
 
       if (data.success && data.products) {
         setAllProducts(data.products);
-        console.log('Fetched products:', data.products.length);
+        console.log("Fetched products:", data.products.length);
+        if (isInitialLoad) {
+          setIsInitialLoad(false);
+        }
       } else {
         console.error("Failed to fetch products:", data.error);
       }
@@ -148,54 +155,65 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isInitialLoad]);
 
   // Fetch products on component mount
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
-  // Fetch products when filters change
+  // Fetch products when filters change (but not on initial load)
   useEffect(() => {
-    if (allProducts.length > 0) {
-      // Only refetch if we have initial products loaded
-      const filterParams: any = {};
-      
-      // Convert category names to category IDs
-      if (filters.categories.length > 0) {
-        const categoryId = allProducts.find(p => 
-          filters.categories.includes(p.categories?.name || '')
-        )?.category_id;
-        if (categoryId) {
-          filterParams.categoryId = categoryId.toString();
-        }
+    // Skip if we haven't loaded initial products yet or if this is initial load
+    if (allProducts.length === 0 || isInitialLoad) return;
+    
+    // Skip if no active filters
+    const hasActiveFilters = 
+      filters.categories.length > 0 ||
+      filters.brands.length > 0 ||
+      filters.inStockOnly ||
+      filters.priceRange.min > 0 ||
+      filters.priceRange.max < 10000 ||
+      searchQuery;
+
+    if (!hasActiveFilters) return;
+
+    const filterParams: any = {};
+
+    // Convert category names to category IDs
+    if (filters.categories.length > 0) {
+      const categoryId = allProducts.find((p) =>
+        filters.categories.includes(p.categories?.name || "")
+      )?.category_id;
+      if (categoryId) {
+        filterParams.categoryId = categoryId.toString();
       }
-      
-      // Add other filters
-      if (filters.brands.length > 0) {
-        filterParams.brand = filters.brands[0]; // API supports only one brand at a time
-      }
-      
-      if (filters.inStockOnly) {
-        filterParams.inStockOnly = true;
-      }
-      
-      if (filters.priceRange.min > 0) {
-        filterParams.minPrice = filters.priceRange.min;
-      }
-      
-      if (filters.priceRange.max < 10000) {
-        filterParams.maxPrice = filters.priceRange.max;
-      }
-      
-      if (searchQuery) {
-        filterParams.search = searchQuery;
-      }
-      
-      console.log('Applying filters:', filterParams);
-      fetchProducts(filterParams);
     }
-  }, [filters, searchQuery]);
+
+    // Add other filters
+    if (filters.brands.length > 0) {
+      filterParams.brand = filters.brands[0]; // API supports only one brand at a time
+    }
+
+    if (filters.inStockOnly) {
+      filterParams.inStockOnly = true;
+    }
+
+    if (filters.priceRange.min > 0) {
+      filterParams.minPrice = filters.priceRange.min;
+    }
+
+    if (filters.priceRange.max < 10000) {
+      filterParams.maxPrice = filters.priceRange.max;
+    }
+
+    if (searchQuery) {
+      filterParams.search = searchQuery;
+    }
+
+    console.log("Applying filters:", filterParams);
+    fetchProducts(filterParams);
+  }, [filters, searchQuery, isInitialLoad, fetchProducts]);
 
   // Calculate available options for filters
   const priceRange = useMemo(() => {
@@ -290,12 +308,12 @@ export default function Home() {
     }
 
     // Find category ID from current products
-    const categoryId = allProducts.find(p => 
-      p.categories?.name === categoryName
+    const categoryId = allProducts.find(
+      (p) => p.categories?.name === categoryName
     )?.category_id;
 
     if (categoryId) {
-      console.log('Filtering by category:', categoryName, 'ID:', categoryId);
+      console.log("Filtering by category:", categoryName, "ID:", categoryId);
       await fetchProducts({ categoryId: categoryId.toString() });
     }
 
@@ -463,17 +481,17 @@ export default function Home() {
 
               <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
                 {/* Filters Sidebar */}
-                 <div className="xl:col-span-1">
-                   <Filters
-                     filters={filters}
-                     onFiltersChange={() => {}} // Use FilterContext instead
-                     availableCategories={availableCategories}
-                     availableBrands={availableBrands}
-                     priceRange={priceRange}
-                     capacityRange={capacityRange}
-                     onApplyFilters={fetchProducts}
-                   />
-                 </div>
+                <div className="xl:col-span-1">
+                  <Filters
+                    filters={filters}
+                    onFiltersChange={() => {}} // Use FilterContext instead
+                    availableCategories={availableCategories}
+                    availableBrands={availableBrands}
+                    priceRange={priceRange}
+                    capacityRange={capacityRange}
+                    onApplyFilters={fetchProducts}
+                  />
+                </div>
 
                 {/* Products Grid */}
                 <div className="xl:col-span-3">
