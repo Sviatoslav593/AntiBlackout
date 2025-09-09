@@ -324,9 +324,9 @@ export default function Home() {
                     className="group cursor-pointer bg-white rounded-xl p-3 sm:p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200"
                     onClick={() => {
                       // Set category filter and scroll to products
-                      setFilters(prev => ({
+                      setFilters((prev) => ({
                         ...prev,
-                        categories: [category.name]
+                        categories: [category.name],
                       }));
                       // Scroll to products section
                       setTimeout(() => {
@@ -367,19 +367,58 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Mobile Filters and Sort */}
-          <div className="mb-8 lg:hidden">
-            <div className="flex flex-col gap-4 items-start justify-between">
-              <Filters
-                filters={filters}
-                onFiltersChange={setFilters}
-                availableCategories={availableCategories}
-                availableBrands={[]}
-                priceRange={{ min: 0, max: 10000 }}
-                capacityRange={{ min: 0, max: 50000 }}
-              />
-              <SortDropdown value={sortBy} onValueChange={setSortBy} />
+          {/* Mobile Layout */}
+          <div className="lg:hidden">
+            {/* Mobile Filters and Sort */}
+            <div className="mb-8">
+              <div className="flex flex-col gap-4 items-start justify-between">
+                <Filters
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  availableCategories={availableCategories}
+                  availableBrands={[]}
+                  priceRange={{ min: 0, max: 10000 }}
+                  capacityRange={{ min: 0, max: 50000 }}
+                />
+                <SortDropdown value={sortBy} onValueChange={setSortBy} />
+              </div>
             </div>
+
+            {/* Mobile Products Grid */}
+            {loading ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">
+                    Завантаження товарів...
+                  </p>
+                </div>
+              </div>
+            ) : filteredAndSortedProducts.length === 0 ? (
+              <div className="text-center py-16">
+                <h3 className="text-xl font-semibold mb-2">
+                  Товари не знайдені
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  Спробуйте змінити фільтри або пошуковий запит
+                </p>
+                <Button onClick={clearSearch} variant="outline">
+                  Очистити фільтри
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                {filteredAndSortedProducts.map((product, index) => (
+                  <div
+                    key={product.id}
+                    className="animate-slide-up"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <ProductCard product={product} />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Desktop Layout */}
@@ -453,7 +492,7 @@ export default function Home() {
             Оберіть найкращі рішення для зарядки та підтримки ваших пристроїв
             під час будь-яких обставин
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Button
               size="lg"
               variant="secondary"
@@ -461,14 +500,6 @@ export default function Home() {
               onClick={scrollToProducts}
             >
               Переглянути Каталог
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold"
-              onClick={scrollToProducts}
-            >
-              Дізнатися Більше
             </Button>
           </div>
         </div>

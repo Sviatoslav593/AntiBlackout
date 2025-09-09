@@ -268,9 +268,7 @@ export default function ProductPage() {
   };
 
   const getSpecifications = (product: Product) => {
-    const specs = [
-      { label: "Бренд", value: product.brand, icon: Smartphone },
-    ];
+    const specs = [{ label: "Бренд", value: product.brand, icon: Smartphone }];
 
     if (product.capacity > 0) {
       specs.push({
