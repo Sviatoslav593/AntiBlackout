@@ -37,7 +37,6 @@ export default function Header() {
   const { count: favoritesCount } = useFavorites();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
-  const mobileSearchRef = useRef<HTMLDivElement>(null);
   const productsDropdownRef = useRef<HTMLDivElement>(null);
 
   // Load categories on component mount
@@ -120,12 +119,11 @@ export default function Header() {
         return;
       }
 
-      // Check if click is outside both desktop and mobile search containers
+      // Check if click is outside desktop search container
       const isOutsideDesktop = !searchContainerRef.current?.contains(target);
-      const isOutsideMobile = !mobileSearchRef.current?.contains(target);
 
-      // Only close if click is outside both containers
-      if (isOutsideDesktop && isOutsideMobile) {
+      // Only close if click is outside desktop search container
+      if (isOutsideDesktop) {
         // Only close if search query is empty
         if (!searchQuery.trim()) {
           setIsSearchExpanded(false);
@@ -363,6 +361,16 @@ export default function Header() {
 
           {/* Mobile Action Buttons */}
           <div className="md:hidden flex items-center space-x-2">
+            {/* Mobile Search */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSearchToggle}
+              data-search-button
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+
             {/* Favorites */}
             <Button
               variant="ghost"
@@ -426,32 +434,6 @@ export default function Header() {
               className="md:hidden border-t bg-background"
             >
               <div className="container py-4 space-y-4">
-                {/* Mobile Search */}
-                <div ref={mobileSearchRef} className="relative">
-                  <form className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="text"
-                      placeholder="Пошук товарів..."
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                      onKeyPress={handleSearchKeyPress}
-                      className="pl-10 pr-10"
-                    />
-                    {searchQuery && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
-                        onClick={handleSearchClear}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </form>
-                </div>
-
                 {/* Mobile Navigation Links */}
                 <nav className="space-y-2">
                   <Link
