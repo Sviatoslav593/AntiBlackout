@@ -38,8 +38,8 @@ interface FiltersProps {
   priceRange: { min: number; max: number };
   capacityRange: { min: number; max: number };
   onApplyFilters?: (filterParams: {
-    categoryId?: string;
-    brand?: string;
+    categoryIds?: string[];
+    brandIds?: string[];
     search?: string;
     inStockOnly?: boolean;
     minPrice?: number;
@@ -99,7 +99,7 @@ export default function Filters({
 
     const newCategories = filters.categories.includes(category)
       ? filters.categories.filter((c) => c !== category)
-      : [category]; // Only allow one category at a time for API
+      : [...filters.categories, category]; // Allow multiple categories
 
     handleFiltersChange({
       ...filters,
@@ -112,8 +112,7 @@ export default function Filters({
       // Apply filter immediately
       const filterParams: any = {};
       if (newCategories.length > 0) {
-        // We need to get category ID from parent component
-        // For now, just trigger the parent's useEffect
+        filterParams.categoryIds = newCategories;
       }
       onApplyFilters(filterParams);
     }
@@ -130,7 +129,7 @@ export default function Filters({
 
     const newBrands = filters.brands.includes(brand)
       ? filters.brands.filter((b) => b !== brand)
-      : [brand]; // Only allow one brand at a time for API
+      : [...filters.brands, brand]; // Allow multiple brands
 
     handleFiltersChange({
       ...filters,
@@ -142,7 +141,7 @@ export default function Filters({
       console.log("Brand filter changed:", newBrands);
       const filterParams: any = {};
       if (newBrands.length > 0) {
-        filterParams.brand = newBrands[0];
+        filterParams.brandIds = newBrands;
       }
       onApplyFilters(filterParams);
     }

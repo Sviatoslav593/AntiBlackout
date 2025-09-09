@@ -83,6 +83,8 @@ const sortProducts = (products: Product[], sortBy: SortOption): Product[] => {
 export default function Home() {
   // State for products
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [allCategories, setAllCategories] = useState<string[]>([]);
+  const [allBrands, setAllBrands] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -120,14 +122,18 @@ export default function Home() {
 
   // Fetch products with filters
   const fetchProducts = useCallback(
-    async (filterParams?: {
-      categoryId?: string;
-      brand?: string;
-      search?: string;
-      inStockOnly?: boolean;
-      minPrice?: number;
-      maxPrice?: number;
-    }, page: number = 1, append: boolean = false) => {
+    async (
+      filterParams?: {
+        categoryIds?: string[];
+        brandIds?: string[];
+        search?: string;
+        inStockOnly?: boolean;
+        minPrice?: number;
+        maxPrice?: number;
+      },
+      page: number = 1,
+      append: boolean = false
+    ) => {
       try {
         if (append) {
           setLoadingMore(true);
@@ -136,16 +142,17 @@ export default function Home() {
         }
 
         const params = new URLSearchParams();
-        if (filterParams?.categoryId)
-          params.append("categoryId", filterParams.categoryId);
-        if (filterParams?.brand) params.append("brand", filterParams.brand);
+        if (filterParams?.categoryIds && filterParams.categoryIds.length > 0)
+          params.append("categoryIds", filterParams.categoryIds.join(','));
+        if (filterParams?.brandIds && filterParams.brandIds.length > 0)
+          params.append("brands", filterParams.brandIds.join(','));
         if (filterParams?.search) params.append("search", filterParams.search);
         if (filterParams?.inStockOnly) params.append("inStockOnly", "true");
         if (filterParams?.minPrice)
           params.append("minPrice", filterParams.minPrice.toString());
         if (filterParams?.maxPrice)
           params.append("maxPrice", filterParams.maxPrice.toString());
-        
+
         // Add pagination parameters
         params.append("limit", "50");
         params.append("offset", ((page - 1) * 50).toString());
@@ -155,15 +162,15 @@ export default function Home() {
 
         if (data.success && data.products) {
           if (append) {
-            setAllProducts(prev => [...prev, ...data.products]);
+            setAllProducts((prev) => [...prev, ...data.products]);
           } else {
             setAllProducts(data.products);
           }
-          
+
           // Check if there are more products
           setHasMoreProducts(data.products.length === 50);
           setCurrentPage(page);
-          
+
           console.log("Fetched products:", data.products.length, "Page:", page);
           if (isInitialLoad) {
             setIsInitialLoad(false);
@@ -197,17 +204,59 @@ export default function Home() {
       console.log("Updated products from header filter:", products.length);
     };
 
-    window.addEventListener('categoryFilterApplied', handleCategoryFilterApplied as EventListener);
-    
+    window.addEventListener(
+      "categoryFilterApplied",
+      handleCategoryFilterApplied as EventListener
+    );
+
     return () => {
-      window.removeEventListener('categoryFilterApplied', handleCategoryFilterApplied as EventListener);
+      window.removeEventListener(
+        "categoryFilterApplied",
+        handleCategoryFilterApplied as EventListener
+      );
     };
   }, []);
+
+  // Load all categories and brands
+  const loadAllCategoriesAndBrands = useCallback(async () => {
+    try {
+      const response = await fetch("/api/products");
+      const data = await response.json();
+      
+      if (data.success && data.products) {
+        // Extract all unique categories
+        const categorySet = new Set<string>();
+        const brandSet = new Set<string>();
+        
+        data.products.forEach((product: Product) => {
+          if (product.categories?.name) {
+            categorySet.add(product.categories.name);
+          }
+          if (product.brand) {
+            brandSet.add(product.brand);
+          }
+        });
+        
+        setAllCategories(Array.from(categorySet).sort());
+        setAllBrands(Array.from(brandSet).sort());
+        
+        console.log("Loaded categories:", Array.from(categorySet).length);
+        console.log("Loaded brands:", Array.from(brandSet).length);
+      }
+    } catch (error) {
+      console.error("Error loading categories and brands:", error);
+    }
+  }, []);
+
+  // Load all categories and brands on component mount
+  useEffect(() => {
+    loadAllCategoriesAndBrands();
+  }, [loadAllCategoriesAndBrands]);
 
   // Load more products function
   const loadMoreProducts = async () => {
     if (loadingMore || !hasMoreProducts) return;
-    
+
     const nextPage = currentPage + 1;
     await fetchProducts({}, nextPage, true);
   };
@@ -232,17 +281,33 @@ export default function Home() {
 
     // Convert category names to category IDs
     if (filters.categories.length > 0) {
-      const categoryId = allProducts.find((p) =>
-        filters.categories.includes(p.categories?.name || "")
-      )?.category_id;
-      if (categoryId) {
-        filterParams.categoryId = categoryId.toString();
-      }
+      // Get all products to find category IDs
+      fetch("/api/products")
+        .then(response => response.json())
+        .then(data => {
+          if (data.success && data.products) {
+            const categoryIds: string[] = [];
+            filters.categories.forEach(categoryName => {
+              const categoryId = data.products.find((p: Product) =>
+                p.categories?.name === categoryName
+              )?.category_id;
+              if (categoryId) {
+                categoryIds.push(categoryId.toString());
+              }
+            });
+            if (categoryIds.length > 0) {
+              filterParams.categoryIds = categoryIds;
+            }
+          }
+        })
+        .catch(error => {
+          console.error("Error getting category IDs:", error);
+        });
     }
 
-    // Add other filters
+    // Add brand filters
     if (filters.brands.length > 0) {
-      filterParams.brand = filters.brands[0]; // API supports only one brand at a time
+      filterParams.brandIds = filters.brands;
     }
 
     if (filters.inStockOnly) {
@@ -290,27 +355,11 @@ export default function Home() {
     };
   }, [allProducts]);
 
-  // Available categories for filtering
-  const availableCategories = useMemo(() => {
-    const categorySet = new Set<string>();
-    allProducts.forEach((product) => {
-      if (product.categories?.name) {
-        categorySet.add(product.categories.name);
-      }
-    });
-    return Array.from(categorySet).sort();
-  }, [allProducts]);
+  // Available categories for filtering (use all categories, not just filtered products)
+  const availableCategories = allCategories;
 
-  // Available brands for filtering
-  const availableBrands = useMemo(() => {
-    const brandSet = new Set<string>();
-    allProducts.forEach((product) => {
-      if (product.brand) {
-        brandSet.add(product.brand);
-      }
-    });
-    return Array.from(brandSet).sort();
-  }, [allProducts]);
+  // Available brands for filtering (use all brands, not just filtered products)
+  const availableBrands = allBrands;
 
   // Sort products (server-side filtering is now handled by API)
   const filteredAndSortedProducts = useMemo(() => {
@@ -366,7 +415,7 @@ export default function Home() {
 
     if (categoryId) {
       console.log("Filtering by category:", categoryName, "ID:", categoryId);
-      await fetchProducts({ categoryId: categoryId.toString() });
+      await fetchProducts({ categoryIds: [categoryId.toString()] });
     }
 
     // Scroll to products section
@@ -592,32 +641,32 @@ export default function Home() {
                       >
                         Оновити сторінку
                       </Button>
-                     </div>
-                   )}
-                   
-                   {/* Load More Button */}
-                   {hasMoreProducts && !loading && (
-                     <div className="col-span-full flex justify-center mt-8">
-                       <Button
-                         onClick={loadMoreProducts}
-                         disabled={loadingMore}
-                         className="px-8 py-3 text-lg"
-                       >
-                         {loadingMore ? (
-                           <>
-                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                             Завантаження...
-                           </>
-                         ) : (
-                           "Завантажити ще"
-                         )}
-                       </Button>
-                     </div>
-                   )}
-                 </div>
-               </div>
-             </div>
-           </section>
+                    </div>
+                  )}
+
+                  {/* Load More Button */}
+                  {hasMoreProducts && !loading && (
+                    <div className="col-span-full flex justify-center mt-8">
+                      <Button
+                        onClick={loadMoreProducts}
+                        disabled={loadingMore}
+                        className="px-8 py-3 text-lg"
+                      >
+                        {loadingMore ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                            Завантаження...
+                          </>
+                        ) : (
+                          "Завантажити ще"
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
 
           {/* CTA Section */}
           <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">

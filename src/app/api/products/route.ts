@@ -10,7 +10,9 @@ export async function GET(request: NextRequest) {
       : undefined;
     const offset = parseInt(searchParams.get("offset") || "0");
     const categoryId = searchParams.get("categoryId");
+    const categoryIds = searchParams.get("categoryIds");
     const brand = searchParams.get("brand");
+    const brands = searchParams.get("brands");
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
     const inStockOnly = searchParams.get("inStockOnly") === "true";
@@ -34,10 +36,16 @@ export async function GET(request: NextRequest) {
       // Фільтри
       if (categoryId) {
         query = query.eq("category_id", categoryId);
+      } else if (categoryIds) {
+        const categoryIdArray = categoryIds.split(',').map(id => parseInt(id.trim()));
+        query = query.in("category_id", categoryIdArray);
       }
 
       if (brand) {
         query = query.eq("brand", brand);
+      } else if (brands) {
+        const brandArray = brands.split(',').map(b => b.trim());
+        query = query.in("brand", brandArray);
       }
 
       if (minPrice) {
@@ -142,10 +150,16 @@ export async function GET(request: NextRequest) {
       // Фільтри
       if (categoryId) {
         query = query.eq("category_id", categoryId);
+      } else if (categoryIds) {
+        const categoryIdArray = categoryIds.split(',').map(id => parseInt(id.trim()));
+        query = query.in("category_id", categoryIdArray);
       }
 
       if (brand) {
         query = query.eq("brand", brand);
+      } else if (brands) {
+        const brandArray = brands.split(',').map(b => b.trim());
+        query = query.in("brand", brandArray);
       }
 
       if (minPrice) {
