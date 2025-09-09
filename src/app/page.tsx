@@ -124,10 +124,6 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
   const { filters, setFilters } = useFilters();
 
-  // Debug: Log filter changes
-  useEffect(() => {
-    console.log("Filters changed:", filters);
-  }, [filters]);
 
   // Available categories for filtering
   const availableCategories = useMemo(() => {
@@ -153,7 +149,6 @@ export default function Home() {
 
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
-    console.log("Current filters:", filters);
     let filtered = allProducts.filter((product) => {
       // Search filter
       if (searchQuery) {
@@ -181,11 +176,6 @@ export default function Home() {
       // Category filter
       if (filters.categories.length > 0) {
         const productCategory = product.categories?.name;
-        console.log("Checking category filter:", {
-          productCategory,
-          filterCategories: filters.categories,
-          matches: productCategory && filters.categories.includes(productCategory)
-        });
         if (!productCategory || !filters.categories.includes(productCategory)) {
           return false;
         }

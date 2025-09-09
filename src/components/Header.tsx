@@ -204,17 +204,11 @@ export default function Header() {
     // Check if we're on the client side
     if (typeof window === "undefined") return;
 
-    console.log("Setting category filter:", categoryName);
-
     // Set category filter
-    setFilters((prev) => {
-      const newFilters = {
-        ...prev,
-        categories: [categoryName],
-      };
-      console.log("New filters:", newFilters);
-      return newFilters;
-    });
+    setFilters((prev) => ({
+      ...prev,
+      categories: [categoryName],
+    }));
 
     // Close mobile menu and dropdown
     setIsMenuOpen(false);
