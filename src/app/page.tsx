@@ -86,6 +86,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreProducts, setHasMoreProducts] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Context hooks
   const { searchQuery } = useSearch();
@@ -116,59 +119,106 @@ export default function Home() {
   }, [setFilters]);
 
   // Fetch products with filters
-  const fetchProducts = useCallback(async (filterParams?: {
-    categoryId?: string;
-    brand?: string;
-    search?: string;
-    inStockOnly?: boolean;
-    minPrice?: number;
-    maxPrice?: number;
-  }) => {
-    try {
-      setLoading(true);
-
-      const params = new URLSearchParams();
-      if (filterParams?.categoryId)
-        params.append("categoryId", filterParams.categoryId);
-      if (filterParams?.brand) params.append("brand", filterParams.brand);
-      if (filterParams?.search) params.append("search", filterParams.search);
-      if (filterParams?.inStockOnly) params.append("inStockOnly", "true");
-      if (filterParams?.minPrice)
-        params.append("minPrice", filterParams.minPrice.toString());
-      if (filterParams?.maxPrice)
-        params.append("maxPrice", filterParams.maxPrice.toString());
-
-      const response = await fetch(`/api/products?${params.toString()}`);
-      const data = await response.json();
-
-      if (data.success && data.products) {
-        setAllProducts(data.products);
-        console.log("Fetched products:", data.products.length);
-        if (isInitialLoad) {
-          setIsInitialLoad(false);
+  const fetchProducts = useCallback(
+    async (filterParams?: {
+      categoryId?: string;
+      brand?: string;
+      search?: string;
+      inStockOnly?: boolean;
+      minPrice?: number;
+      maxPrice?: number;
+    }, page: number = 1, append: boolean = false) => {
+      try {
+        if (append) {
+          setLoadingMore(true);
+        } else {
+          setLoading(true);
         }
-      } else {
-        console.error("Failed to fetch products:", data.error);
+
+        const params = new URLSearchParams();
+        if (filterParams?.categoryId)
+          params.append("categoryId", filterParams.categoryId);
+        if (filterParams?.brand) params.append("brand", filterParams.brand);
+        if (filterParams?.search) params.append("search", filterParams.search);
+        if (filterParams?.inStockOnly) params.append("inStockOnly", "true");
+        if (filterParams?.minPrice)
+          params.append("minPrice", filterParams.minPrice.toString());
+        if (filterParams?.maxPrice)
+          params.append("maxPrice", filterParams.maxPrice.toString());
+        
+        // Add pagination parameters
+        params.append("limit", "50");
+        params.append("offset", ((page - 1) * 50).toString());
+
+        const response = await fetch(`/api/products?${params.toString()}`);
+        const data = await response.json();
+
+        if (data.success && data.products) {
+          if (append) {
+            setAllProducts(prev => [...prev, ...data.products]);
+          } else {
+            setAllProducts(data.products);
+          }
+          
+          // Check if there are more products
+          setHasMoreProducts(data.products.length === 50);
+          setCurrentPage(page);
+          
+          console.log("Fetched products:", data.products.length, "Page:", page);
+          if (isInitialLoad) {
+            setIsInitialLoad(false);
+          }
+        } else {
+          console.error("Failed to fetch products:", data.error);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        if (append) {
+          setLoadingMore(false);
+        } else {
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [isInitialLoad]);
+    },
+    [isInitialLoad]
+  );
 
   // Fetch products on component mount
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
+  // Listen for category filter events from header
+  useEffect(() => {
+    const handleCategoryFilterApplied = (event: CustomEvent) => {
+      const { products } = event.detail;
+      setAllProducts(products);
+      console.log("Updated products from header filter:", products.length);
+    };
+
+    window.addEventListener('categoryFilterApplied', handleCategoryFilterApplied as EventListener);
+    
+    return () => {
+      window.removeEventListener('categoryFilterApplied', handleCategoryFilterApplied as EventListener);
+    };
+  }, []);
+
+  // Load more products function
+  const loadMoreProducts = async () => {
+    if (loadingMore || !hasMoreProducts) return;
+    
+    const nextPage = currentPage + 1;
+    await fetchProducts({}, nextPage, true);
+  };
+
   // Fetch products when filters change (but not on initial load)
   useEffect(() => {
     // Skip if we haven't loaded initial products yet or if this is initial load
     if (allProducts.length === 0 || isInitialLoad) return;
-    
+
     // Skip if no active filters
-    const hasActiveFilters = 
+    const hasActiveFilters =
       filters.categories.length > 0 ||
       filters.brands.length > 0 ||
       filters.inStockOnly ||
@@ -212,7 +262,9 @@ export default function Home() {
     }
 
     console.log("Applying filters:", filterParams);
-    fetchProducts(filterParams);
+    setCurrentPage(1);
+    setHasMoreProducts(true);
+    fetchProducts(filterParams, 1, false);
   }, [filters, searchQuery, isInitialLoad, fetchProducts]);
 
   // Calculate available options for filters
@@ -540,12 +592,32 @@ export default function Home() {
                       >
                         Оновити сторінку
                       </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </section>
+                     </div>
+                   )}
+                   
+                   {/* Load More Button */}
+                   {hasMoreProducts && !loading && (
+                     <div className="col-span-full flex justify-center mt-8">
+                       <Button
+                         onClick={loadMoreProducts}
+                         disabled={loadingMore}
+                         className="px-8 py-3 text-lg"
+                       >
+                         {loadingMore ? (
+                           <>
+                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                             Завантаження...
+                           </>
+                         ) : (
+                           "Завантажити ще"
+                         )}
+                       </Button>
+                     </div>
+                   )}
+                 </div>
+               </div>
+             </div>
+           </section>
 
           {/* CTA Section */}
           <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">

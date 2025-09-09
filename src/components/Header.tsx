@@ -200,12 +200,15 @@ export default function Header() {
     return categoryName.toLowerCase().replace(/\s+/g, "-");
   };
 
-  const handleMobileCategoryClick = (categoryName: string, e?: React.MouseEvent | React.TouchEvent) => {
+  const handleMobileCategoryClick = async (
+    categoryName: string,
+    e?: React.MouseEvent | React.TouchEvent
+  ) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    
+
     // Check if we're on the client side
     if (typeof window === "undefined") return;
 
@@ -225,6 +228,35 @@ export default function Header() {
     // Close mobile menu and dropdown
     setIsMenuOpen(false);
     setIsMobileProductsDropdownOpen(false);
+
+    // Apply category filter via API (similar to homepage category buttons)
+    try {
+      // First fetch all products to get category ID
+      const response = await fetch("/api/products");
+      const data = await response.json();
+      
+      if (data.success && data.products) {
+        const categoryId = data.products.find((p: any) => 
+          p.categories?.name === categoryName
+        )?.category_id;
+        
+        if (categoryId) {
+          console.log("Header filtering by category:", categoryName, "ID:", categoryId);
+          // Apply filter via API
+          const filterResponse = await fetch(`/api/products?categoryId=${categoryId}`);
+          const filterData = await filterResponse.json();
+          
+          if (filterData.success && filterData.products) {
+            // Trigger a custom event to update products in parent component
+            window.dispatchEvent(new CustomEvent('categoryFilterApplied', {
+              detail: { products: filterData.products, categoryName }
+            }));
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error applying category filter:", error);
+    }
 
     // Scroll to products section
     setTimeout(() => {
@@ -287,7 +319,7 @@ export default function Header() {
                       {categories.map((category) => (
                         <div key={category.id} className="space-y-1">
                           <button
-                            className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                            className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 rounded-md"
                             onClick={(e) => {
                               handleMobileCategoryClick(category.name, e);
                               setIsProductsDropdownOpen(false);
@@ -301,7 +333,7 @@ export default function Header() {
                                 {category.children.map((subcategory) => (
                                   <button
                                     key={subcategory.id}
-                                    className="block w-full text-left px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                                    className="block w-full text-left px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md"
                                     onClick={(e) => {
                                       handleMobileCategoryClick(
                                         subcategory.name,
@@ -543,7 +575,7 @@ export default function Header() {
                             {categories.map((category) => (
                               <div key={category.id}>
                                 <button
-                                  className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                                  className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary"
                                   onClick={(e) =>
                                     handleMobileCategoryClick(category.name, e)
                                   }
@@ -556,7 +588,7 @@ export default function Header() {
                                       {category.children.map((subcategory) => (
                                         <button
                                           key={subcategory.id}
-                                          className="block w-full text-left py-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                                          className="block w-full text-left py-1 text-xs text-muted-foreground hover:text-primary"
                                           onClick={(e) =>
                                             handleMobileCategoryClick(
                                               subcategory.name,

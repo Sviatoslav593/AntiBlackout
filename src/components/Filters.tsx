@@ -108,8 +108,14 @@ export default function Filters({
 
     // Apply filter via API
     if (onApplyFilters) {
-      // This will be handled by the parent component's useEffect
-      console.log('Category filter changed:', newCategories);
+      console.log("Category filter changed:", newCategories);
+      // Apply filter immediately
+      const filterParams: any = {};
+      if (newCategories.length > 0) {
+        // We need to get category ID from parent component
+        // For now, just trigger the parent's useEffect
+      }
+      onApplyFilters(filterParams);
     }
   };
 
@@ -133,11 +139,18 @@ export default function Filters({
 
     // Apply filter via API
     if (onApplyFilters) {
-      console.log('Brand filter changed:', newBrands);
+      console.log("Brand filter changed:", newBrands);
+      const filterParams: any = {};
+      if (newBrands.length > 0) {
+        filterParams.brand = newBrands[0];
+      }
+      onApplyFilters(filterParams);
     }
   };
 
-  const handleInStockToggle = async (e?: React.MouseEvent | React.TouchEvent) => {
+  const handleInStockToggle = async (
+    e?: React.MouseEvent | React.TouchEvent
+  ) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -151,7 +164,12 @@ export default function Filters({
 
     // Apply filter via API
     if (onApplyFilters) {
-      console.log('In stock filter changed:', newInStockOnly);
+      console.log("In stock filter changed:", newInStockOnly);
+      const filterParams: any = {};
+      if (newInStockOnly) {
+        filterParams.inStockOnly = true;
+      }
+      onApplyFilters(filterParams);
     }
   };
 
@@ -168,7 +186,7 @@ export default function Filters({
 
     // Apply cleared filters via API
     if (onApplyFilters) {
-      console.log('Clearing all filters');
+      console.log("Clearing all filters");
       await onApplyFilters({});
     }
   };
@@ -252,7 +270,7 @@ export default function Filters({
         <>
           <div className="space-y-3">
             <h4 className="font-medium">Бренди</h4>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
               {availableBrands.map((brand) => (
                 <label
                   key={brand}
