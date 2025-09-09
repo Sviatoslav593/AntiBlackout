@@ -1,18 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Layout from "@/components/Layout";
 import ProductCard, { Product } from "@/components/ProductCard";
-import Filters, { FilterState } from "@/components/Filters";
-import SortDropdown, {
-  SortOption,
-  sortProducts,
-} from "@/components/SortDropdown";
-import { Battery, Zap, Shield, Truck } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
-import { useSearch } from "@/context/SearchContext";
+import { Battery, Zap, Shield, Truck, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
 import { SITE_CONFIG } from "@/lib/seo";
-import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
 const features = [
@@ -39,179 +33,80 @@ const features = [
   },
 ];
 
+interface Category {
+  id: number;
+  name: string;
+  parent_id?: number;
+  children?: Category[];
+}
+
 export default function Home() {
-  // State for products
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [popularPowerBanks, setPopularPowerBanks] = useState<Product[]>([]);
+  const [popularCables, setPopularCables] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Search context
-  const { searchQuery, clearSearch } = useSearch();
-
-  // Scroll restoration
   useEffect(() => {
-    const savedScrollPosition = sessionStorage.getItem("scrollPosition");
-    if (savedScrollPosition) {
-      window.scrollTo(0, parseInt(savedScrollPosition));
-      sessionStorage.removeItem("scrollPosition");
-    }
-  }, []);
-
-  // Save scroll position when navigating away
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      sessionStorage.setItem("scrollPosition", window.scrollY.toString());
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, []);
-
-  // Fetch products from database
-  useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchHomeData = async () => {
       try {
         setLoading(true);
 
-        const response = await fetch("/api/products");
-        const data = await response.json();
+        // Fetch categories
+        const categoriesResponse = await fetch("/api/categories");
+        const categoriesData = await categoriesResponse.json();
 
-        if (!data.success) {
-          console.error("Error fetching products:", data.error);
-          return;
+        if (categoriesData.success) {
+          setCategories(categoriesData.categories);
         }
 
-        console.log("Fetched products from API:", data.products.length);
+        // Fetch popular power banks (category 3 and its children)
+        const powerBanksResponse = await fetch("/api/products?categoryId=3&limit=50");
+        const powerBanksData = await powerBanksResponse.json();
 
-        setAllProducts(data.products);
+        if (powerBanksData.success) {
+          setPopularPowerBanks(powerBanksData.products.slice(0, 50));
+        }
+
+        // Fetch popular cables (category 16)
+        const cablesResponse = await fetch("/api/products?categoryId=16&limit=50");
+        const cablesData = await cablesResponse.json();
+
+        if (cablesData.success) {
+          setPopularCables(cablesData.products.slice(0, 50));
+        }
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Error fetching home data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchHomeData();
   }, []);
-
-  // Filter and sort state
-  const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
-  const [filters, setFilters] = useState<FilterState>({
-    priceRange: { min: 0, max: 10000 },
-    categories: [],
-    brands: [],
-    capacityRange: { min: 0, max: 50000 },
-    inStockOnly: false,
-  });
-
-  // Calculate available options for filters
-  const availableCategories = useMemo(() => {
-    const categories = [
-      ...new Set(allProducts.map((p) => p.categories?.name).filter(Boolean)),
-    ] as string[];
-    return categories.filter((cat) => cat && cat.trim().length > 0);
-  }, [allProducts]);
-
-  const availableBrands = useMemo(() => {
-    return Array.from(new Set(allProducts.map((p) => p.brand)));
-  }, [allProducts]);
-
-  const priceRange = useMemo(() => {
-    const prices = allProducts.map((p) => p.price);
-    return { min: Math.min(...prices), max: Math.max(...prices) };
-  }, [allProducts]);
-
-  const capacityRange = useMemo(() => {
-    const capacities = allProducts.map((p) => p.capacity).filter((c) => c > 0);
-    return {
-      min: capacities.length > 0 ? Math.min(...capacities) : 0,
-      max: capacities.length > 0 ? Math.max(...capacities) : 50000,
-    };
-  }, [allProducts]);
-
-  // Filter products based on current filters and search query
-  const filteredProducts = useMemo(() => {
-    return allProducts.filter((product) => {
-      // Search filter - case insensitive partial matching
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase().trim();
-        const matchesName = product.name.toLowerCase().includes(query);
-        const matchesDescription =
-          product.description?.toLowerCase().includes(query) || false;
-        const matchesBrand = product.brand.toLowerCase().includes(query);
-        const matchesCategory =
-          product.categories?.name?.toLowerCase().includes(query) || false;
-
-        if (
-          !matchesName &&
-          !matchesDescription &&
-          !matchesBrand &&
-          !matchesCategory
-        ) {
-          return false;
-        }
-      }
-
-      // Price filter
-      if (
-        product.price < filters.priceRange.min ||
-        product.price > filters.priceRange.max
-      ) {
-        return false;
-      }
-
-      // Category filter
-      if (
-        filters.categories.length > 0 &&
-        product.categories?.name &&
-        !filters.categories.includes(product.categories.name)
-      ) {
-        return false;
-      }
-
-      // Brand filter
-      if (
-        filters.brands.length > 0 &&
-        !filters.brands.includes(product.brand)
-      ) {
-        return false;
-      }
-
-      // Capacity filter (only for products with capacity > 0)
-      if (product.capacity > 0) {
-        if (
-          product.capacity < filters.capacityRange.min ||
-          product.capacity > filters.capacityRange.max
-        ) {
-          return false;
-        }
-      }
-
-      // In stock filter
-      if (filters.inStockOnly && !product.inStock) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [allProducts, filters, searchQuery]);
-
-  // Sort filtered products - in-stock products first
-  const sortedProducts = useMemo(() => {
-    const sorted = sortProducts(filteredProducts, sortBy);
-    // Always show in-stock products first
-    return sorted.sort((a, b) => {
-      if (a.inStock && !b.inStock) return -1;
-      if (!a.inStock && b.inStock) return 1;
-      return 0;
-    });
-  }, [filteredProducts, sortBy]);
 
   const scrollToProducts = () => {
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Remove the full page loading state - page loads immediately
+  const getCategorySlug = (categoryName: string) => {
+    return categoryName.toLowerCase().replace(/\s+/g, '-');
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container py-16">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Завантаження...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -248,16 +143,23 @@ export default function Home() {
             </h1>
             <p className="text-xl md:text-2xl text-blue-100 leading-relaxed animate-slide-up-delay">
               Купуйте павербанки, зарядні пристрої та кабелі, щоб залишатися на
-              зв'язку, коли це найбільш важливо. Ніколи не дозволяйте
-              відключенню електроенергії застати вас зненацька.
+              зв'язку навіть під час відключення електроенергії
             </p>
-            <div className="flex justify-center animate-slide-up-delay-2">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up-delay-2">
               <Button
                 size="lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                 onClick={scrollToProducts}
-                className="bg-white text-blue-700 hover:bg-gray-100 hover:scale-105 text-lg px-8 py-6 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
               >
-                Купити Зараз
+                Переглянути Товари
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold rounded-xl backdrop-blur-sm transition-all duration-300 hover:scale-105"
+                onClick={scrollToProducts}
+              >
+                Дізнатися Більше
               </Button>
             </div>
           </div>
@@ -265,19 +167,27 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-16 bg-gray-50">
         <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Чому Обирають Нас
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Ми пропонуємо найкращі рішення для забезпечення безперебійної
+              роботи ваших пристроїв
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="text-center space-y-4 group hover:scale-105 transition-transform duration-300"
-                style={{ animationDelay: `${index * 150}ms` }}
+                className="text-center group hover:scale-105 transition-transform duration-300"
               >
                 <div className="mx-auto w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center group-hover:bg-blue-700 group-hover:rotate-6 transition-all duration-300">
                   <feature.icon className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-lg group-hover:text-blue-600 transition-colors duration-300">
+                <h3 className="text-xl font-semibold mt-4 mb-2">
                   {feature.title}
                 </h3>
                 <p className="text-muted-foreground">{feature.description}</p>
@@ -287,139 +197,172 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Products Section */}
+      {/* Categories Section */}
       <section id="products" className="py-16">
         <div className="container">
-          <div className="text-center space-y-4 mb-12 animate-fade-in">
-            <h2 className="text-3xl md:text-4xl font-bold">Каталог Товарів</h2>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Категорії Товарів
+            </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Відкрийте для себе наш асортимент надійних енергетичних рішень,
-              розроблених для підтримки зв'язку під час надзвичайних ситуацій та
-              повсякденного використання.
+              Оберіть категорію, яка вас цікавить
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Filters Sidebar */}
-            <div className="lg:col-span-1">
-              <Filters
-                filters={filters}
-                onFiltersChange={setFilters}
-                availableCategories={availableCategories}
-                availableBrands={availableBrands}
-                priceRange={priceRange}
-                capacityRange={capacityRange}
-              />
-            </div>
-
-            {/* Products Grid */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Sort and Results Count */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex flex-col gap-2">
-                  {searchQuery && (
-                    <p className="text-sm text-blue-600 font-medium">
-                      Результати пошуку для: "{searchQuery}"
-                    </p>
-                  )}
-                </div>
-                <SortDropdown value={sortBy} onValueChange={setSortBy} />
-              </div>
-
-              {/* Products Grid */}
-              {loading && allProducts.length === 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                  {Array.from({ length: 6 }).map((_, index) => (
-                    <div key={index} className="animate-pulse">
-                      <div className="bg-gray-200 rounded-lg aspect-square mb-4"></div>
-                      <div className="space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                        <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : sortedProducts.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                  {sortedProducts.map((product: Product, index) => (
-                    <div
-                      key={product.id}
-                      className="animate-slide-up"
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      <ProductCard product={product} />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16 space-y-4">
-                  <div className="text-6xl">🔍</div>
-                  <h3 className="text-xl font-semibold">
-                    {searchQuery ? "Нічого не знайдено" : "Товари не знайдено"}
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {searchQuery
-                      ? `За запитом "${searchQuery}" нічого не знайдено. Спробуйте інший пошуковий запит або змініть фільтри.`
-                      : "Спробуйте змінити параметри фільтрації або очистити фільтри"}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+            {categories.map((category) => (
+              <Card
+                key={category.id}
+                className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105"
+                onClick={() =>
+                  router.push(`/category/${getCategorySlug(category.name)}`)
+                }
+              >
+                <CardHeader className="text-center">
+                  <CardTitle className="text-xl group-hover:text-blue-600 transition-colors">
+                    {category.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <p className="text-muted-foreground mb-4">
+                    {category.children?.length || 0} підкатегорій
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    {searchQuery && (
-                      <Button
-                        variant="default"
-                        onClick={clearSearch}
-                        className="cursor-pointer"
-                      >
-                        Очистити пошук
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        setFilters({
-                          priceRange: {
-                            min: priceRange.min,
-                            max: priceRange.max,
-                          },
-                          categories: [],
-                          brands: [],
-                          capacityRange: {
-                            min: capacityRange.min,
-                            max: capacityRange.max,
-                          },
-                          inStockOnly: false,
-                        })
-                      }
-                      className="cursor-pointer"
-                    >
-                      Очистити фільтри
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
+                  <Button
+                    variant="outline"
+                    className="group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all duration-300"
+                  >
+                    Переглянути
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
+      {/* Popular Power Banks Section */}
+      {popularPowerBanks.length > 0 && (
+        <section className="py-16 bg-gray-50">
+          <div className="container">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold mb-2">
+                  Популярні Павербанки
+                </h2>
+                <p className="text-xl text-muted-foreground">
+                  Найкращі портативні батареї для вашого пристрою
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/category/portativni-batarei")}
+                className="hidden sm:flex"
+              >
+                Переглянути всі
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {popularPowerBanks.slice(0, 10).map((product, index) => (
+                <div
+                  key={product.id}
+                  className="animate-slide-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center mt-8 sm:hidden">
+              <Button
+                variant="outline"
+                onClick={() => router.push("/category/portativni-batarei")}
+              >
+                Переглянути всі павербанки
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Popular Cables Section */}
+      {popularCables.length > 0 && (
+        <section className="py-16">
+          <div className="container">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold mb-2">
+                  Популярні Кабелі
+                </h2>
+                <p className="text-xl text-muted-foreground">
+                  Якісні кабелі для швидкої зарядки та передачі даних
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/category/kabeli-usb")}
+                className="hidden sm:flex"
+              >
+                Переглянути всі
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {popularCables.slice(0, 10).map((product, index) => (
+                <div
+                  key={product.id}
+                  className="animate-slide-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center mt-8 sm:hidden">
+              <Button
+                variant="outline"
+                onClick={() => router.push("/category/kabeli-usb")}
+              >
+                Переглянути всі кабелі
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* CTA Section */}
-      <section className="py-16 bg-muted/30">
-        <div className="container">
-          <div className="max-w-3xl mx-auto text-center space-y-8 animate-fade-in">
-            <h2 className="text-3xl md:text-4xl font-bold animate-slide-up">
-              Готові Залишатись на Зв'язку?
-            </h2>
-            <p className="text-xl text-muted-foreground animate-slide-up-delay">
-              Приєднуйтесь до тисяч клієнтів, які довіряють AntiBlackout у своїх
-              потребах аварійного живлення. Швидка доставка з відправленням в
-              день замовлення по всій Україні.
-            </p>
+      <section className="py-16 bg-blue-600 text-white">
+        <div className="container text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Готові Забезпечити Безперебійну Роботу?
+          </h2>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Оберіть найкращі рішення для зарядки та підтримки ваших пристроїв
+            під час будь-яких обставин
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
+              variant="secondary"
+              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
               onClick={scrollToProducts}
-              className="text-lg px-8 py-6 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl animate-slide-up-delay-2 cursor-pointer"
             >
-              Переглянути Всі Товари
+              Переглянути Каталог
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold"
+              onClick={scrollToProducts}
+            >
+              Дізнатися Більше
             </Button>
           </div>
         </div>
@@ -427,4 +370,3 @@ export default function Home() {
     </Layout>
   );
 }
-export const dynamic = "force-dynamic";

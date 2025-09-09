@@ -7,6 +7,7 @@ import Layout from "@/components/Layout";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
 import { useFavorites } from "@/context/FavoritesContext";
+import { useCategory } from "@/context/CategoryContext";
 import ProductImageGallery from "@/components/ProductImageGallery";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -59,6 +60,7 @@ export default function ProductPage() {
   const { addItem, getItemQuantity } = useCart();
   const { showToast } = useToast();
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
+  const { currentCategory, setCurrentCategory, getCategorySlug } = useCategory();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
@@ -329,15 +331,38 @@ export default function ProductPage() {
       )}
 
       <div className="container py-8">
-        {/* Back Button */}
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="mb-6 hover:bg-muted cursor-pointer"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Назад
-        </Button>
+        {/* Breadcrumb Navigation */}
+        <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
+          <button
+            onClick={() => router.push("/")}
+            className="hover:text-foreground transition-colors"
+          >
+            Головна
+          </button>
+          <span>/</span>
+          {currentCategory ? (
+            <>
+              <button
+                onClick={() => router.push(`/category/${getCategorySlug(currentCategory.name)}`)}
+                className="hover:text-foreground transition-colors"
+              >
+                {currentCategory.name}
+              </button>
+              <span>/</span>
+            </>
+          ) : product?.categories ? (
+            <>
+              <button
+                onClick={() => router.push(`/category/${getCategorySlug(product.categories.name)}`)}
+                className="hover:text-foreground transition-colors"
+              >
+                {product.categories.name}
+              </button>
+              <span>/</span>
+            </>
+          ) : null}
+          <span className="text-foreground">{product?.name}</span>
+        </nav>
 
         {/* Product Details Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
