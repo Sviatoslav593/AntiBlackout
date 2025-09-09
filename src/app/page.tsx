@@ -139,7 +139,7 @@ export default function Home() {
         if (append) {
           setLoadingMore(true);
         } else {
-        setLoading(true);
+          setLoading(true);
         }
 
         const params = new URLSearchParams();
@@ -185,7 +185,7 @@ export default function Home() {
         if (append) {
           setLoadingMore(false);
         } else {
-        setLoading(false);
+          setLoading(false);
         }
       }
     },
@@ -226,13 +226,13 @@ export default function Home() {
 
       if (data.success && data.products) {
         // Extract all unique categories
-    const categorySet = new Set<string>();
+        const categorySet = new Set<string>();
         const brandSet = new Set<string>();
 
         data.products.forEach((product: Product) => {
-      if (product.categories?.name) {
-        categorySet.add(product.categories.name);
-      }
+          if (product.categories?.name) {
+            categorySet.add(product.categories.name);
+          }
           if (product.brand) {
             brandSet.add(product.brand);
           }
@@ -276,7 +276,7 @@ export default function Home() {
     // Skip if we haven't loaded initial products yet or if this is initial load
     if (allProducts.length === 0 || isInitialLoad) return;
 
-    // Skip if no active filters
+    // Check if we have any active filters
     const hasActiveFilters =
       filters.categories.length > 0 ||
       filters.brands.length > 0 ||
@@ -285,22 +285,33 @@ export default function Home() {
       filters.priceRange.max < 10000 ||
       debouncedSearchQuery;
 
+    console.log("Filter change detected:", {
+      hasActiveFilters,
+      categories: filters.categories,
+      brands: filters.brands,
+      search: debouncedSearchQuery
+    });
+
+    // If no active filters, reload all products
     if (!hasActiveFilters) {
-      // If no filters but we had products before, reload all products
-      if (allProducts.length > 0) {
-        fetchProducts({}, 1, false);
-      }
+      console.log("No active filters, reloading all products");
+      setCurrentPage(1);
+      setHasMoreProducts(true);
+      await fetchProducts({}, 1, false);
       return;
     }
 
-    const filterParams: any = {};
+    // Apply filters
+    const applyFilters = async () => {
+      const filterParams: any = {};
 
-    // Convert category names to category IDs
-    if (filters.categories.length > 0) {
-      // Get all products to find category IDs
-      fetch("/api/products")
-        .then((response) => response.json())
-        .then((data) => {
+      // Convert category names to category IDs
+      if (filters.categories.length > 0) {
+        // Get all products to find category IDs
+        try {
+          const response = await fetch("/api/products");
+          const data = await response.json();
+          
           if (data.success && data.products) {
             const categoryIds: string[] = [];
             filters.categories.forEach((categoryName) => {
@@ -313,39 +324,42 @@ export default function Home() {
             });
             if (categoryIds.length > 0) {
               filterParams.categoryIds = categoryIds;
+              console.log("Converted categories to IDs:", filters.categories, "->", categoryIds);
             }
           }
-        })
-        .catch((error) => {
+        } catch (error) {
           console.error("Error getting category IDs:", error);
-        });
-    }
+        }
+      }
 
-    // Add brand filters
-    if (filters.brands.length > 0) {
-      filterParams.brandIds = filters.brands;
-    }
+      // Add brand filters
+      if (filters.brands.length > 0) {
+        filterParams.brandIds = filters.brands;
+      }
 
-    if (filters.inStockOnly) {
-      filterParams.inStockOnly = true;
-    }
+      if (filters.inStockOnly) {
+        filterParams.inStockOnly = true;
+      }
 
-    if (filters.priceRange.min > 0) {
-      filterParams.minPrice = filters.priceRange.min;
-    }
+      if (filters.priceRange.min > 0) {
+        filterParams.minPrice = filters.priceRange.min;
+      }
 
-    if (filters.priceRange.max < 10000) {
-      filterParams.maxPrice = filters.priceRange.max;
-    }
+      if (filters.priceRange.max < 10000) {
+        filterParams.maxPrice = filters.priceRange.max;
+      }
 
-    if (debouncedSearchQuery) {
-      filterParams.search = debouncedSearchQuery;
-    }
+      if (debouncedSearchQuery) {
+        filterParams.search = debouncedSearchQuery;
+      }
 
-    console.log("Applying filters:", filterParams);
-    setCurrentPage(1);
-    setHasMoreProducts(true);
-    fetchProducts(filterParams, 1, false);
+      console.log("Applying filters:", filterParams);
+      setCurrentPage(1);
+      setHasMoreProducts(true);
+      await fetchProducts(filterParams, 1, false);
+    };
+
+    applyFilters();
   }, [filters, debouncedSearchQuery, isInitialLoad, fetchProducts]);
 
   // Calculate available options for filters
@@ -424,14 +438,40 @@ export default function Home() {
       e.stopPropagation();
     }
 
-    // Find category ID from current products
-    const categoryId = allProducts.find(
-      (p) => p.categories?.name === categoryName
-    )?.category_id;
+    console.log("Category button clicked:", categoryName);
 
-    if (categoryId) {
-      console.log("Filtering by category:", categoryName, "ID:", categoryId);
-      await fetchProducts({ categoryIds: [categoryId.toString()] });
+    // Set category filter
+    setFilters((prev) => ({
+      ...prev,
+      categories: [categoryName],
+    }));
+
+    // Apply category filter via API (same as header logic)
+    try {
+      // First fetch all products to get category ID
+      const response = await fetch("/api/products");
+      const data = await response.json();
+      
+      if (data.success && data.products) {
+        const categoryId = data.products.find((p: Product) => 
+          p.categories?.name === categoryName
+        )?.category_id;
+        
+        if (categoryId) {
+          console.log("Header filtering by category:", categoryName, "ID:", categoryId);
+          // Apply filter via API
+          const filterResponse = await fetch(`/api/products?categoryId=${categoryId}`);
+          const filterData = await filterResponse.json();
+          
+          if (filterData.success && filterData.products) {
+            setAllProducts(filterData.products);
+            setCurrentPage(1);
+            setHasMoreProducts(filterData.products.length === 50);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error applying category filter:", error);
     }
 
     // Scroll to products section
@@ -440,39 +480,39 @@ export default function Home() {
 
   return (
     <FilterProvider>
-    <Layout>
+      <Layout>
         <div className="min-h-screen">
           {/* Hero Section - previous good design */}
-      <section className="relative hero-gradient text-white overflow-hidden">
+          <section className="relative hero-gradient text-white overflow-hidden">
             <div className="absolute inset-0 bg-black/20 pointer-events-none"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse pointer-events-none"></div>
             <div className="relative z-10 container py-24 md:py-32">
-          <div className="max-w-3xl mx-auto text-center space-y-8 animate-fade-in">
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight animate-slide-up">
-              Залишайтесь на Зв'язку Під Час Будь-якого Блекауту
-            </h1>
-            <p className="text-xl md:text-2xl text-blue-100 leading-relaxed animate-slide-up-delay">
+              <div className="max-w-3xl mx-auto text-center space-y-8 animate-fade-in">
+                <h1 className="text-4xl md:text-6xl font-bold leading-tight animate-slide-up">
+                  Залишайтесь на Зв'язку Під Час Будь-якого Блекауту
+                </h1>
+                <p className="text-xl md:text-2xl text-blue-100 leading-relaxed animate-slide-up-delay">
                   Купуйте павербанки, зарядні пристрої та кабелі, щоб залишатися
                   на зв'язку, коли це найбільш важливо. Ніколи не дозволяйте
                   відключенню електроенергії застати вас зненацька.
-            </p>
-            <div className="flex justify-center animate-slide-up-delay-2">
-              <Button
-                size="lg"
-                onClick={scrollToProducts}
+                </p>
+                <div className="flex justify-center animate-slide-up-delay-2">
+                  <Button
+                    size="lg"
+                    onClick={scrollToProducts}
                     className="bg-white text-blue-700 hover:bg-gray-100 hover:scale-105 text-lg px-8 py-6 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
-              >
+                  >
                     Купити Зараз
-              </Button>
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
+          </section>
 
           {/* Features Section - previous good design */}
           <section className="py-16 bg-muted/30">
-        <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="container">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {[
                   {
                     icon: Battery,
@@ -499,43 +539,43 @@ export default function Home() {
                       "Відправлення в день замовлення по всій Україні",
                   },
                 ].map((feature, index) => (
-              <div
-                key={index}
+                  <div
+                    key={index}
                     className="text-center space-y-4 group hover:scale-105 transition-transform duration-300"
                     style={{ animationDelay: `${index * 150}ms` }}
-              >
-                <div className="mx-auto w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center group-hover:bg-blue-700 group-hover:rotate-6 transition-all duration-300">
-                  <feature.icon className="h-6 w-6 text-white" />
-                </div>
+                  >
+                    <div className="mx-auto w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center group-hover:bg-blue-700 group-hover:rotate-6 transition-all duration-300">
+                      <feature.icon className="h-6 w-6 text-white" />
+                    </div>
                     <h3 className="font-semibold text-lg group-hover:text-blue-600 transition-colors duration-300">
-                  {feature.title}
-                </h3>
+                      {feature.title}
+                    </h3>
                     <p className="text-muted-foreground">
                       {feature.description}
                     </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </div>
+          </section>
 
-      {/* Categories Section */}
+          {/* Categories Section */}
           <section className="py-16 bg-white">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Категорії Товарів
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Оберіть категорію, яка вас цікавить
-            </p>
-          </div>
+            <div className="container">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                  Категорії Товарів
+                </h2>
+                <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                  Оберіть категорію, яка вас цікавить
+                </p>
+              </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 max-w-4xl mx-auto">
                 {availableCategories.map((category, index) => {
                   const Icon = getCategoryIcon(category);
-              return (
-                <div
+                  return (
+                    <div
                       key={category}
                       className="group relative bg-white border-2 border-gray-100 rounded-2xl p-6 hover:border-blue-200 hover:shadow-lg transition-all duration-300 cursor-pointer"
                       onClick={(e) => handleCategoryClick(category, e)}
@@ -543,11 +583,11 @@ export default function Home() {
                       <div className="flex flex-col items-center text-center space-y-4">
                         <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                           <Icon className="w-8 h-8 text-white" />
-                    </div>
+                        </div>
                         <div>
                           <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 text-sm lg:text-base">
                             {category}
-                    </h3>
+                          </h3>
                           <p className="text-xs lg:text-sm text-gray-500 mt-1">
                             {
                               allProducts.filter(
@@ -557,17 +597,17 @@ export default function Home() {
                             товарів
                           </p>
                         </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
 
-      {/* Products Section */}
+          {/* Products Section */}
           <section id="products" className="py-16 bg-gray-50">
-        <div className="container">
+            <div className="container">
               <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 space-y-4 lg:space-y-0">
                 <div>
                   <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
@@ -589,11 +629,11 @@ export default function Home() {
                       <div>Пошук: "{searchQuery}"</div>
                     </div>
                   )}
-          </div>
+                </div>
 
                 <div className="flex items-center gap-4">
-              <SortDropdown value={sortBy} onValueChange={setSortBy} />
-            </div>
+                  <SortDropdown value={sortBy} onValueChange={setSortBy} />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
@@ -608,11 +648,11 @@ export default function Home() {
                     capacityRange={capacityRange}
                     onApplyFilters={fetchProducts}
                   />
-          </div>
+                </div>
 
-          {/* Products Grid */}
+                {/* Products Grid */}
                 <div className="xl:col-span-3">
-          {loading ? (
+                  {loading ? (
                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                       {Array.from({ length: 6 }).map((_, index) => (
                         <div
@@ -636,11 +676,11 @@ export default function Home() {
                                 product.categories?.name || "Uncategorized",
                             }}
                           />
-              </div>
+                        </div>
                       ))}
-            </div>
+                    </div>
                   ) : (
-            <div className="text-center py-16">
+                    <div className="text-center py-16">
                       <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
                         <ShoppingBag className="w-12 h-12 text-gray-400" />
                       </div>
@@ -648,16 +688,16 @@ export default function Home() {
                         Товари не знайдені
                       </h3>
                       <p className="text-gray-600 mb-6">
-                Спробуйте змінити фільтри або пошуковий запит
-              </p>
+                        Спробуйте змінити фільтри або пошуковий запит
+                      </p>
                       <Button
                         variant="outline"
                         onClick={() => window.location.reload()}
                         className="cursor-pointer"
                       >
                         Оновити сторінку
-              </Button>
-            </div>
+                      </Button>
+                    </div>
                   )}
 
                   {/* Load More Button */}
@@ -680,37 +720,37 @@ export default function Home() {
                     </div>
                   )}
                 </div>
+              </div>
             </div>
-        </div>
-      </section>
+          </section>
 
-      {/* CTA Section */}
+          {/* CTA Section */}
           <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
             <div className="container">
               <div className="text-center text-white">
                 <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-            Готові Забезпечити Безперебійну Роботу?
-          </h2>
+                  Готові Забезпечити Безперебійну Роботу?
+                </h2>
                 <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
                   Оберіть найкращі рішення для зарядки та підтримки ваших
                   пристроїв під час будь-яких обставин
                 </p>
-            <Button
-              size="lg"
-              onClick={scrollToProducts}
+                <Button
+                  size="lg"
+                  onClick={scrollToProducts}
                   className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold cursor-pointer"
                 >
                   <ShoppingBag className="w-5 h-5 mr-2" />
                   Переглянути каталог
-            </Button>
-          </div>
-        </div>
-      </section>
+                </Button>
+              </div>
+            </div>
+          </section>
 
           {/* Scroll to Products Button */}
           <ScrollToProductsButton />
         </div>
-    </Layout>
+      </Layout>
     </FilterProvider>
   );
 }
