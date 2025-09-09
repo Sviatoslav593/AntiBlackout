@@ -14,9 +14,8 @@ export type SortOption =
   | "popularity-desc"
   | "price-asc"
   | "price-desc"
-  | "newest"
-  | "rating-desc"
-  | "name-asc";
+  | "name-asc"
+  | "newest-first";
 
 interface SortDropdownProps {
   value: SortOption;
@@ -37,16 +36,12 @@ const sortOptions = [
     label: "Ціна: від високої до низької",
   },
   {
-    value: "newest" as SortOption,
-    label: "Спочатку нові",
-  },
-  {
-    value: "rating-desc" as SortOption,
-    label: "За рейтингом",
-  },
-  {
     value: "name-asc" as SortOption,
     label: "За назвою (А-Я)",
+  },
+  {
+    value: "newest-first" as SortOption,
+    label: "Спочатку нові",
   },
 ];
 
@@ -90,14 +85,11 @@ export const sortProducts = (products: Product[], sortBy: SortOption) => {
     case "price-desc":
       return sorted.sort((a, b) => b.price - a.price);
 
-    case "newest":
+    case "newest-first":
       return sorted.sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-
-    case "rating-desc":
-      return sorted.sort((a, b) => b.rating - a.rating);
 
     case "name-asc":
       return sorted.sort((a, b) => a.name.localeCompare(b.name, "uk"));

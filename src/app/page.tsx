@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import Layout from "@/components/Layout";
+import SortDropdown from "@/components/SortDropdown";
 import ProductCard from "@/components/ProductCard";
 import Filters, { FilterState } from "@/components/Filters";
 import { Button } from "@/components/ui/button";
@@ -463,17 +464,7 @@ export default function Home() {
               </div>
 
               <div className="flex items-center gap-4">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-                >
-                  <option value="popularity-desc">За популярністю</option>
-                  <option value="price-asc">Ціна: низька → висока</option>
-                  <option value="price-desc">Ціна: висока → низька</option>
-                  <option value="name-asc">За назвою А-Я</option>
-                  <option value="newest-first">Спочатку нові</option>
-                </select>
+                <SortDropdown value={sortBy} onValueChange={setSortBy} />
               </div>
             </motion.div>
 
