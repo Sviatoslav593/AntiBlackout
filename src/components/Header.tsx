@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, Menu, X, Search, Heart } from "lucide-react";
+import {
+  ShoppingCart,
+  Menu,
+  X,
+  Search,
+  Heart,
+  ChevronDown,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useRef, useEffect } from "react";
@@ -11,10 +18,19 @@ import { useFavorites } from "@/context/FavoritesContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { CartDrawer } from "@/components/CartDrawer";
 
+interface Category {
+  id: number;
+  name: string;
+  parent_id?: number;
+  children?: Category[];
+}
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
   const { state, isCartAnimating } = useCart();
   const { searchQuery, setSearchQuery, clearSearch, scrollToProducts } =
     useSearch();
@@ -22,6 +38,23 @@ export default function Header() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchRef = useRef<HTMLDivElement>(null);
+  const productsDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Load categories on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        const data = await response.json();
+        if (data.success) {
+          setCategories(data.categories);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Handle search expansion and focus
   const handleSearchToggle = () => {
@@ -74,7 +107,7 @@ export default function Header() {
     }
   };
 
-  // Close search when clicking outside
+  // Close search and dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -98,6 +131,14 @@ export default function Header() {
           setIsSearchExpanded(false);
         }
       }
+
+      // Close products dropdown if clicking outside
+      if (
+        productsDropdownRef.current &&
+        !productsDropdownRef.current.contains(target)
+      ) {
+        setIsProductsDropdownOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -118,12 +159,19 @@ export default function Header() {
         if (isCartDrawerOpen) {
           setIsCartDrawerOpen(false);
         }
+        if (isProductsDropdownOpen) {
+          setIsProductsDropdownOpen(false);
+        }
       }
     };
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isSearchExpanded, isMenuOpen, isCartDrawerOpen]);
+  }, [isSearchExpanded, isMenuOpen, isCartDrawerOpen, isProductsDropdownOpen]);
+
+  const getCategorySlug = (categoryName: string) => {
+    return categoryName.toLowerCase().replace(/\s+/g, "-");
+  };
 
   return (
     <>
@@ -147,12 +195,68 @@ export default function Header() {
             >
               Головна
             </Link>
-            <Link
-              href="/products"
-              className="text-sm font-medium transition-colors hover:text-primary"
-            >
-              Товари
-            </Link>
+            <div className="relative" ref={productsDropdownRef}>
+              <Button
+                variant="ghost"
+                className="text-sm font-medium transition-colors hover:text-primary flex items-center space-x-1"
+                onClick={() =>
+                  setIsProductsDropdownOpen(!isProductsDropdownOpen)
+                }
+              >
+                <span>Товари</span>
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${
+                    isProductsDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </Button>
+
+              {/* Products Dropdown */}
+              <AnimatePresence>
+                {isProductsDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+                  >
+                    <div className="p-2">
+                      {categories.map((category) => (
+                        <div key={category.id} className="space-y-1">
+                          <Link
+                            href={`/category/${getCategorySlug(category.name)}`}
+                            className="block px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                            onClick={() => setIsProductsDropdownOpen(false)}
+                          >
+                            {category.name}
+                          </Link>
+                          {category.children &&
+                            category.children.length > 0 && (
+                              <div className="ml-4 space-y-1">
+                                {category.children.map((subcategory) => (
+                                  <Link
+                                    key={subcategory.id}
+                                    href={`/category/${getCategorySlug(
+                                      subcategory.name
+                                    )}`}
+                                    className="block px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                                    onClick={() =>
+                                      setIsProductsDropdownOpen(false)
+                                    }
+                                  >
+                                    {subcategory.name}
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <Link
               href="/about"
               className="text-sm font-medium transition-colors hover:text-primary"
@@ -257,19 +361,58 @@ export default function Header() {
             </Button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
+          {/* Mobile Action Buttons */}
+          <div className="md:hidden flex items-center space-x-2">
+            {/* Favorites */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative"
+              onClick={() => scrollToProducts()}
+            >
+              <Heart className="h-4 w-4" />
+              {favoritesCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
+                  {favoritesCount}
+                </span>
+              )}
+            </Button>
+
+            {/* Cart */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative"
+              onClick={() => setIsCartDrawerOpen(true)}
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {state.items.length > 0 && (
+                <motion.span
+                  className={`absolute -top-1 -right-1 h-5 w-5 rounded-full bg-blue-600 text-xs text-white flex items-center justify-center ${
+                    isCartAnimating ? "animate-bounce" : ""
+                  }`}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                >
+                  {state.items.length}
+                </motion.span>
+              )}
+            </Button>
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -340,34 +483,6 @@ export default function Header() {
                     Контакти
                   </Link>
                 </nav>
-
-                {/* Mobile Action Buttons */}
-                <div className="flex items-center space-x-4 pt-4 border-t">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center space-x-2"
-                    onClick={() => {
-                      scrollToProducts();
-                      setIsMenuOpen(false);
-                    }}
-                  >
-                    <Heart className="h-4 w-4" />
-                    <span>Обране ({favoritesCount})</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center space-x-2"
-                    onClick={() => {
-                      setIsCartDrawerOpen(true);
-                      setIsMenuOpen(false);
-                    }}
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                    <span>Кошик ({state.items.length})</span>
-                  </Button>
-                </div>
               </div>
             </motion.div>
           )}

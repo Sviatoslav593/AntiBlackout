@@ -8,7 +8,16 @@ import SortDropdown, {
   SortOption,
   sortProducts,
 } from "@/components/SortDropdown";
-import { Battery, Zap, Shield, Truck, Smartphone, Wifi, Plug, Cable } from "lucide-react";
+import {
+  Battery,
+  Zap,
+  Shield,
+  Truck,
+  Smartphone,
+  Wifi,
+  Plug,
+  Cable,
+} from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { useSearch } from "@/context/SearchContext";
 import { SITE_CONFIG } from "@/lib/seo";
@@ -191,9 +200,11 @@ export default function Home() {
 
   const getCategoryIcon = (categoryName: string) => {
     const name = categoryName.toLowerCase();
-    if (name.includes("акумулятор") || name.includes("powerbank")) return Battery;
+    if (name.includes("акумулятор") || name.includes("powerbank"))
+      return Battery;
     if (name.includes("зарядк") || name.includes("кабел")) return Cable;
-    if (name.includes("портативн") || name.includes("батаре")) return Smartphone;
+    if (name.includes("портативн") || name.includes("батаре"))
+      return Smartphone;
     if (name.includes("бездротов")) return Wifi;
     if (name.includes("мережев")) return Plug;
     return Zap;
@@ -293,30 +304,43 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-            {categories.slice(0, 6).map((category) => {
-              const IconComponent = getCategoryIcon(category.name);
-              return (
-                <div
-                  key={category.id}
-                  className="group cursor-pointer bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200"
-                  onClick={() =>
-                    router.push(`/category/${getCategorySlug(category.name)}`)
-                  }
-                >
-                  <div className="text-center">
-                    <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-600 group-hover:scale-110 transition-all duration-300 mb-4">
-                      <IconComponent className="h-8 w-8 text-blue-600 group-hover:text-white transition-colors" />
+            {(() => {
+              // Flatten all categories including subcategories
+              const allCategories: Category[] = [];
+              categories.forEach((category) => {
+                // Add main category
+                allCategories.push(category);
+                // Add all subcategories as separate items
+                if (category.children && category.children.length > 0) {
+                  allCategories.push(...category.children);
+                }
+              });
+
+              return allCategories.slice(0, 9).map((category) => {
+                const IconComponent = getCategoryIcon(category.name);
+                return (
+                  <div
+                    key={category.id}
+                    className="group cursor-pointer bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200"
+                    onClick={() =>
+                      router.push(`/category/${getCategorySlug(category.name)}`)
+                    }
+                  >
+                    <div className="text-center">
+                      <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-600 group-hover:scale-110 transition-all duration-300 mb-4">
+                        <IconComponent className="h-8 w-8 text-blue-600 group-hover:text-white transition-colors" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
+                        {category.name}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {category.parent_id ? "Підкатегорія" : "Категорія"}
+                      </p>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
-                      {category.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {category.children?.length || 0} підкатегорій
-                    </p>
                   </div>
-                </div>
-              );
-            })}
+                );
+              });
+            })()}
           </div>
         </div>
       </section>
@@ -366,7 +390,7 @@ export default function Home() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {filteredAndSortedProducts.map((product, index) => (
                 <div
                   key={product.id}
