@@ -149,6 +149,14 @@ header {
   width: 100% !important;
   background-color: rgba(255, 255, 255, 0.95) !important;
   backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Ensure header stays on top */
+header.sticky {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 200 !important;
 }
 
 /* Ensure no element blocks header interactions */
