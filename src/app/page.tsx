@@ -166,10 +166,16 @@ export default function Home() {
         console.log("API response:", data);
 
         if (data.success && data.products) {
+          console.log("Setting products:", data.products.length);
           if (append) {
-            setAllProducts((prev) => [...prev, ...data.products]);
+            setAllProducts((prev) => {
+              const newProducts = [...prev, ...data.products];
+              console.log("Appended products, total:", newProducts.length);
+              return newProducts;
+            });
           } else {
             setAllProducts(data.products);
+            console.log("Set products directly:", data.products.length);
           }
 
           // Check if there are more products
@@ -403,7 +409,8 @@ export default function Home() {
 
   // Sort products (server-side filtering is now handled by API)
   const filteredAndSortedProducts = useMemo(() => {
-    console.log("Sorting products:", allProducts.length);
+    console.log("Sorting products:", allProducts.length, "sortBy:", sortBy);
+    console.log("allProducts sample:", allProducts.slice(0, 2));
     const sorted = sortProducts(allProducts, sortBy);
     console.log("Final products count:", sorted.length);
     return sorted;
