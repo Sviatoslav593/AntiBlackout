@@ -287,16 +287,16 @@ export default function Home() {
       <div className="min-h-screen">
         {/* Hero Section - previous good design */}
         <section className="relative hero-gradient text-white overflow-hidden">
-          <div className="absolute inset-0 bg-black/20"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
-          <div className="relative container py-24 md:py-32">
+          <div className="absolute inset-0 bg-black/20 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse pointer-events-none"></div>
+          <div className="relative z-10 container py-24 md:py-32">
             <div className="max-w-3xl mx-auto text-center space-y-8 animate-fade-in">
               <h1 className="text-4xl md:text-6xl font-bold leading-tight animate-slide-up">
                 Залишайтесь на Зв'язку Під Час Будь-якого Блекауту
               </h1>
               <p className="text-xl md:text-2xl text-blue-100 leading-relaxed animate-slide-up-delay">
-                Купуйте павербанки, зарядні пристрої та кабелі, щоб залишатися на
-                зв'язку, коли це найбільш важливо. Ніколи не дозволяйте
+                Купуйте павербанки, зарядні пристрої та кабелі, щоб залишатися
+                на зв'язку, коли це найбільш важливо. Ніколи не дозволяйте
                 відключенню електроенергії застати вас зненацька.
               </p>
               <div className="flex justify-center animate-slide-up-delay-2">
@@ -316,7 +316,31 @@ export default function Home() {
         <section className="py-16 bg-muted/30">
           <div className="container">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {[{icon: Battery, title: "Довготривала Робота", description: "Потужні батареї, які забезпечують роботу протягом днів"}, {icon: Zap, title: "Швидка Зарядка", description: "Технологія швидкої зарядки повертає 100% заряду миттєво"}, {icon: Shield, title: "Безпека та Надійність", description: "Вбудовані функції безпеки захищають ваші пристрої від пошкоджень"}, {icon: Truck, title: "Швидка Доставка", description: "Відправлення в день замовлення по всій Україні"}].map((feature, index) => (
+              {[
+                {
+                  icon: Battery,
+                  title: "Довготривала Робота",
+                  description:
+                    "Потужні батареї, які забезпечують роботу протягом днів",
+                },
+                {
+                  icon: Zap,
+                  title: "Швидка Зарядка",
+                  description:
+                    "Технологія швидкої зарядки повертає 100% заряду миттєво",
+                },
+                {
+                  icon: Shield,
+                  title: "Безпека та Надійність",
+                  description:
+                    "Вбудовані функції безпеки захищають ваші пристрої від пошкоджень",
+                },
+                {
+                  icon: Truck,
+                  title: "Швидка Доставка",
+                  description: "Відправлення в день замовлення по всій Україні",
+                },
+              ].map((feature, index) => (
                 <div
                   key={index}
                   className="text-center space-y-4 group hover:scale-105 transition-transform duration-300"
