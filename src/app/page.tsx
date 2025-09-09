@@ -135,6 +135,7 @@ export default function Home() {
       page: number = 1,
       append: boolean = false
     ) => {
+      console.log("fetchProducts called with:", { filterParams, page, append });
       try {
         if (append) {
           setLoadingMore(true);
@@ -158,8 +159,11 @@ export default function Home() {
         params.append("limit", "50");
         params.append("offset", ((page - 1) * 50).toString());
 
-        const response = await fetch(`/api/products?${params.toString()}`);
+        const url = `/api/products?${params.toString()}`;
+        console.log("Fetching from URL:", url);
+        const response = await fetch(url);
         const data = await response.json();
+        console.log("API response:", data);
 
         if (data.success && data.products) {
           if (append) {
@@ -194,6 +198,7 @@ export default function Home() {
 
   // Fetch products on component mount
   useEffect(() => {
+    console.log("Component mounted, fetching products...");
     fetchProducts();
   }, [fetchProducts]);
 
