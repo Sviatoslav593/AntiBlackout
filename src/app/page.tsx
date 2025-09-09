@@ -289,7 +289,7 @@ export default function Home() {
       hasActiveFilters,
       categories: filters.categories,
       brands: filters.brands,
-      search: debouncedSearchQuery
+      search: debouncedSearchQuery,
     });
 
     // If no active filters, reload all products
@@ -297,7 +297,7 @@ export default function Home() {
       console.log("No active filters, reloading all products");
       setCurrentPage(1);
       setHasMoreProducts(true);
-      await fetchProducts({}, 1, false);
+      fetchProducts({}, 1, false);
       return;
     }
 
@@ -311,7 +311,7 @@ export default function Home() {
         try {
           const response = await fetch("/api/products");
           const data = await response.json();
-          
+
           if (data.success && data.products) {
             const categoryIds: string[] = [];
             filters.categories.forEach((categoryName) => {
@@ -324,7 +324,12 @@ export default function Home() {
             });
             if (categoryIds.length > 0) {
               filterParams.categoryIds = categoryIds;
-              console.log("Converted categories to IDs:", filters.categories, "->", categoryIds);
+              console.log(
+                "Converted categories to IDs:",
+                filters.categories,
+                "->",
+                categoryIds
+              );
             }
           }
         } catch (error) {
@@ -451,18 +456,25 @@ export default function Home() {
       // First fetch all products to get category ID
       const response = await fetch("/api/products");
       const data = await response.json();
-      
+
       if (data.success && data.products) {
-        const categoryId = data.products.find((p: Product) => 
-          p.categories?.name === categoryName
+        const categoryId = data.products.find(
+          (p: Product) => p.categories?.name === categoryName
         )?.category_id;
-        
+
         if (categoryId) {
-          console.log("Header filtering by category:", categoryName, "ID:", categoryId);
+          console.log(
+            "Header filtering by category:",
+            categoryName,
+            "ID:",
+            categoryId
+          );
           // Apply filter via API
-          const filterResponse = await fetch(`/api/products?categoryId=${categoryId}`);
+          const filterResponse = await fetch(
+            `/api/products?categoryId=${categoryId}`
+          );
           const filterData = await filterResponse.json();
-          
+
           if (filterData.success && filterData.products) {
             setAllProducts(filterData.products);
             setCurrentPage(1);
