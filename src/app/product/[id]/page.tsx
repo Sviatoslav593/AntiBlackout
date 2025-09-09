@@ -101,6 +101,7 @@ export default function ProductPage() {
         // Convert to Product format
         const foundProduct: Product = {
           id: productData.id, // UUID string
+          external_id: productData.external_id,
           name: productData.name || "",
           description: productData.description || "",
           price: productData.price || 0,
@@ -116,6 +117,10 @@ export default function ProductPage() {
           badge: undefined,
           inStock: (productData.quantity || 0) > 0,
           createdAt: productData.created_at || new Date().toISOString(),
+          vendor_code: productData.vendor_code,
+          quantity: productData.quantity,
+          category_id: productData.category_id,
+          characteristics: productData.characteristics || {},
         };
 
         setProduct(foundProduct);
@@ -293,17 +298,20 @@ export default function ProductPage() {
     }
 
     // Add characteristics from JSONB field
-    if (product.characteristics && typeof product.characteristics === 'object') {
+    if (
+      product.characteristics &&
+      typeof product.characteristics === "object"
+    ) {
       Object.entries(product.characteristics).forEach(([key, value]) => {
-        if (value !== null && value !== undefined && value !== '') {
+        if (value !== null && value !== undefined && value !== "") {
           let displayValue: string;
-          
+
           if (Array.isArray(value)) {
-            displayValue = value.join(', ');
+            displayValue = value.join(", ");
           } else {
             displayValue = String(value);
           }
-          
+
           specs.push({
             label: key,
             value: displayValue,

@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function ImportPage() {
   const [isImporting, setIsImporting] = useState(false);
@@ -48,9 +54,15 @@ export default function ImportPage() {
             <h3 className="font-semibold">What this import will do:</h3>
             <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
               <li>🧹 Clean up all existing products and categories</li>
-              <li>🏗️ Create 2 normalized categories: "Портативні батареї" and "Зарядки та кабелі"</li>
+              <li>
+                🏗️ Create 2 normalized categories: "Портативні батареї" and
+                "Зарядки та кабелі"
+              </li>
               <li>📥 Import products from XML feed with characteristics</li>
-              <li>🔄 Map categoryId 1,3 → "Портативні батареї" and 14,16 → "Зарядки та кабелі"</li>
+              <li>
+                🔄 Map categoryId 1,3 → "Портативні батареї" and 14,16 →
+                "Зарядки та кабелі"
+              </li>
               <li>💾 Save product characteristics as JSONB for display</li>
             </ul>
           </div>
@@ -64,18 +76,26 @@ export default function ImportPage() {
 
           {importResult && (
             <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-green-600 font-medium">✅ Import completed successfully!</p>
+              <p className="text-green-600 font-medium">
+                ✅ Import completed successfully!
+              </p>
               <div className="mt-2 text-sm text-green-700">
-                <p>Total products in XML: {importResult.stats?.totalProducts}</p>
-                <p>Processed products: {importResult.stats?.processedProducts}</p>
+                <p>
+                  Total products in XML: {importResult.stats?.totalProducts}
+                </p>
+                <p>
+                  Processed products: {importResult.stats?.processedProducts}
+                </p>
                 <p>Inserted products: {importResult.stats?.insertedProducts}</p>
-                <p>Categories created: {importResult.stats?.categoriesCreated}</p>
+                <p>
+                  Categories created: {importResult.stats?.categoriesCreated}
+                </p>
               </div>
             </div>
           )}
 
-          <Button 
-            onClick={handleImport} 
+          <Button
+            onClick={handleImport}
             disabled={isImporting}
             className="w-full"
           >

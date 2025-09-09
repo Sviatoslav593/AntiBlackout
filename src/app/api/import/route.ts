@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/client";
+import { createServerClient } from "@/utils/supabase/server";
 import { parseStringPromise } from "xml2js";
 
 interface XmlProduct {
-  id: string[];
+  $: { id: string };
+  url?: string[];
   name: string[];
   description?: string[];
   priceuah: string[];
-  image?: string[];
+  picture?: string[];
+  vendor?: string[];
   vendorCode?: string[];
-  quantity?: string[];
+  stock_quantity?: string[];
   categoryId: string[];
   param?: Array<{
     $: { name: string };
@@ -18,89 +20,78 @@ interface XmlProduct {
 }
 
 interface XmlFeed {
-  yml_catalog: {
-    shop: Array<{
-      offers: Array<{
-        offer: XmlProduct[];
-      }>;
+  shop: {
+    items: Array<{
+      item: XmlProduct[];
     }>;
   };
 }
 
+interface ProcessedProduct {
+  external_id: string;
+  name: string;
+  description: string;
+  price: number;
+  brand: string;
+  image_url: string;
+  images: string[];
+  vendor_code: string;
+  quantity: number;
+  category_id: number;
+  characteristics: Record<string, any>;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
-    
-    console.log("🚀 Starting import process...");
+    console.log("🚀 Starting XML import process...");
+    const supabase = createServerClient();
 
-    // 1. Fetch XML feed
+    // 1. Fetch and parse XML feed
     console.log("📥 Fetching XML feed...");
-    const response = await fetch("https://mma.in.ua/feed/xml/iDxAyRECF.xml");
+    const response = await fetch("https://mma.in.ua/feed/xml/iDxAyRECF.xml", {
+      redirect: "follow",
+    });
+
     if (!response.ok) {
       throw new Error(`Failed to fetch XML feed: ${response.statusText}`);
     }
-    
+
     const xmlText = await response.text();
     console.log(`📊 XML feed size: ${xmlText.length} characters`);
 
-    // 2. Parse XML
     console.log("🔍 Parsing XML...");
     const xmlData: XmlFeed = await parseStringPromise(xmlText);
-    const offers = xmlData.yml_catalog.shop[0].offers[0].offer;
+    const offers = xmlData.shop.items[0].item;
     console.log(`📦 Found ${offers.length} products in XML`);
 
-    // 3. Clean up old data
-    console.log("🧹 Cleaning up old data...");
-    
-    // Delete all products
-    const { error: deleteProductsError } = await supabase
-      .from("products")
-      .delete()
-      .neq("id", 0); // Delete all products
-    
-    if (deleteProductsError) {
-      console.error("Error deleting products:", deleteProductsError);
-      throw deleteProductsError;
-    }
-    console.log("✅ Deleted all old products");
-
-    // Delete all categories
-    const { error: deleteCategoriesError } = await supabase
-      .from("categories")
-      .delete()
-      .neq("id", 0); // Delete all categories
-    
-    if (deleteCategoriesError) {
-      console.error("Error deleting categories:", deleteCategoriesError);
-      throw deleteCategoriesError;
-    }
-    console.log("✅ Deleted all old categories");
-
-    // 4. Create normalized categories
-    console.log("🏗️ Creating normalized categories...");
-    const normalizedCategories = [
-      { id: 1001, name: "Портативні батареї" },
-      { id: 1002, name: "Зарядки та кабелі" }
-    ];
-
-    const { error: categoriesError } = await supabase
-      .from("categories")
-      .insert(normalizedCategories);
+    // 2. Ensure categories exist
+    console.log("🏗️ Ensuring categories exist...");
+    const { error: categoriesError } = await supabase.from("categories").upsert(
+      [
+        { id: 1001, name: "Портативні батареї" },
+        { id: 1002, name: "Зарядки та кабелі" },
+      ],
+      { onConflict: "id" }
+    );
 
     if (categoriesError) {
-      console.error("Error creating categories:", categoriesError);
+      console.error("Error upserting categories:", categoriesError);
       throw categoriesError;
     }
-    console.log("✅ Created normalized categories");
+    console.log("✅ Categories ensured");
 
-    // 5. Process and import products
+    // 3. Process products from XML
     console.log("📥 Processing products...");
-    const productsToInsert = [];
-    
+    const processedProducts: ProcessedProduct[] = [];
+    const xmlExternalIds = new Set<string>();
+
     for (const offer of offers) {
       try {
+        const externalId = offer.$.id;
+        xmlExternalIds.add(externalId);
+
         const categoryId = parseInt(offer.categoryId[0]);
-        
+
         // Map to normalized categories
         let normalizedCategoryId: number;
         if (categoryId === 1 || categoryId === 3) {
@@ -108,18 +99,20 @@ export async function POST(request: NextRequest) {
         } else if (categoryId === 14 || categoryId === 16) {
           normalizedCategoryId = 1002; // Зарядки та кабелі
         } else {
-          console.warn(`Unknown category ID: ${categoryId}, skipping product ${offer.id[0]}`);
+          console.warn(
+            `Unknown category ID: ${categoryId}, skipping product ${externalId}`
+          );
           continue;
         }
 
         // Parse characteristics from params
         const characteristics: Record<string, any> = {};
         if (offer.param) {
-          offer.param.forEach(param => {
+          offer.param.forEach((param) => {
             if (param.$ && param.$.name && param._) {
               const name = param.$.name;
               const value = param._;
-              
+
               // Handle multiple values for the same characteristic
               if (characteristics[name]) {
                 if (Array.isArray(characteristics[name])) {
@@ -134,89 +127,234 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        // Extract brand from name or vendorCode
         const productName = offer.name[0];
+        const brand = offer.vendor?.[0] || "Unknown";
         const vendorCode = offer.vendorCode?.[0] || "";
-        let brand = "Unknown";
-        
-        // Try to extract brand from product name
-        const brandPatterns = [
-          /^([A-Za-zА-Яа-я]+)\s/,
-          /([A-Za-zА-Яа-я]+)/
-        ];
-        
-        for (const pattern of brandPatterns) {
-          const match = productName.match(pattern);
-          if (match) {
-            brand = match[1];
-            break;
-          }
+        const price = parseFloat(offer.priceuah[0]);
+        const quantity = parseInt(offer.stock_quantity?.[0] || "0");
+        const pictures = offer.picture || [];
+        const imageUrl = pictures[0] || "";
+
+        // Filter out products without images, out of stock, or price < 1
+        if (!imageUrl || imageUrl.trim() === "") {
+          console.log(`Skipping product ${externalId}: No image`);
+          continue;
         }
 
-        const product = {
-          external_id: offer.id[0],
+        if (quantity <= 0) {
+          console.log(
+            `Skipping product ${externalId}: Out of stock (quantity: ${quantity})`
+          );
+          continue;
+        }
+
+        if (price < 1) {
+          console.log(
+            `Skipping product ${externalId}: Price too low (${price})`
+          );
+          continue;
+        }
+
+        const product: ProcessedProduct = {
+          external_id: externalId,
           name: productName,
           description: offer.description?.[0] || "",
-          price: parseFloat(offer.priceuah[0]),
+          price: price,
           brand: brand,
-          image_url: offer.image?.[0] || "",
-          images: offer.image ? [offer.image[0]] : [],
+          image_url: imageUrl,
+          images: pictures,
           vendor_code: vendorCode,
-          quantity: parseInt(offer.quantity?.[0] || "0"),
+          quantity: quantity,
           category_id: normalizedCategoryId,
-          characteristics: characteristics
+          characteristics: characteristics,
         };
 
-        productsToInsert.push(product);
+        processedProducts.push(product);
       } catch (error) {
-        console.error(`Error processing product ${offer.id?.[0]}:`, error);
+        console.error(`Error processing product ${offer.$.id}:`, error);
         continue;
       }
     }
 
-    console.log(`📦 Processed ${productsToInsert.length} products`);
+    console.log(`📦 Processed ${processedProducts.length} valid products`);
 
-    // 6. Insert products in batches
-    console.log("💾 Inserting products...");
-    const batchSize = 100;
-    let insertedCount = 0;
-    
-    for (let i = 0; i < productsToInsert.length; i += batchSize) {
-      const batch = productsToInsert.slice(i, i + batchSize);
-      
-      const { error: insertError } = await supabase
-        .from("products")
-        .insert(batch);
-      
-      if (insertError) {
-        console.error(`Error inserting batch ${i / batchSize + 1}:`, insertError);
-        throw insertError;
-      }
-      
-      insertedCount += batch.length;
-      console.log(`✅ Inserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(productsToInsert.length / batchSize)} (${insertedCount}/${productsToInsert.length})`);
+    // 4. Get existing products from database
+    console.log("🔍 Fetching existing products...");
+    const { data: existingProducts, error: fetchError } = await supabase
+      .from("products")
+      .select("external_id, id");
+
+    if (fetchError) {
+      console.error("Error fetching existing products:", fetchError);
+      throw fetchError;
     }
+
+    const existingExternalIds = new Set(
+      existingProducts?.map((p) => p.external_id) || []
+    );
+    console.log(`📊 Found ${existingProducts?.length || 0} existing products`);
+
+    // 5. Separate products into updates and inserts
+    const productsToUpdate: Array<ProcessedProduct & { id?: string }> = [];
+    const productsToInsert: ProcessedProduct[] = [];
+
+    for (const product of processedProducts) {
+      if (existingExternalIds.has(product.external_id)) {
+        // Find the database ID for this product
+        const existingProduct = existingProducts?.find(
+          (p) => p.external_id === product.external_id
+        );
+        productsToUpdate.push({ ...product, id: existingProduct?.id });
+      } else {
+        productsToInsert.push(product);
+      }
+    }
+
+    console.log(`📝 Products to update: ${productsToUpdate.length}`);
+    console.log(`➕ Products to insert: ${productsToInsert.length}`);
+
+    // 6. Insert new products in batches
+    let insertedCount = 0;
+    if (productsToInsert.length > 0) {
+      console.log("💾 Inserting new products...");
+      const batchSize = 100;
+
+      for (let i = 0; i < productsToInsert.length; i += batchSize) {
+        const batch = productsToInsert.slice(i, i + batchSize);
+
+        const { error: insertError } = await supabase
+          .from("products")
+          .insert(batch);
+
+        if (insertError) {
+          console.error(
+            `Error inserting batch ${Math.floor(i / batchSize) + 1}:`,
+            insertError
+          );
+          throw insertError;
+        }
+
+        insertedCount += batch.length;
+        console.log(
+          `✅ Inserted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(
+            productsToInsert.length / batchSize
+          )} (${insertedCount}/${productsToInsert.length})`
+        );
+      }
+    }
+
+    // 7. Update existing products in batches
+    let updatedCount = 0;
+    if (productsToUpdate.length > 0) {
+      console.log("🔄 Updating existing products...");
+
+      for (const product of productsToUpdate) {
+        const { id, ...updateData } = product;
+
+        const { error: updateError } = await supabase
+          .from("products")
+          .update({
+            ...updateData,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", id);
+
+        if (updateError) {
+          console.error(
+            `Error updating product ${product.external_id}:`,
+            updateError
+          );
+          // Continue with other products instead of failing completely
+          continue;
+        }
+
+        updatedCount++;
+
+        // Log progress every 50 updates
+        if (updatedCount % 50 === 0) {
+          console.log(
+            `🔄 Updated ${updatedCount}/${productsToUpdate.length} products`
+          );
+        }
+      }
+    }
+
+    // 8. Remove products not in current XML feed
+    console.log("🗑️ Removing products not in XML feed...");
+    const xmlExternalIdsArray = Array.from(xmlExternalIds);
+
+    const { data: productsToDelete, error: deleteSelectError } = await supabase
+      .from("products")
+      .select("external_id")
+      .not(
+        "external_id",
+        "in",
+        `(${xmlExternalIdsArray.map((id) => `"${id}"`).join(",")})`
+      );
+
+    if (deleteSelectError) {
+      console.error("Error selecting products to delete:", deleteSelectError);
+      throw deleteSelectError;
+    }
+
+    let deletedCount = 0;
+    if (productsToDelete && productsToDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from("products")
+        .delete()
+        .not(
+          "external_id",
+          "in",
+          `(${xmlExternalIdsArray.map((id) => `"${id}"`).join(",")})`
+        );
+
+      if (deleteError) {
+        console.error("Error deleting products:", deleteError);
+        throw deleteError;
+      }
+
+      deletedCount = productsToDelete.length;
+      console.log(`🗑️ Deleted ${deletedCount} products not in XML feed`);
+    }
+
+    // 9. Final verification
+    const { data: finalProducts, error: finalCountError } = await supabase
+      .from("products")
+      .select("id", { count: "exact" });
+
+    if (finalCountError) {
+      console.error("Error getting final product count:", finalCountError);
+    }
+
+    const finalCount = finalProducts?.length || 0;
+    console.log(`📊 Final product count: ${finalCount}`);
 
     console.log("🎉 Import completed successfully!");
 
     return NextResponse.json({
       success: true,
-      message: "Import completed successfully",
+      message: "XML import completed successfully",
       stats: {
-        totalProducts: offers.length,
-        processedProducts: productsToInsert.length,
-        insertedProducts: insertedCount,
-        categoriesCreated: normalizedCategories.length
-      }
+        xmlProducts: offers.length,
+        validProducts: processedProducts.length,
+        inserted: insertedCount,
+        updated: updatedCount,
+        deleted: deletedCount,
+        finalCount: finalCount,
+      },
     });
-
   } catch (error) {
     console.error("Import error:", error);
+    console.error(
+      "Error stack:",
+      error instanceof Error ? error.stack : "No stack trace"
+    );
     return NextResponse.json(
-      { 
-        success: false, 
-        error: "Import failed", 
-        details: error instanceof Error ? error.message : "Unknown error" 
+      {
+        success: false,
+        error: "Import failed",
+        details: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : "No stack trace",
       },
       { status: 500 }
     );

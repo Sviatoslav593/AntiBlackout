@@ -4,10 +4,11 @@ import { ProductService } from "@/services/products";
 // GET /api/products/[id] - Get product by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const product = await ProductService.getProductById(params.id);
+    const { id } = await params;
+    const product = await ProductService.getProductById(id);
 
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
@@ -26,12 +27,13 @@ export async function GET(
 // PUT /api/products/[id] - Update product
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const updates = await request.json();
 
-    const product = await ProductService.updateProduct(params.id, updates);
+    const product = await ProductService.updateProduct(id, updates);
 
     return NextResponse.json({ product });
   } catch (error) {
@@ -46,10 +48,11 @@ export async function PUT(
 // DELETE /api/products/[id] - Delete product
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await ProductService.deleteProduct(params.id);
+    const { id } = await params;
+    await ProductService.deleteProduct(id);
 
     return NextResponse.json({ message: "Product deleted successfully" });
   } catch (error) {

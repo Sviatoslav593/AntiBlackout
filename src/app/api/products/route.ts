@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         .select(
           `
           *,
-          categories(id, name, parent_id)
+          categories(id, name)
         `
         )
         .order("created_at", { ascending: false })
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
         .select(
           `
           *,
-          categories(id, name, parent_id)
+          categories(id, name)
         `
         )
         .order("created_at", { ascending: false })
@@ -194,7 +194,6 @@ export async function GET(request: NextRequest) {
         categoryMap.set(product.categories.id, {
           id: product.categories.id,
           name: product.categories.name,
-          parent_id: product.categories.parent_id,
         });
       }
     });
