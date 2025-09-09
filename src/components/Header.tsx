@@ -15,6 +15,7 @@ import { useState, useRef, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { useSearch } from "@/context/SearchContext";
 import { useFavorites } from "@/context/FavoritesContext";
+import { useFilters } from "@/context/FilterContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { CartDrawer } from "@/components/CartDrawer";
 
@@ -30,12 +31,14 @@ export default function Header() {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
-  const [isMobileProductsDropdownOpen, setIsMobileProductsDropdownOpen] = useState(false);
+  const [isMobileProductsDropdownOpen, setIsMobileProductsDropdownOpen] =
+    useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [hasScrolledToProducts, setHasScrolledToProducts] = useState(false);
   const { state, isCartAnimating } = useCart();
   const { searchQuery, setSearchQuery, clearSearch } = useSearch();
   const { count: favoritesCount } = useFavorites();
+  const { setFilters } = useFilters();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchRef = useRef<HTMLDivElement>(null);
@@ -185,10 +188,36 @@ export default function Header() {
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isSearchExpanded, isMenuOpen, isCartDrawerOpen, isProductsDropdownOpen, isMobileProductsDropdownOpen]);
+  }, [
+    isSearchExpanded,
+    isMenuOpen,
+    isCartDrawerOpen,
+    isProductsDropdownOpen,
+    isMobileProductsDropdownOpen,
+  ]);
 
   const getCategorySlug = (categoryName: string) => {
     return categoryName.toLowerCase().replace(/\s+/g, "-");
+  };
+
+  const handleMobileCategoryClick = (categoryName: string) => {
+    // Set category filter
+    setFilters((prev) => ({
+      ...prev,
+      categories: [categoryName],
+    }));
+    
+    // Close mobile menu and dropdown
+    setIsMenuOpen(false);
+    setIsMobileProductsDropdownOpen(false);
+    
+    // Scroll to products section
+    setTimeout(() => {
+      const el = document.getElementById("products");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
   };
 
   return (
@@ -253,7 +282,7 @@ export default function Header() {
                             category.children.length > 0 && (
                               <div className="ml-4 space-y-1">
                                 {category.children.map((subcategory) => (
-                                  <Link
+            <Link
                                     key={subcategory.id}
                                     href={`/category/${getCategorySlug(
                                       subcategory.name
@@ -264,7 +293,7 @@ export default function Header() {
                                     }
                                   >
                                     {subcategory.name}
-                                  </Link>
+            </Link>
                                 ))}
                               </div>
                             )}
@@ -428,18 +457,18 @@ export default function Header() {
               )}
             </Button>
 
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </Button>
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
           </div>
         </div>
 
@@ -463,12 +492,16 @@ export default function Header() {
                   >
                     Головна
                   </Link>
-                  
+
                   {/* Mobile Products Dropdown */}
                   <div className="relative">
                     <button
                       className="flex items-center justify-between w-full py-2 text-sm font-medium transition-colors hover:text-primary"
-                      onClick={() => setIsMobileProductsDropdownOpen(!isMobileProductsDropdownOpen)}
+                      onClick={() =>
+                        setIsMobileProductsDropdownOpen(
+                          !isMobileProductsDropdownOpen
+                        )
+                      }
                     >
                       <span>Товари</span>
                       <ChevronDown
@@ -477,7 +510,7 @@ export default function Header() {
                         }`}
                       />
                     </button>
-                    
+
                     {/* Mobile Categories Dropdown */}
                     <AnimatePresence>
                       {isMobileProductsDropdownOpen && (
@@ -491,33 +524,26 @@ export default function Header() {
                           <div className="pl-4 space-y-2 mt-2">
                             {categories.map((category) => (
                               <div key={category.id}>
-                                <Link
-                                  href={`/category/${getCategorySlug(category.name)}`}
-                                  className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-                                  onClick={() => {
-                                    setIsMenuOpen(false);
-                                    setIsMobileProductsDropdownOpen(false);
-                                  }}
+                                <button
+                                  className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                                  onClick={() => handleMobileCategoryClick(category.name)}
                                 >
                                   {category.name}
-                                </Link>
-                                {category.children && category.children.length > 0 && (
-                                  <div className="pl-4 space-y-1">
-                                    {category.children.map((subcategory) => (
-                                      <Link
-                                        key={subcategory.id}
-                                        href={`/category/${getCategorySlug(subcategory.name)}`}
-                                        className="block py-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-                                        onClick={() => {
-                                          setIsMenuOpen(false);
-                                          setIsMobileProductsDropdownOpen(false);
-                                        }}
-                                      >
-                                        {subcategory.name}
-                                      </Link>
-                                    ))}
-                                  </div>
-                                )}
+                                </button>
+                                {category.children &&
+                                  category.children.length > 0 && (
+                                    <div className="pl-4 space-y-1">
+                                      {category.children.map((subcategory) => (
+                                        <button
+                                          key={subcategory.id}
+                                          className="block w-full text-left py-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                                          onClick={() => handleMobileCategoryClick(subcategory.name)}
+                                        >
+                                          {subcategory.name}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
                               </div>
                             ))}
                           </div>
@@ -525,7 +551,7 @@ export default function Header() {
                       )}
                     </AnimatePresence>
                   </div>
-                  
+
                   <Link
                     href="/about"
                     className="block py-2 text-sm font-medium transition-colors hover:text-primary"

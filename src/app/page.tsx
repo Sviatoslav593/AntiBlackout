@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { useSearch } from "@/context/SearchContext";
+import { useFilters } from "@/context/FilterContext";
 import { SITE_CONFIG } from "@/lib/seo";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
@@ -121,13 +122,7 @@ export default function Home() {
 
   // Filter and sort state
   const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
-  const [filters, setFilters] = useState<FilterState>({
-    priceRange: { min: 0, max: 10000 },
-    inStockOnly: false,
-    categories: [],
-    brands: [],
-    capacityRange: { min: 0, max: 50000 },
-  });
+  const { filters, setFilters } = useFilters();
 
   // Available categories for filtering
   const availableCategories = useMemo(() => {
