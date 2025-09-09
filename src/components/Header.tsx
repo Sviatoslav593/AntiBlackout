@@ -326,7 +326,7 @@ export default function Header() {
               variant="ghost"
               size="sm"
               className="relative"
-              onClick={() => scrollToProducts()}
+              onClick={() => window.location.href = '/favorites'}
             >
               <Heart className="h-4 w-4" />
               {favoritesCount > 0 && (
@@ -365,7 +365,7 @@ export default function Header() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleSearchToggle}
+              onClick={() => window.location.href = '/favorites'}
               data-search-button
             >
               <Search className="h-4 w-4" />
@@ -376,7 +376,7 @@ export default function Header() {
               variant="ghost"
               size="sm"
               className="relative"
-              onClick={() => scrollToProducts()}
+              onClick={() => window.location.href = '/favorites'}
             >
               <Heart className="h-4 w-4" />
               {favoritesCount > 0 && (
