@@ -205,8 +205,29 @@ export default function Home() {
   // Fetch products on component mount
   useEffect(() => {
     console.log("Component mounted, fetching products...");
-    fetchProducts();
-  }, [fetchProducts]);
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/products?limit=50&offset=0");
+        const data = await response.json();
+        console.log("Initial API response:", data);
+        
+        if (data.success && data.products) {
+          setAllProducts(data.products);
+          setHasMoreProducts(data.products.length === 50);
+          setCurrentPage(1);
+          console.log("Set initial products:", data.products.length);
+        }
+      } catch (error) {
+        console.error("Error loading initial products:", error);
+      } finally {
+        setLoading(false);
+        setIsInitialLoad(false);
+      }
+    };
+    
+    loadProducts();
+  }, []);
 
   // Listen for category filter events from header
   useEffect(() => {
