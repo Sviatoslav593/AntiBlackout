@@ -280,29 +280,29 @@ export default function Header() {
                     <div className="p-2">
                       {categories.map((category) => (
                         <div key={category.id} className="space-y-1">
-                          <Link
-                            href={`/category/${getCategorySlug(category.name)}`}
-                            className="block px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-                            onClick={() => setIsProductsDropdownOpen(false)}
+                          <button
+                            className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                            onClick={() => {
+                              handleMobileCategoryClick(category.name);
+                              setIsProductsDropdownOpen(false);
+                            }}
                           >
                             {category.name}
-                          </Link>
+                          </button>
                           {category.children &&
                             category.children.length > 0 && (
                               <div className="ml-4 space-y-1">
                                 {category.children.map((subcategory) => (
-                                  <Link
+                                  <button
                                     key={subcategory.id}
-                                    href={`/category/${getCategorySlug(
-                                      subcategory.name
-                                    )}`}
-                                    className="block px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
-                                    onClick={() =>
-                                      setIsProductsDropdownOpen(false)
-                                    }
+                                    className="block w-full text-left px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                                    onClick={() => {
+                                      handleMobileCategoryClick(subcategory.name);
+                                      setIsProductsDropdownOpen(false);
+                                    }}
                                   >
                                     {subcategory.name}
-                                  </Link>
+                                  </button>
                                 ))}
                               </div>
                             )}
