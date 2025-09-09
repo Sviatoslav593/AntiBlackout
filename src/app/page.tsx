@@ -322,13 +322,6 @@ export default function Home() {
                       Результати пошуку для: "{searchQuery}"
                     </p>
                   )}
-                  <p className="text-muted-foreground">
-                    {sortedProducts.length === 0 
-                      ? "Товари не знайдено" 
-                      : sortedProducts.length === 1 
-                        ? "Знайдено 1 товар" 
-                        : `Знайдено ${sortedProducts.length} товарів`}
-                  </p>
                 </div>
                 <SortDropdown value={sortBy} onValueChange={setSortBy} />
               </div>
