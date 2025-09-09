@@ -30,6 +30,7 @@ export default function Header() {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
+  const [isMobileProductsDropdownOpen, setIsMobileProductsDropdownOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [hasScrolledToProducts, setHasScrolledToProducts] = useState(false);
   const { state, isCartAnimating } = useCart();
@@ -184,7 +185,7 @@ export default function Header() {
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isSearchExpanded, isMenuOpen, isCartDrawerOpen, isProductsDropdownOpen]);
+  }, [isSearchExpanded, isMenuOpen, isCartDrawerOpen, isProductsDropdownOpen, isMobileProductsDropdownOpen]);
 
   const getCategorySlug = (categoryName: string) => {
     return categoryName.toLowerCase().replace(/\s+/g, "-");
@@ -462,13 +463,69 @@ export default function Header() {
                   >
                     Головна
                   </Link>
-                  <Link
-                    href="/products"
-                    className="block py-2 text-sm font-medium transition-colors hover:text-primary"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Товари
-                  </Link>
+                  
+                  {/* Mobile Products Dropdown */}
+                  <div className="relative">
+                    <button
+                      className="flex items-center justify-between w-full py-2 text-sm font-medium transition-colors hover:text-primary"
+                      onClick={() => setIsMobileProductsDropdownOpen(!isMobileProductsDropdownOpen)}
+                    >
+                      <span>Товари</span>
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform ${
+                          isMobileProductsDropdownOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                    
+                    {/* Mobile Categories Dropdown */}
+                    <AnimatePresence>
+                      {isMobileProductsDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pl-4 space-y-2 mt-2">
+                            {categories.map((category) => (
+                              <div key={category.id}>
+                                <Link
+                                  href={`/category/${getCategorySlug(category.name)}`}
+                                  className="block py-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                                  onClick={() => {
+                                    setIsMenuOpen(false);
+                                    setIsMobileProductsDropdownOpen(false);
+                                  }}
+                                >
+                                  {category.name}
+                                </Link>
+                                {category.children && category.children.length > 0 && (
+                                  <div className="pl-4 space-y-1">
+                                    {category.children.map((subcategory) => (
+                                      <Link
+                                        key={subcategory.id}
+                                        href={`/category/${getCategorySlug(subcategory.name)}`}
+                                        className="block py-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                                        onClick={() => {
+                                          setIsMenuOpen(false);
+                                          setIsMobileProductsDropdownOpen(false);
+                                        }}
+                                      >
+                                        {subcategory.name}
+                                      </Link>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  
                   <Link
                     href="/about"
                     className="block py-2 text-sm font-medium transition-colors hover:text-primary"
