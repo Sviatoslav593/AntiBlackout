@@ -23,7 +23,10 @@ interface FilterProviderProps {
   initialFilters?: FilterState;
 }
 
-export function FilterProvider({ children, initialFilters }: FilterProviderProps) {
+export function FilterProvider({
+  children,
+  initialFilters,
+}: FilterProviderProps) {
   const [filters, setFilters] = useState<FilterState>(
     initialFilters || {
       priceRange: { min: 0, max: 10000 },
@@ -54,7 +57,18 @@ export function FilterProvider({ children, initialFilters }: FilterProviderProps
 export function useFilters() {
   const context = useContext(FilterContext);
   if (context === undefined) {
-    throw new Error("useFilters must be used within a FilterProvider");
+    // Return default values during SSR/prerendering
+    return {
+      filters: {
+        priceRange: { min: 0, max: 10000 },
+        inStockOnly: false,
+        categories: [],
+        brands: [],
+        capacityRange: { min: 0, max: 50000 },
+      },
+      setFilters: () => {},
+      clearFilters: () => {},
+    };
   }
   return context;
 }

@@ -201,6 +201,9 @@ export default function Header() {
   };
 
   const handleMobileCategoryClick = (categoryName: string) => {
+    // Check if we're on the client side
+    if (typeof window === 'undefined') return;
+    
     // Set category filter
     setFilters((prev) => ({
       ...prev,
@@ -282,7 +285,7 @@ export default function Header() {
                             category.children.length > 0 && (
                               <div className="ml-4 space-y-1">
                                 {category.children.map((subcategory) => (
-            <Link
+                                  <Link
                                     key={subcategory.id}
                                     href={`/category/${getCategorySlug(
                                       subcategory.name
@@ -293,7 +296,7 @@ export default function Header() {
                                     }
                                   >
                                     {subcategory.name}
-            </Link>
+                                  </Link>
                                 ))}
                               </div>
                             )}
@@ -457,18 +460,18 @@ export default function Header() {
               )}
             </Button>
 
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
           </div>
         </div>
 
@@ -526,7 +529,9 @@ export default function Header() {
                               <div key={category.id}>
                                 <button
                                   className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-                                  onClick={() => handleMobileCategoryClick(category.name)}
+                                  onClick={() =>
+                                    handleMobileCategoryClick(category.name)
+                                  }
                                 >
                                   {category.name}
                                 </button>
@@ -537,7 +542,11 @@ export default function Header() {
                                         <button
                                           key={subcategory.id}
                                           className="block w-full text-left py-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-                                          onClick={() => handleMobileCategoryClick(subcategory.name)}
+                                          onClick={() =>
+                                            handleMobileCategoryClick(
+                                              subcategory.name
+                                            )
+                                          }
                                         >
                                           {subcategory.name}
                                         </button>

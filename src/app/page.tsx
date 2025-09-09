@@ -318,6 +318,9 @@ export default function Home() {
                     key={category.id}
                     className="group cursor-pointer bg-white rounded-xl p-3 sm:p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200"
                     onClick={() => {
+                      // Check if we're on the client side
+                      if (typeof window === 'undefined') return;
+                      
                       // Set category filter and scroll to products
                       setFilters((prev) => ({
                         ...prev,
