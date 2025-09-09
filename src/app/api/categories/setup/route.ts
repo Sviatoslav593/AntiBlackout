@@ -7,17 +7,17 @@ export async function POST(request: NextRequest) {
 
     // Додаємо категорії з XML фіду
     const categories = [
-      { id: 1, name: 'Акумулятори та powerbank', parent_id: null },
-      { id: 3, name: 'Портативні батареї', parent_id: 1 },
-      { id: 14, name: 'Зарядки та кабелі', parent_id: null },
-      { id: 15, name: 'Мережеві зарядні пристрої', parent_id: 14 },
-      { id: 16, name: 'Кабелі usb', parent_id: 14 },
-      { id: 80, name: 'Бездротові зарядні пристрої', parent_id: 14 }
+      { id: 1, name: "Акумулятори та powerbank", parent_id: null },
+      { id: 3, name: "Портативні батареї", parent_id: 1 },
+      { id: 14, name: "Зарядки та кабелі", parent_id: null },
+      { id: 15, name: "Мережеві зарядні пристрої", parent_id: 14 },
+      { id: 16, name: "Кабелі usb", parent_id: 14 },
+      { id: 80, name: "Бездротові зарядні пристрої", parent_id: 14 },
     ];
 
     const { error } = await supabaseAdmin
       .from("categories")
-      .upsert(categories, { onConflict: 'id' });
+      .upsert(categories, { onConflict: "id" });
 
     if (error) {
       console.error("❌ Error setting up categories:", error);

@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "50");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "5000"), 5000);
     const offset = parseInt(searchParams.get("offset") || "0");
     const categoryId = searchParams.get("categoryId");
     const brand = searchParams.get("brand");
@@ -22,11 +22,11 @@ export async function GET(request: NextRequest) {
       .select(
         `
         *,
-        categories!inner(id, name, parent_id)
+        categories(id, name, parent_id)
       `
       )
       .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .limit(limit);
 
     // Фільтри
     if (categoryId) {

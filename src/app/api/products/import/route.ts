@@ -143,13 +143,7 @@ async function importProductsToDatabase(products: ParsedProduct[]): Promise<{
 
   for (const product of products) {
     try {
-      // Пропускаємо товари з category_id=80
-      if (product.category_id === 80) {
-        console.log(
-          `⏭️ Skipping product with category_id=80: ${product.name} (${product.external_id})`
-        );
-        continue;
-      }
+      // Не пропускаємо товари з category_id=80
 
       // Перевіряємо, чи існує товар з таким external_id
       const { data: existingProduct, error: checkError } = await supabaseAdmin
