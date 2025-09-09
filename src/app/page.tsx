@@ -683,8 +683,9 @@ export default function Home() {
                     typeof window = {typeof window}
                   </div>
                   <div className="text-blue-500 text-sm">
-                    This is server-side rendering. Products will load on client
-                    side.
+                    {typeof window === "undefined" 
+                      ? "This is server-side rendering. Products will load on client side."
+                      : "This is client-side rendering. Products should be loaded."}
                   </div>
                   {/* Debug info for filters */}
                   {process.env.NODE_ENV === "development" && (
