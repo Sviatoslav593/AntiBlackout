@@ -270,12 +270,15 @@ export default function Home() {
   };
 
   // Handle category button clicks
-  const handleCategoryClick = (categoryName: string, e?: React.MouseEvent | React.TouchEvent) => {
+  const handleCategoryClick = (
+    categoryName: string,
+    e?: React.MouseEvent | React.TouchEvent
+  ) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    
+
     // Set category filter
     setFilters((prev) => ({
       ...prev,
@@ -287,8 +290,9 @@ export default function Home() {
   };
 
   return (
-    <Layout>
-      <div className="min-h-screen">
+    <FilterProvider>
+      <Layout>
+        <div className="min-h-screen">
         {/* Hero Section - previous good design */}
         <section className="relative hero-gradient text-white overflow-hidden">
           <div className="absolute inset-0 bg-black/20 pointer-events-none"></div>
@@ -375,7 +379,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+            <div className="flex flex-wrap justify-center gap-4 mb-16">
               {availableCategories.map((category) => {
                 const Icon = getCategoryIcon(category);
                 return (
@@ -384,26 +388,22 @@ export default function Home() {
                     className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105"
                     onClick={(e) => handleCategoryClick(category, e)}
                   >
-                    <div className="bg-white border border-gray-200 rounded-lg p-6 h-full flex flex-col items-center text-center">
-                      <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 mb-4">
-                        <Icon className="w-8 h-8 text-white" />
+                    <div className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-4 flex items-center space-x-3 min-w-[200px]">
+                      <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Icon className="w-6 h-6 text-white" />
                       </div>
-                      <h3 className="text-xl font-semibold group-hover:text-blue-600 transition-colors mb-2">
-                        {category}
-                      </h3>
-                      <p className="text-muted-foreground mb-4">
-                        {
-                          allProducts.filter(
-                            (p) => p.categories?.name === category
-                          ).length
-                        }{" "}
-                        товарів
-                      </p>
-                      <div className="mt-auto">
-                        <div className="inline-flex items-center text-blue-600 group-hover:text-blue-700 transition-colors">
-                          Переглянути
-                          <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                        </div>
+                      <div className="text-center flex-1">
+                        <h3 className="font-semibold text-sm">
+                          {category}
+                        </h3>
+                        <p className="text-blue-100 text-xs">
+                          {
+                            allProducts.filter(
+                              (p) => p.categories?.name === category
+                            ).length
+                          }{" "}
+                          товарів
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -426,6 +426,12 @@ export default function Home() {
                     ? "Завантаження..."
                     : `Знайдено ${filteredAndSortedProducts.length} товарів`}
                 </p>
+                {/* Debug info for filters */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="text-xs text-gray-500 mt-2">
+                    Фільтри: {JSON.stringify(filters, null, 2)}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-4">
@@ -438,7 +444,7 @@ export default function Home() {
               <div className="xl:col-span-1">
                 <Filters
                   filters={filters}
-                  onFiltersChange={() => {}} // Handled by FilterContext
+                  onFiltersChange={setFilters}
                   availableCategories={availableCategories}
                   availableBrands={availableBrands}
                   priceRange={priceRange}
@@ -525,7 +531,8 @@ export default function Home() {
 
         {/* Scroll to Products Button */}
         <ScrollToProductsButton />
-      </div>
-    </Layout>
+        </div>
+      </Layout>
+    </FilterProvider>
   );
 }
