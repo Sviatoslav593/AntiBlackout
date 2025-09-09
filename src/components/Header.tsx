@@ -31,6 +31,7 @@ export default function Header() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [hasScrolledToProducts, setHasScrolledToProducts] = useState(false);
   const { state, isCartAnimating } = useCart();
   const { searchQuery, setSearchQuery, clearSearch, scrollToProducts } =
     useSearch();
@@ -76,16 +77,18 @@ export default function Header() {
     // Always keep the field expanded when user is typing
     setIsSearchExpanded(true);
 
-    // If there's a search query, scroll to products
-    if (query.trim()) {
+    // If there's a search query and we haven't scrolled yet, scroll to products
+    if (query.trim() && !hasScrolledToProducts) {
       // Scroll to products section - delay is handled in SearchContext
       scrollToProducts();
+      setHasScrolledToProducts(true);
     }
   };
 
   // Handle search clear
   const handleSearchClear = () => {
     clearSearch();
+    setHasScrolledToProducts(false); // Reset scroll state
     // Keep the field expanded after clearing so user can continue typing
     setIsSearchExpanded(true);
     // Focus back to input after clearing
