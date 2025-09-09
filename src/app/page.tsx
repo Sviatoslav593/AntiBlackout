@@ -114,28 +114,88 @@ export default function Home() {
     }
   }, [setFilters]);
 
+  // Fetch products with filters
+  const fetchProducts = async (filterParams?: {
+    categoryId?: string;
+    brand?: string;
+    search?: string;
+    inStockOnly?: boolean;
+    minPrice?: number;
+    maxPrice?: number;
+  }) => {
+    try {
+      setLoading(true);
+      
+      const params = new URLSearchParams();
+      if (filterParams?.categoryId) params.append('categoryId', filterParams.categoryId);
+      if (filterParams?.brand) params.append('brand', filterParams.brand);
+      if (filterParams?.search) params.append('search', filterParams.search);
+      if (filterParams?.inStockOnly) params.append('inStockOnly', 'true');
+      if (filterParams?.minPrice) params.append('minPrice', filterParams.minPrice.toString());
+      if (filterParams?.maxPrice) params.append('maxPrice', filterParams.maxPrice.toString());
+
+      const response = await fetch(`/api/products?${params.toString()}`);
+      const data = await response.json();
+
+      if (data.success && data.products) {
+        setAllProducts(data.products);
+        console.log('Fetched products:', data.products.length);
+      } else {
+        console.error("Failed to fetch products:", data.error);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Fetch products on component mount
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/products");
-        const data = await response.json();
-
-        if (data.success && data.products) {
-          setAllProducts(data.products);
-        } else {
-          console.error("Failed to fetch products:", data.error);
-        }
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProducts();
   }, []);
+
+  // Fetch products when filters change
+  useEffect(() => {
+    if (allProducts.length > 0) {
+      // Only refetch if we have initial products loaded
+      const filterParams: any = {};
+      
+      // Convert category names to category IDs
+      if (filters.categories.length > 0) {
+        const categoryId = allProducts.find(p => 
+          filters.categories.includes(p.categories?.name || '')
+        )?.category_id;
+        if (categoryId) {
+          filterParams.categoryId = categoryId.toString();
+        }
+      }
+      
+      // Add other filters
+      if (filters.brands.length > 0) {
+        filterParams.brand = filters.brands[0]; // API supports only one brand at a time
+      }
+      
+      if (filters.inStockOnly) {
+        filterParams.inStockOnly = true;
+      }
+      
+      if (filters.priceRange.min > 0) {
+        filterParams.minPrice = filters.priceRange.min;
+      }
+      
+      if (filters.priceRange.max < 10000) {
+        filterParams.maxPrice = filters.priceRange.max;
+      }
+      
+      if (searchQuery) {
+        filterParams.search = searchQuery;
+      }
+      
+      console.log('Applying filters:', filterParams);
+      fetchProducts(filterParams);
+    }
+  }, [filters, searchQuery]);
 
   // Calculate available options for filters
   const priceRange = useMemo(() => {
@@ -182,69 +242,13 @@ export default function Home() {
     return Array.from(brandSet).sort();
   }, [allProducts]);
 
-  // Filter and sort products
+  // Sort products (server-side filtering is now handled by API)
   const filteredAndSortedProducts = useMemo(() => {
-    console.log('Filtering products with filters:', filters);
-    console.log('Total products:', allProducts.length);
-    
-    let filtered = allProducts.filter((product) => {
-      // Search filter
-      if (searchQuery) {
-        const searchLower = searchQuery.toLowerCase();
-        const matchesSearch =
-          product.name.toLowerCase().includes(searchLower) ||
-          product.description?.toLowerCase().includes(searchLower) ||
-          product.categories?.name?.toLowerCase().includes(searchLower) ||
-          product.brand?.toLowerCase().includes(searchLower);
-        if (!matchesSearch) return false;
-      }
-
-      // Price filter
-      if (
-        product.price < filters.priceRange.min ||
-        product.price > filters.priceRange.max
-      ) {
-        return false;
-      }
-
-      // Stock filter
-      if (filters.inStockOnly && !product.inStock) {
-        return false;
-      }
-
-      // Category filter
-      if (filters.categories.length > 0) {
-        const productCategory = product.categories?.name;
-        if (!productCategory || !filters.categories.includes(productCategory)) {
-          return false;
-        }
-      }
-
-      // Brand filter
-      if (filters.brands.length > 0) {
-        if (!product.brand || !filters.brands.includes(product.brand)) {
-          return false;
-        }
-      }
-
-      // Capacity filter (for power banks)
-      if (product.capacity && product.capacity > 0) {
-        if (
-          product.capacity < filters.capacityRange.min ||
-          product.capacity > filters.capacityRange.max
-        ) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-
-    console.log('Filtered products count:', filtered.length);
-    const sorted = sortProducts(filtered, sortBy);
-    console.log('Final products count:', sorted.length);
+    console.log("Sorting products:", allProducts.length);
+    const sorted = sortProducts(allProducts, sortBy);
+    console.log("Final products count:", sorted.length);
     return sorted;
-  }, [allProducts, searchQuery, filters, sortBy]);
+  }, [allProducts, sortBy]);
 
   const scrollToProducts = () => {
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
@@ -276,7 +280,7 @@ export default function Home() {
   };
 
   // Handle category button clicks
-  const handleCategoryClick = (
+  const handleCategoryClick = async (
     categoryName: string,
     e?: React.MouseEvent | React.TouchEvent
   ) => {
@@ -285,11 +289,15 @@ export default function Home() {
       e.stopPropagation();
     }
 
-    // Set category filter
-    setFilters((prev) => ({
-      ...prev,
-      categories: [categoryName],
-    }));
+    // Find category ID from current products
+    const categoryId = allProducts.find(p => 
+      p.categories?.name === categoryName
+    )?.category_id;
+
+    if (categoryId) {
+      console.log('Filtering by category:', categoryName, 'ID:', categoryId);
+      await fetchProducts({ categoryId: categoryId.toString() });
+    }
 
     // Scroll to products section
     scrollToProducts();
@@ -388,37 +396,37 @@ export default function Home() {
                 </p>
               </div>
 
-               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-                 {availableCategories.map((category, index) => {
-                   const Icon = getCategoryIcon(category);
-                   return (
-                     <div
-                       key={category}
-                       className="group relative bg-white border-2 border-gray-100 rounded-2xl p-6 hover:border-blue-200 hover:shadow-lg transition-all duration-300 cursor-pointer"
-                       onClick={(e) => handleCategoryClick(category, e)}
-                     >
-                       <div className="flex flex-col items-center text-center space-y-4">
-                         <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                           <Icon className="w-8 h-8 text-white" />
-                         </div>
-                         <div>
-                           <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 text-sm lg:text-base">
-                             {category}
-                           </h3>
-                           <p className="text-xs lg:text-sm text-gray-500 mt-1">
-                             {
-                               allProducts.filter(
-                                 (p) => p.categories?.name === category
-                               ).length
-                             }{" "}
-                             товарів
-                           </p>
-                         </div>
-                       </div>
-                     </div>
-                   );
-                 })}
-               </div>
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                {availableCategories.map((category, index) => {
+                  const Icon = getCategoryIcon(category);
+                  return (
+                    <div
+                      key={category}
+                      className="group relative bg-white border-2 border-gray-100 rounded-2xl p-6 hover:border-blue-200 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                      onClick={(e) => handleCategoryClick(category, e)}
+                    >
+                      <div className="flex flex-col items-center text-center space-y-4">
+                        <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                          <Icon className="w-8 h-8 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 text-sm lg:text-base">
+                            {category}
+                          </h3>
+                          <p className="text-xs lg:text-sm text-gray-500 mt-1">
+                            {
+                              allProducts.filter(
+                                (p) => p.categories?.name === category
+                              ).length
+                            }{" "}
+                            товарів
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </section>
 
@@ -435,15 +443,17 @@ export default function Home() {
                       ? "Завантаження..."
                       : `Знайдено ${filteredAndSortedProducts.length} товарів`}
                   </p>
-                   {/* Debug info for filters */}
-                   {process.env.NODE_ENV === "development" && (
-                     <div className="text-xs text-gray-500 mt-2 space-y-1">
-                       <div>Фільтри: {JSON.stringify(filters, null, 2)}</div>
-                       <div>Всього товарів: {allProducts.length}</div>
-                       <div>Відфільтровано: {filteredAndSortedProducts.length}</div>
-                       <div>Пошук: "{searchQuery}"</div>
-                     </div>
-                   )}
+                  {/* Debug info for filters */}
+                  {process.env.NODE_ENV === "development" && (
+                    <div className="text-xs text-gray-500 mt-2 space-y-1">
+                      <div>Фільтри: {JSON.stringify(filters, null, 2)}</div>
+                      <div>Всього товарів: {allProducts.length}</div>
+                      <div>
+                        Відфільтровано: {filteredAndSortedProducts.length}
+                      </div>
+                      <div>Пошук: "{searchQuery}"</div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -461,6 +471,7 @@ export default function Home() {
                      availableBrands={availableBrands}
                      priceRange={priceRange}
                      capacityRange={capacityRange}
+                     onApplyFilters={fetchProducts}
                    />
                  </div>
 

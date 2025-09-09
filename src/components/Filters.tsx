@@ -37,6 +37,14 @@ interface FiltersProps {
   availableBrands: string[];
   priceRange: { min: number; max: number };
   capacityRange: { min: number; max: number };
+  onApplyFilters?: (filterParams: {
+    categoryId?: string;
+    brand?: string;
+    search?: string;
+    inStockOnly?: boolean;
+    minPrice?: number;
+    maxPrice?: number;
+  }) => Promise<void>;
 }
 
 export default function Filters({
@@ -46,6 +54,7 @@ export default function Filters({
   availableBrands,
   priceRange,
   capacityRange,
+  onApplyFilters,
 }: FiltersProps) {
   // Use FilterContext when available, fallback to props
   const { filters: contextFilters, setFilters } = useFilters();
@@ -79,51 +88,74 @@ export default function Filters({
     });
   };
 
-  const handleCategoryToggle = (category: string, e?: React.MouseEvent | React.TouchEvent) => {
+  const handleCategoryToggle = async (
+    category: string,
+    e?: React.MouseEvent | React.TouchEvent
+  ) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    
+
     const newCategories = filters.categories.includes(category)
       ? filters.categories.filter((c) => c !== category)
-      : [...filters.categories, category];
+      : [category]; // Only allow one category at a time for API
 
     handleFiltersChange({
       ...filters,
       categories: newCategories,
     });
+
+    // Apply filter via API
+    if (onApplyFilters) {
+      // This will be handled by the parent component's useEffect
+      console.log('Category filter changed:', newCategories);
+    }
   };
 
-  const handleBrandToggle = (brand: string, e?: React.MouseEvent | React.TouchEvent) => {
+  const handleBrandToggle = async (
+    brand: string,
+    e?: React.MouseEvent | React.TouchEvent
+  ) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    
+
     const newBrands = filters.brands.includes(brand)
       ? filters.brands.filter((b) => b !== brand)
-      : [...filters.brands, brand];
+      : [brand]; // Only allow one brand at a time for API
 
     handleFiltersChange({
       ...filters,
       brands: newBrands,
     });
+
+    // Apply filter via API
+    if (onApplyFilters) {
+      console.log('Brand filter changed:', newBrands);
+    }
   };
 
-  const handleInStockToggle = (e?: React.MouseEvent | React.TouchEvent) => {
+  const handleInStockToggle = async (e?: React.MouseEvent | React.TouchEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    
+
+    const newInStockOnly = !filters.inStockOnly;
     handleFiltersChange({
       ...filters,
-      inStockOnly: !filters.inStockOnly,
+      inStockOnly: newInStockOnly,
     });
+
+    // Apply filter via API
+    if (onApplyFilters) {
+      console.log('In stock filter changed:', newInStockOnly);
+    }
   };
 
-  const clearAllFilters = () => {
+  const clearAllFilters = async () => {
     const clearedFilters = {
       priceRange: { min: priceRange.min, max: priceRange.max },
       categories: [],
@@ -133,6 +165,12 @@ export default function Filters({
     };
 
     handleFiltersChange(clearedFilters);
+
+    // Apply cleared filters via API
+    if (onApplyFilters) {
+      console.log('Clearing all filters');
+      await onApplyFilters({});
+    }
   };
 
   const getActiveFiltersCount = () => {
