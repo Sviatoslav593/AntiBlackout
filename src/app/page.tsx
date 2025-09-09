@@ -135,8 +135,20 @@ export default function Home() {
     return Array.from(categorySet).sort();
   }, [allProducts]);
 
+  // Available brands for filtering
+  const availableBrands = useMemo(() => {
+    const brandSet = new Set<string>();
+    allProducts.forEach((product) => {
+      if (product.brand) {
+        brandSet.add(product.brand);
+      }
+    });
+    return Array.from(brandSet).sort();
+  }, [allProducts]);
+
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
+    console.log("Current filters:", filters);
     let filtered = allProducts.filter((product) => {
       // Search filter
       if (searchQuery) {
@@ -319,8 +331,8 @@ export default function Home() {
                     className="group cursor-pointer bg-white rounded-xl p-3 sm:p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200"
                     onClick={() => {
                       // Check if we're on the client side
-                      if (typeof window === 'undefined') return;
-                      
+                      if (typeof window === "undefined") return;
+
                       // Set category filter and scroll to products
                       setFilters((prev) => ({
                         ...prev,
@@ -374,7 +386,7 @@ export default function Home() {
                   filters={filters}
                   onFiltersChange={setFilters}
                   availableCategories={availableCategories}
-                  availableBrands={[]}
+                  availableBrands={availableBrands}
                   priceRange={{ min: 0, max: 10000 }}
                   capacityRange={{ min: 0, max: 50000 }}
                 />

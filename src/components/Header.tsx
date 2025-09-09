@@ -202,18 +202,24 @@ export default function Header() {
 
   const handleMobileCategoryClick = (categoryName: string) => {
     // Check if we're on the client side
-    if (typeof window === 'undefined') return;
-    
+    if (typeof window === "undefined") return;
+
+    console.log("Setting category filter:", categoryName);
+
     // Set category filter
-    setFilters((prev) => ({
-      ...prev,
-      categories: [categoryName],
-    }));
-    
+    setFilters((prev) => {
+      const newFilters = {
+        ...prev,
+        categories: [categoryName],
+      };
+      console.log("New filters:", newFilters);
+      return newFilters;
+    });
+
     // Close mobile menu and dropdown
     setIsMenuOpen(false);
     setIsMobileProductsDropdownOpen(false);
-    
+
     // Scroll to products section
     setTimeout(() => {
       const el = document.getElementById("products");
