@@ -674,7 +674,10 @@ export default function Home() {
                       : `Знайдено ${filteredAndSortedProducts.length} товарів`}
                   </p>
                   <div className="text-red-500 text-sm">
-                    Debug: allProducts.length = {allProducts.length}, loading = {loading.toString()}
+                    Debug: allProducts.length = {allProducts.length}, loading = {loading.toString()}, isMounted = {isMounted.toString()}, typeof window = {typeof window}
+                  </div>
+                  <div className="text-blue-500 text-sm">
+                    This is server-side rendering. Products will load on client side.
                   </div>
                   {/* Debug info for filters */}
                   {process.env.NODE_ENV === "development" && (
