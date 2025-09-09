@@ -1,128 +1,164 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
 import Layout from "@/components/Layout";
-import ProductCard, { Product } from "@/components/ProductCard";
+import ProductCard from "@/components/ProductCard";
 import Filters, { FilterState } from "@/components/Filters";
-import SortDropdown, {
-  SortOption,
-  sortProducts,
-} from "@/components/SortDropdown";
-import {
-  Battery,
-  Zap,
-  Shield,
-  Truck,
-  Smartphone,
-  Wifi,
-  Plug,
-  Cable,
-} from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import ScrollToProductsButton from "@/components/ScrollToProductsButton";
 import { useSearch } from "@/context/SearchContext";
 import { useFilters } from "@/context/FilterContext";
-import { SITE_CONFIG } from "@/lib/seo";
-import { createClient } from "@/utils/supabase/client";
-import { useRouter } from "next/navigation";
+import { FilterProvider } from "@/context/FilterContext";
+import {
+  Battery,
+  Shield,
+  Zap,
+  ArrowRight,
+  ShoppingBag,
+  Truck,
+  Headphones,
+  Smartphone,
+} from "lucide-react";
 
-const features = [
-  {
-    icon: Battery,
-    title: "Довготривала Робота",
-    description: "Потужні батареї, які забезпечують роботу протягом днів",
-  },
-  {
-    icon: Zap,
-    title: "Швидка Зарядка",
-    description: "Технологія швидкої зарядки повертає 100% заряду миттєво",
-  },
-  {
-    icon: Shield,
-    title: "Безпека та Надійність",
-    description:
-      "Вбудовані функції безпеки захищають ваші пристрої від пошкоджень",
-  },
-  {
-    icon: Truck,
-    title: "Швидка Доставка",
-    description: "Відправлення в день замовлення по всій Україні",
-  },
-];
-
-interface Category {
-  id: number;
+// Product interface matching the database structure
+interface Product {
+  id: string;
+  external_id?: string;
   name: string;
-  parent_id?: number;
-  children?: Category[];
+  description: string;
+  price: number;
+  originalPrice?: number;
+  image: string;
+  images?: string[];
+  rating: number;
+  reviewCount: number;
+  inStock: boolean;
+  badge?: string;
+  capacity: number;
+  brand: string;
+  popularity: number;
+  createdAt: string;
+  categories?: {
+    id: number;
+    name: string;
+  };
+  category_id?: number;
+  vendor_code?: string;
+  quantity?: number;
+  characteristics?: Record<string, any>;
 }
+
+type SortOption =
+  | "popularity-desc"
+  | "price-asc"
+  | "price-desc"
+  | "name-asc"
+  | "newest-first";
+
+const sortProducts = (products: Product[], sortBy: SortOption): Product[] => {
+  const sortedProducts = [...products];
+
+  switch (sortBy) {
+    case "price-asc":
+      return sortedProducts.sort((a, b) => a.price - b.price);
+    case "price-desc":
+      return sortedProducts.sort((a, b) => b.price - a.price);
+    case "name-asc":
+      return sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
+    case "newest-first":
+      return sortedProducts.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    case "popularity-desc":
+    default:
+      return sortedProducts.sort((a, b) => b.popularity - a.popularity);
+  }
+};
 
 export default function Home() {
   // State for products
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const router = useRouter();
+  const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
 
-  // Search context
-  const { searchQuery, clearSearch } = useSearch();
+  // Context hooks
+  const { searchQuery } = useSearch();
+  const { filters, setFilters } = useFilters();
 
-  // Scroll restoration
+  // Handle URL parameters for category filtering
   useEffect(() => {
-    const savedScrollPosition = sessionStorage.getItem("scrollPosition");
-    if (savedScrollPosition) {
-      window.scrollTo(0, parseInt(savedScrollPosition));
-      sessionStorage.removeItem("scrollPosition");
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoryParam = urlParams.get("category");
+
+    if (categoryParam) {
+      setFilters((prev) => ({
+        ...prev,
+        categories: [categoryParam],
+      }));
+
+      // Remove the parameter from URL after setting
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+
+      // Scroll to products after a short delay
+      setTimeout(() => {
+        document
+          .getElementById("products")
+          ?.scrollIntoView({ behavior: "smooth" });
+      }, 500);
     }
-  }, []);
+  }, [setFilters]);
 
-  // Save scroll position when navigating away
+  // Fetch products on component mount
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      sessionStorage.setItem("scrollPosition", window.scrollY.toString());
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, []);
-
-  // Fetch products and categories from database
-  useEffect(() => {
-    const fetchData = async () => {
+    const fetchProducts = async () => {
       try {
         setLoading(true);
+        const response = await fetch("/api/products");
+        const data = await response.json();
 
-        // Fetch products
-        const productsResponse = await fetch("/api/products?limit=500");
-        const productsData = await productsResponse.json();
-
-        if (!productsData.success) {
-          console.error("Error fetching products:", productsData.error);
-          return;
-        }
-
-        console.log("Fetched products from API:", productsData.products.length);
-        setAllProducts(productsData.products);
-
-        // Fetch categories
-        const categoriesResponse = await fetch("/api/categories");
-        const categoriesData = await categoriesResponse.json();
-
-        if (categoriesData.success) {
-          setCategories(categoriesData.categories);
+        if (data.success && data.products) {
+          setAllProducts(data.products);
+        } else {
+          console.error("Failed to fetch products:", data.error);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching products:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchProducts();
   }, []);
 
-  // Filter and sort state
-  const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
-  const { filters, setFilters } = useFilters();
+  // Calculate available options for filters
+  const priceRange = useMemo(() => {
+    if (allProducts.length === 0) return { min: 0, max: 10000 };
+    const prices = allProducts.map((p) => p.price);
+    return {
+      min: Math.min(...prices),
+      max: Math.max(...prices),
+    };
+  }, [allProducts]);
+
+  const capacityRange = useMemo(() => {
+    const capacities = allProducts
+      .filter((p) => p.capacity && p.capacity > 0)
+      .map((p) => p.capacity);
+
+    if (capacities.length === 0) return { min: 0, max: 50000 };
+
+    return {
+      min: Math.min(...capacities),
+      max: Math.max(...capacities),
+    };
+  }, [allProducts]);
 
   // Available categories for filtering
   const availableCategories = useMemo(() => {
@@ -155,7 +191,8 @@ export default function Home() {
         const matchesSearch =
           product.name.toLowerCase().includes(searchLower) ||
           product.description?.toLowerCase().includes(searchLower) ||
-          product.categories?.name?.toLowerCase().includes(searchLower);
+          product.categories?.name?.toLowerCase().includes(searchLower) ||
+          product.brand?.toLowerCase().includes(searchLower);
         if (!matchesSearch) return false;
       }
 
@@ -180,8 +217,15 @@ export default function Home() {
         }
       }
 
+      // Brand filter
+      if (filters.brands.length > 0) {
+        if (!product.brand || !filters.brands.includes(product.brand)) {
+          return false;
+        }
+      }
+
       // Capacity filter (for power banks)
-      if (product.capacity) {
+      if (product.capacity && product.capacity > 0) {
         if (
           product.capacity < filters.capacityRange.min ||
           product.capacity > filters.capacityRange.max
@@ -206,313 +250,347 @@ export default function Home() {
 
   const getCategoryIcon = (categoryName: string) => {
     const name = categoryName.toLowerCase();
-    if (name.includes("акумулятор") || name.includes("powerbank"))
+    if (
+      name.includes("акумулятор") ||
+      name.includes("powerbank") ||
+      name.includes("батареї")
+    ) {
       return Battery;
-    if (name.includes("зарядк") || name.includes("кабел")) return Cable;
-    if (name.includes("портативн") || name.includes("батаре"))
+    } else if (
+      name.includes("зарядки") ||
+      name.includes("кабелі") ||
+      name.includes("адаптер")
+    ) {
+      return Zap;
+    } else if (name.includes("навушники")) {
+      return Headphones;
+    } else {
       return Smartphone;
-    if (name.includes("бездротов")) return Wifi;
-    if (name.includes("мережев")) return Plug;
-    return Zap;
+    }
+  };
+
+  // Handle category button clicks
+  const handleCategoryClick = (categoryName: string) => {
+    // Set category filter
+    setFilters((prev) => ({
+      ...prev,
+      categories: [categoryName],
+    }));
+
+    // Scroll to products section
+    scrollToProducts();
   };
 
   return (
     <Layout>
-      {/* Structured Data for Homepage */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            name: SITE_CONFIG.name,
-            description: SITE_CONFIG.description,
-            url: SITE_CONFIG.url,
-            potentialAction: {
-              "@type": "SearchAction",
-              target: {
-                "@type": "EntryPoint",
-                urlTemplate: `${SITE_CONFIG.url}/?search={search_term_string}`,
-              },
-              "query-input": "required name=search_term_string",
-            },
-          }),
-        }}
-      />
-
-      {/* Hero Section */}
-      <section className="relative hero-gradient text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
-        <div className="relative container py-24 md:py-32">
-          <div className="max-w-3xl mx-auto text-center space-y-8 animate-fade-in">
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight animate-slide-up">
-              Залишайтесь на Зв'язку Під Час Будь-якого Блекауту
-            </h1>
-            <p className="text-xl md:text-2xl text-blue-100 leading-relaxed animate-slide-up-delay">
-              Купуйте павербанки, зарядні пристрої та кабелі, щоб залишатися на
-              зв'язку навіть під час відключення електроенергії
-            </p>
-            <div className="flex justify-center animate-slide-up-delay-2">
-              <Button
-                size="lg"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                onClick={scrollToProducts}
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        {/* Hero Section */}
+        <section className="relative py-16 lg:py-24 overflow-hidden">
+          <div className="container">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+                className="space-y-8"
               >
-                Переглянути Товари
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Чому Обирають Нас
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Ми пропонуємо найкращі рішення для забезпечення безперебійної
-              роботи ваших пристроїв
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="text-center group hover:scale-105 transition-transform duration-300"
-              >
-                <div className="mx-auto w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center group-hover:bg-blue-700 group-hover:rotate-6 transition-all duration-300">
-                  <feature.icon className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mt-4 mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-muted-foreground">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Categories Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Категорії Товарів
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Оберіть категорію, яка вас цікавить
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-16">
-            {(() => {
-              // Flatten all categories including subcategories
-              const allCategories: Category[] = [];
-              categories.forEach((category) => {
-                // Add main category
-                allCategories.push(category);
-                // Add all subcategories as separate items
-                if (category.children && category.children.length > 0) {
-                  allCategories.push(...category.children);
-                }
-              });
-
-              return allCategories.slice(0, 9).map((category) => {
-                const IconComponent = getCategoryIcon(category.name);
-                return (
-                  <div
-                    key={category.id}
-                    className="group cursor-pointer bg-white rounded-xl p-3 sm:p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200"
-                    onClick={() => {
-                      // Check if we're on the client side
-                      if (typeof window === "undefined") return;
-
-                      // Set category filter and scroll to products
-                      setFilters((prev) => ({
-                        ...prev,
-                        categories: [category.name],
-                      }));
-                      // Scroll to products section
-                      setTimeout(() => {
-                        const el = document.getElementById("products");
-                        if (el) {
-                          el.scrollIntoView({ behavior: "smooth" });
-                        }
-                      }, 100);
-                    }}
-                  >
-                    <div className="text-center">
-                      <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-600 group-hover:scale-110 transition-all duration-300 mb-2 sm:mb-4">
-                        <IconComponent className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 group-hover:text-white transition-colors" />
-                      </div>
-                      <h3 className="text-sm sm:text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-1 sm:mb-2">
-                        {category.name}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-gray-500">
-                        {category.parent_id ? "Підкатегорія" : "Категорія"}
-                      </p>
-                    </div>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-        </div>
-      </section>
-
-      {/* Products Section */}
-      <section id="products" className="py-16">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Всі Товари</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Знайдіть ідеальний товар для забезпечення безперебійної роботи
-              ваших пристроїв
-            </p>
-          </div>
-
-          {/* Mobile Layout */}
-          <div className="lg:hidden">
-            {/* Mobile Filters and Sort */}
-            <div className="mb-8">
-              <div className="flex flex-col gap-4 items-start justify-between">
-                <Filters
-                  filters={filters}
-                  onFiltersChange={setFilters}
-                  availableCategories={availableCategories}
-                  availableBrands={availableBrands}
-                  priceRange={{ min: 0, max: 10000 }}
-                  capacityRange={{ min: 0, max: 50000 }}
-                />
-                <SortDropdown value={sortBy} onValueChange={setSortBy} />
-              </div>
-            </div>
-
-            {/* Mobile Products Grid */}
-            {loading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-muted-foreground">
-                    Завантаження товарів...
+                <div className="space-y-4">
+                  <Badge className="inline-block bg-blue-100 text-blue-800">
+                    🔋 Новинка
+                  </Badge>
+                  <h1 className="text-4xl lg:text-6xl font-bold tracking-tight text-gray-900">
+                    Завжди на зв'язку
+                    <span className="block text-blue-600">з AntiBlackout</span>
+                  </h1>
+                  <p className="text-xl text-gray-600 leading-relaxed">
+                    Професійні рішення для зарядки та живлення ваших пристроїв.
+                    Найширший асортимент павербанків, зарядних пристроїв та
+                    аксесуарів в Україні.
                   </p>
                 </div>
-              </div>
-            ) : filteredAndSortedProducts.length === 0 ? (
-              <div className="text-center py-16">
-                <h3 className="text-xl font-semibold mb-2">
-                  Товари не знайдені
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Спробуйте змінити фільтри або пошуковий запит
-                </p>
-                <Button onClick={clearSearch} variant="outline">
-                  Очистити фільтри
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4 sm:gap-6">
-                {filteredAndSortedProducts.map((product, index) => (
-                  <div
-                    key={product.id}
-                    className="animate-slide-up"
-                    style={{ animationDelay: `${index * 50}ms` }}
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button
+                    size="lg"
+                    onClick={scrollToProducts}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold cursor-pointer"
                   >
-                    <ProductCard product={product} />
+                    <ShoppingBag className="w-5 h-5 mr-2" />
+                    Переглянути каталог
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    asChild
+                    className="border-blue-200 text-blue-600 hover:bg-blue-50 px-8 py-3 text-lg font-semibold cursor-pointer"
+                  >
+                    <Link href="/about">
+                      Дізнатися більше
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+
+                {/* Features */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8">
+                  <div className="flex items-center gap-3">
+                    <Shield className="w-8 h-8 text-green-600" />
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        Гарантія якості
+                      </p>
+                      <p className="text-sm text-gray-600">Офіційна гарантія</p>
+                    </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  <div className="flex items-center gap-3">
+                    <Truck className="w-8 h-8 text-blue-600" />
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        Швидка доставка
+                      </p>
+                      <p className="text-sm text-gray-600">По всій Україні</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Headphones className="w-8 h-8 text-purple-600" />
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        Підтримка 24/7
+                      </p>
+                      <p className="text-sm text-gray-600">Завжди на зв'язку</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
 
-          {/* Desktop Layout */}
-          <div className="hidden lg:flex gap-8">
-            {/* Desktop Filters Sidebar */}
-            <div className="w-80 flex-shrink-0">
-              <Filters
-                filters={filters}
-                onFiltersChange={setFilters}
-                availableCategories={availableCategories}
-                availableBrands={[]}
-                priceRange={{ min: 0, max: 10000 }}
-                capacityRange={{ min: 0, max: 50000 }}
-              />
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="relative"
+              >
+                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 p-8">
+                  <Image
+                    src="/hero-image.jpg"
+                    alt="Power Banks and Chargers"
+                    width={600}
+                    height={400}
+                    className="w-full h-auto rounded-lg"
+                    priority
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-lg" />
+                </div>
+              </motion.div>
             </div>
+          </div>
+        </section>
 
-            {/* Products Content */}
-            <div className="flex-1">
-              {/* Sort Dropdown */}
-              <div className="mb-6">
-                <SortDropdown value={sortBy} onValueChange={setSortBy} />
+        {/* Categories Section */}
+        <section className="py-16 bg-white">
+          <div className="container">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                Категорії товарів
+              </h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Оберіть категорію, яка вас цікавить
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+              {availableCategories.map((category, index) => {
+                const Icon = getCategoryIcon(category);
+                return (
+                  <motion.button
+                    key={category}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    onClick={() => handleCategoryClick(category)}
+                    className="group relative bg-white border-2 border-gray-100 rounded-2xl p-6 hover:border-blue-200 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  >
+                    <div className="flex flex-col items-center text-center space-y-4">
+                      <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Icon className="w-8 h-8 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 text-sm lg:text-base">
+                          {category}
+                        </h3>
+                        <p className="text-xs lg:text-sm text-gray-500 mt-1">
+                          {
+                            allProducts.filter(
+                              (p) => p.categories?.name === category
+                            ).length
+                          }{" "}
+                          товарів
+                        </p>
+                      </div>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* Products Section */}
+        <section id="products" className="py-16 bg-gray-50">
+          <div className="container">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 space-y-4 lg:space-y-0"
+            >
+              <div>
+                <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+                  Наші товари
+                </h2>
+                <p className="text-gray-600">
+                  {loading
+                    ? "Завантаження..."
+                    : `Знайдено ${filteredAndSortedProducts.length} товарів`}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                >
+                  <option value="popularity-desc">За популярністю</option>
+                  <option value="price-asc">Ціна: низька → висока</option>
+                  <option value="price-desc">Ціна: висока → низька</option>
+                  <option value="name-asc">За назвою А-Я</option>
+                  <option value="newest-first">Спочатку нові</option>
+                </select>
+              </div>
+            </motion.div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+              {/* Filters Sidebar */}
+              <div className="xl:col-span-1">
+                <Filters
+                  filters={filters}
+                  onFiltersChange={() => {}} // Handled by FilterContext
+                  availableCategories={availableCategories}
+                  availableBrands={availableBrands}
+                  priceRange={priceRange}
+                  capacityRange={capacityRange}
+                />
               </div>
 
               {/* Products Grid */}
-              {loading ? (
-                <div className="flex items-center justify-center h-64">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">
-                      Завантаження товарів...
-                    </p>
+              <div className="xl:col-span-3">
+                {loading ? (
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="bg-white rounded-lg p-4 animate-pulse"
+                      >
+                        <div className="aspect-square bg-gray-200 rounded-lg mb-4" />
+                        <div className="h-4 bg-gray-200 rounded mb-2" />
+                        <div className="h-4 bg-gray-200 rounded w-3/4" />
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ) : filteredAndSortedProducts.length === 0 ? (
-                <div className="text-center py-16">
-                  <h3 className="text-xl font-semibold mb-2">
-                    Товари не знайдені
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    Спробуйте змінити фільтри або пошуковий запит
-                  </p>
-                  <Button onClick={clearSearch} variant="outline">
-                    Очистити фільтри
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                  {filteredAndSortedProducts.map((product, index) => (
-                    <div
-                      key={product.id}
-                      className="animate-slide-up"
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      <ProductCard product={product} />
+                ) : filteredAndSortedProducts.length > 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.6 }}
+                    className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6"
+                  >
+                    {filteredAndSortedProducts.map((product, index) => (
+                      <motion.div
+                        key={product.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: index * 0.1 }}
+                      >
+                        <ProductCard
+                          product={{
+                            ...product,
+                            category:
+                              product.categories?.name || "Uncategorized",
+                          }}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="text-center py-16"
+                  >
+                    <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <ShoppingBag className="w-12 h-12 text-gray-400" />
                     </div>
-                  ))}
-                </div>
-              )}
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      Товари не знайдені
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Спробуйте змінити фільтри або пошуковий запит
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => window.location.reload()}
+                      className="cursor-pointer"
+                    >
+                      Оновити сторінку
+                    </Button>
+                  </motion.div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-blue-600 text-white">
-        <div className="container text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Готові Забезпечити Безперебійну Роботу?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Оберіть найкращі рішення для зарядки та підтримки ваших пристроїв
-            під час будь-яких обставин
-          </p>
-          <div className="flex justify-center">
-            <Button
-              size="lg"
-              variant="secondary"
-              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
-              onClick={scrollToProducts}
+        {/* CTA Section */}
+        <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
+          <div className="container">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center text-white"
             >
-              Переглянути Каталог
-            </Button>
+              <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+                Готові Забезпечити Безперебійну Роботу?
+              </h2>
+              <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
+                Оберіть найкращі рішення для зарядки та підтримки ваших
+                пристроїв під час будь-яких обставин
+              </p>
+              <Button
+                size="lg"
+                onClick={scrollToProducts}
+                className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold cursor-pointer"
+              >
+                <ShoppingBag className="w-5 h-5 mr-2" />
+                Переглянути каталог
+              </Button>
+            </motion.div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* Scroll to Products Button */}
+        <ScrollToProductsButton />
+      </div>
     </Layout>
   );
 }

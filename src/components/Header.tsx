@@ -204,6 +204,13 @@ export default function Header() {
     // Check if we're on the client side
     if (typeof window === "undefined") return;
 
+    // Navigate to home page if not already there
+    const currentPath = window.location.pathname;
+    if (currentPath !== "/") {
+      window.location.href = `/?category=${encodeURIComponent(categoryName)}`;
+      return;
+    }
+
     // Set category filter
     setFilters((prev) => ({
       ...prev,

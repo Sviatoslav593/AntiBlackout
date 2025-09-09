@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import PriceFilter from "@/components/PriceFilter";
 import CapacityFilter from "@/components/CapacityFilter";
+import { useFilters } from "@/context/FilterContext";
 import {
   Sheet,
   SheetContent,
@@ -39,16 +40,29 @@ interface FiltersProps {
 }
 
 export default function Filters({
-  filters,
+  filters: propFilters,
   onFiltersChange,
   availableCategories,
   availableBrands,
   priceRange,
   capacityRange,
 }: FiltersProps) {
+  // Use FilterContext when available, fallback to props
+  const { filters: contextFilters, setFilters } = useFilters();
+  const filters = contextFilters || propFilters;
+
+  // Handle filter changes through context or props
+  const handleFiltersChange = (newFilters: FilterState) => {
+    if (setFilters && typeof setFilters === "function") {
+      setFilters(newFilters);
+    } else if (onFiltersChange) {
+      onFiltersChange(newFilters);
+    }
+  };
+
   // Handle price filter changes
   const handlePriceChange = (priceRange: { min: number; max: number }) => {
-    onFiltersChange({
+    handleFiltersChange({
       ...filters,
       priceRange,
     });
@@ -59,7 +73,7 @@ export default function Filters({
     min: number;
     max: number;
   }) => {
-    onFiltersChange({
+    handleFiltersChange({
       ...filters,
       capacityRange,
     });
@@ -70,7 +84,7 @@ export default function Filters({
       ? filters.categories.filter((c) => c !== category)
       : [...filters.categories, category];
 
-    onFiltersChange({
+    handleFiltersChange({
       ...filters,
       categories: newCategories,
     });
@@ -81,14 +95,14 @@ export default function Filters({
       ? filters.brands.filter((b) => b !== brand)
       : [...filters.brands, brand];
 
-    onFiltersChange({
+    handleFiltersChange({
       ...filters,
       brands: newBrands,
     });
   };
 
   const handleInStockToggle = () => {
-    onFiltersChange({
+    handleFiltersChange({
       ...filters,
       inStockOnly: !filters.inStockOnly,
     });
@@ -103,7 +117,7 @@ export default function Filters({
       inStockOnly: false,
     };
 
-    onFiltersChange(clearedFilters);
+    handleFiltersChange(clearedFilters);
   };
 
   const getActiveFiltersCount = () => {
@@ -155,70 +169,56 @@ export default function Filters({
       <Separator />
 
       {/* Categories */}
-      <div className="space-y-3">
-        <h4 className="font-medium">Категорії</h4>
-        <div className="space-y-2">
-          {availableCategories.map((category) => (
-            <label
-              key={category}
-              className="flex items-center space-x-2 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={filters.categories.includes(category)}
-                onChange={() => handleCategoryToggle(category)}
-                className="rounded border-gray-300"
-              />
-              <span className="text-sm capitalize">
-                {category === "Power Banks"
-                  ? "Павербанки"
-                  : category === "Зарядні пристрої"
-                  ? "Зарядні пристрої"
-                  : category === "Кабелі"
-                  ? "Кабелі"
-                  : category === "Адаптери"
-                  ? "Адаптери"
-                  : category === "Держателі"
-                  ? "Держателі"
-                  : category === "Чохли"
-                  ? "Чохли"
-                  : category === "Навушники"
-                  ? "Навушники"
-                  : category === "Колонки"
-                  ? "Колонки"
-                  : category === "Аксесуари"
-                  ? "Аксесуари"
-                  : category}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <Separator />
+      {availableCategories.length > 0 && (
+        <>
+          <div className="space-y-3">
+            <h4 className="font-medium">Категорії</h4>
+            <div className="space-y-2">
+              {availableCategories.map((category) => (
+                <label
+                  key={category}
+                  className="flex items-center space-x-2 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={filters.categories.includes(category)}
+                    onChange={() => handleCategoryToggle(category)}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-sm">{category}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <Separator />
+        </>
+      )}
 
       {/* Brands */}
-      <div className="space-y-3">
-        <h4 className="font-medium">Бренди</h4>
-        <div className="space-y-2">
-          {availableBrands.map((brand) => (
-            <label
-              key={brand}
-              className="flex items-center space-x-2 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={filters.brands.includes(brand)}
-                onChange={() => handleBrandToggle(brand)}
-                className="rounded border-gray-300"
-              />
-              <span className="text-sm">{brand}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <Separator />
+      {availableBrands.length > 0 && (
+        <>
+          <div className="space-y-3">
+            <h4 className="font-medium">Бренди</h4>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {availableBrands.map((brand) => (
+                <label
+                  key={brand}
+                  className="flex items-center space-x-2 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={filters.brands.includes(brand)}
+                    onChange={() => handleBrandToggle(brand)}
+                    className="rounded border-gray-300"
+                  />
+                  <span className="text-sm">{brand}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <Separator />
+        </>
+      )}
 
       {/* Capacity Range */}
       <CapacityFilter

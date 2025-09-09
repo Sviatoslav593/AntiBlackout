@@ -81,20 +81,44 @@ export default function ProductPage() {
         setLoading(true);
         const supabase = createClient();
 
-        // Fetch the specific product by UUID with category join
-        const { data: productData, error: productError } = await supabase
+        // First, try to fetch by UUID (id)
+        let productData = null;
+        let productError = null;
+
+        // Try fetching by UUID first
+        const { data: uuidData, error: uuidError } = await supabase
           .from("products")
           .select(
             `
             *,
-            categories!inner(id, name, parent_id)
+            categories!inner(id, name)
           `
           )
           .eq("id", productId)
           .single();
 
+        if (uuidData && !uuidError) {
+          productData = uuidData;
+        } else {
+          // If UUID fetch fails, try fetching by external_id
+          const { data: extIdData, error: extIdError } = await supabase
+            .from("products")
+            .select(
+              `
+              *,
+              categories!inner(id, name)
+            `
+            )
+            .eq("external_id", productId)
+            .single();
+
+          productData = extIdData;
+          productError = extIdError;
+        }
+
         if (productError || !productData) {
           console.error("Error fetching product:", productError);
+          setLoading(false);
           return;
         }
 
@@ -107,7 +131,11 @@ export default function ProductPage() {
           price: productData.price || 0,
           originalPrice: undefined,
           image: productData.image_url || "",
-          images: productData.images || [productData.image_url || ""],
+          images: Array.isArray(productData.images)
+            ? productData.images
+            : productData.images
+            ? [productData.images]
+            : [productData.image_url || ""],
           rating: 4.5,
           reviewCount: Math.floor(Math.random() * 100) + 10,
           category: productData.categories?.name || "Uncategorized",
@@ -131,7 +159,7 @@ export default function ProductPage() {
           .select(
             `
             *,
-            categories!inner(id, name, parent_id)
+            categories!inner(id, name)
           `
           )
           .eq("category_id", productData.category_id)
@@ -142,11 +170,13 @@ export default function ProductPage() {
         if (!similarError && similarData) {
           const similar = similarData.map((p) => ({
             id: p.id, // UUID string
+            external_id: p.external_id,
             name: p.name || "",
             description: p.description || "",
             price: p.price || 0,
             originalPrice: undefined,
             image: p.image_url || "",
+            images: Array.isArray(p.images) ? p.images : [p.image_url || ""],
             rating: 4.5,
             reviewCount: Math.floor(Math.random() * 100) + 10,
             category: p.categories?.name || "Uncategorized",
@@ -156,6 +186,10 @@ export default function ProductPage() {
             badge: undefined,
             inStock: (p.quantity || 0) > 0,
             createdAt: p.created_at || new Date().toISOString(),
+            vendor_code: p.vendor_code,
+            quantity: p.quantity,
+            category_id: p.category_id,
+            characteristics: p.characteristics || {},
           })) as Product[];
 
           setSimilarProducts(similar);
@@ -324,21 +358,6 @@ export default function ProductPage() {
     return specs;
   };
 
-  if (!product) {
-    return (
-      <Layout>
-        <div className="container py-16 text-center">
-          <h1 className="text-2xl font-bold text-muted-foreground">
-            Товар не знайдено
-          </h1>
-          <Button asChild className="mt-4">
-            <Link href="/">Повернутися до каталогу</Link>
-          </Button>
-        </div>
-      </Layout>
-    );
-  }
-
   const currentQuantityInCart = getItemQuantity(product.id);
   const specifications = getSpecifications(product);
 
@@ -490,14 +509,23 @@ export default function ProductPage() {
             {/* Specifications */}
             <div>
               <h3 className="font-semibold mb-3">Характеристики</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 {specifications.map((spec, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <spec.icon className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      {spec.label}:
-                    </span>
-                    <span className="text-sm font-medium">{spec.value}</span>
+                  <div
+                    key={index}
+                    className="flex items-start gap-3 py-2 border-b border-gray-100 last:border-b-0"
+                  >
+                    <spec.icon className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row">
+                        <span className="text-sm text-muted-foreground sm:w-1/3 flex-shrink-0">
+                          {spec.label}:
+                        </span>
+                        <span className="text-sm font-medium sm:w-2/3 break-words">
+                          {spec.value}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -619,7 +647,13 @@ export default function ProductPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
-                  <ProductCard product={similarProduct} />
+                  <ProductCard
+                    product={{
+                      ...similarProduct,
+                      category:
+                        similarProduct.categories?.name || "Uncategorized",
+                    }}
+                  />
                 </motion.div>
               ))}
             </div>
