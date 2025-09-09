@@ -153,6 +153,20 @@ header {
   will-change: transform !important;
 }
 
+/* Ensure sticky positioning works on all browsers */
+header.sticky {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 200 !important;
+}
+
+/* Force sticky behavior */
+.sticky {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 200 !important;
+}
+
 /* Ensure body doesn't interfere with sticky positioning */
 body {
   margin: 0 !important;
