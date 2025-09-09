@@ -5,7 +5,9 @@ import { createClient } from "@/utils/supabase/client";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = Math.min(parseInt(searchParams.get("limit") || "5000"), 5000);
+    const limit = searchParams.get("limit")
+      ? parseInt(searchParams.get("limit")!)
+      : undefined;
     const offset = parseInt(searchParams.get("offset") || "0");
     const categoryId = searchParams.get("categoryId");
     const brand = searchParams.get("brand");
@@ -16,57 +18,170 @@ export async function GET(request: NextRequest) {
 
     const supabase = createClient();
 
-    // Базовий запит з JOIN для категорій
-    let query = supabase
-      .from("products")
-      .select(
+    // Якщо вказано ліміт, використовуємо звичайний запит
+    if (limit) {
+      let query = supabase
+        .from("products")
+        .select(
+          `
+          *,
+          categories(id, name, parent_id)
         `
-        *,
-        categories(id, name, parent_id)
-      `
-      )
-      .order("created_at", { ascending: false })
-      .limit(limit);
+        )
+        .order("created_at", { ascending: false })
+        .limit(limit);
 
-    // Фільтри
-    if (categoryId) {
-      query = query.eq("category_id", categoryId);
-    } else {
-      // Показуємо тільки товари з категоріями, якщо не вказано конкретну категорію
-      query = query.in("category_id", [1, 3, 14, 15, 16, 80]);
+      // Фільтри
+      if (categoryId) {
+        query = query.eq("category_id", categoryId);
+      }
+
+      if (brand) {
+        query = query.eq("brand", brand);
+      }
+
+      if (minPrice) {
+        query = query.gte("price", parseFloat(minPrice));
+      }
+
+      if (maxPrice) {
+        query = query.lte("price", parseFloat(maxPrice));
+      }
+
+      if (inStockOnly) {
+        query = query.gt("quantity", 0);
+      }
+
+      if (searchQuery) {
+        query = query.or(
+          `name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,brand.ilike.%${searchQuery}%`
+        );
+      }
+
+      const { data: products, error } = await query;
+
+      if (error) {
+        console.error("Error fetching products:", error);
+        return NextResponse.json(
+          { error: "Failed to fetch products" },
+          { status: 500 }
+        );
+      }
+
+      // Отримуємо унікальні категорії з товарів
+      const categoryMap = new Map();
+      products?.forEach((product) => {
+        if (product.categories) {
+          categoryMap.set(product.categories.id, {
+            id: product.categories.id,
+            name: product.categories.name,
+            parent_id: product.categories.parent_id,
+          });
+        }
+      });
+
+      const categories = Array.from(categoryMap.values());
+
+      // Конвертуємо товари в потрібний формат
+      const convertedProducts =
+        products?.map((product) => ({
+          id: product.id,
+          name: product.name || "",
+          description: product.description || "",
+          price: product.price || 0,
+          originalPrice: undefined,
+          image: product.image_url || "",
+          images: product.images || [product.image_url || ""],
+          rating: 4.5,
+          reviewCount: Math.floor(Math.random() * 100) + 10,
+          category: product.categories?.name || "Uncategorized",
+          category_id: product.category_id,
+          categories: product.categories,
+          brand: product.brand || "Unknown",
+          capacity: 0,
+          popularity: Math.floor(Math.random() * 100),
+          badge: undefined,
+          inStock: (product.quantity || 0) > 0,
+          createdAt: product.created_at || new Date().toISOString(),
+        })) || [];
+
+      return NextResponse.json({
+        success: true,
+        products: convertedProducts,
+        categories: categories,
+        pagination: {
+          limit,
+          offset,
+          hasMore: products?.length === limit,
+        },
+      });
     }
 
-    if (brand) {
-      query = query.eq("brand", brand);
+    // Якщо ліміт не вказано, отримуємо всі товари через пагінацію
+    let allProducts: any[] = [];
+    let currentOffset = 0;
+    const batchSize = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      let query = supabase
+        .from("products")
+        .select(
+          `
+          *,
+          categories(id, name, parent_id)
+        `
+        )
+        .order("created_at", { ascending: false })
+        .range(currentOffset, currentOffset + batchSize - 1);
+
+      // Фільтри
+      if (categoryId) {
+        query = query.eq("category_id", categoryId);
+      }
+
+      if (brand) {
+        query = query.eq("brand", brand);
+      }
+
+      if (minPrice) {
+        query = query.gte("price", parseFloat(minPrice));
+      }
+
+      if (maxPrice) {
+        query = query.lte("price", parseFloat(maxPrice));
+      }
+
+      if (inStockOnly) {
+        query = query.gt("quantity", 0);
+      }
+
+      if (searchQuery) {
+        query = query.or(
+          `name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,brand.ilike.%${searchQuery}%`
+        );
+      }
+
+      const { data: batchProducts, error } = await query;
+
+      if (error) {
+        console.error("Error fetching products batch:", error);
+        return NextResponse.json(
+          { error: "Failed to fetch products" },
+          { status: 500 }
+        );
+      }
+
+      if (batchProducts && batchProducts.length > 0) {
+        allProducts = allProducts.concat(batchProducts);
+        currentOffset += batchSize;
+        hasMore = batchProducts.length === batchSize;
+      } else {
+        hasMore = false;
+      }
     }
 
-    if (minPrice) {
-      query = query.gte("price", parseFloat(minPrice));
-    }
-
-    if (maxPrice) {
-      query = query.lte("price", parseFloat(maxPrice));
-    }
-
-    if (inStockOnly) {
-      query = query.gt("quantity", 0);
-    }
-
-    if (searchQuery) {
-      query = query.or(
-        `name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,brand.ilike.%${searchQuery}%`
-      );
-    }
-
-    const { data: products, error } = await query;
-
-    if (error) {
-      console.error("Error fetching products:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch products" },
-        { status: 500 }
-      );
-    }
+    const products = allProducts;
 
     // Отримуємо унікальні категорії з товарів
     const categoryMap = new Map();
@@ -110,9 +225,10 @@ export async function GET(request: NextRequest) {
       products: convertedProducts,
       categories: categories,
       pagination: {
-        limit,
-        offset,
-        hasMore: products?.length === limit,
+        limit: null,
+        offset: 0,
+        hasMore: false,
+        total: products.length,
       },
     });
   } catch (error) {

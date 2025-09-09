@@ -139,7 +139,8 @@ export default function Home() {
         const matchesDescription =
           product.description?.toLowerCase().includes(query) || false;
         const matchesBrand = product.brand.toLowerCase().includes(query);
-        const matchesCategory = product.categories?.name?.toLowerCase().includes(query) || false;
+        const matchesCategory =
+          product.categories?.name?.toLowerCase().includes(query) || false;
 
         if (
           !matchesName &&
