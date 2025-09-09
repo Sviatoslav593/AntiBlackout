@@ -60,7 +60,8 @@ export default function ProductPage() {
   const { addItem, getItemQuantity } = useCart();
   const { showToast } = useToast();
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
-  const { currentCategory, setCurrentCategory, getCategorySlug } = useCategory();
+  const { currentCategory, setCurrentCategory, getCategorySlug } =
+    useCategory();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
@@ -343,7 +344,11 @@ export default function ProductPage() {
           {currentCategory ? (
             <>
               <button
-                onClick={() => router.push(`/category/${getCategorySlug(currentCategory.name)}`)}
+                onClick={() =>
+                  router.push(
+                    `/category/${getCategorySlug(currentCategory.name)}`
+                  )
+                }
                 className="hover:text-foreground transition-colors"
               >
                 {currentCategory.name}
@@ -353,7 +358,11 @@ export default function ProductPage() {
           ) : product?.categories ? (
             <>
               <button
-                onClick={() => router.push(`/category/${getCategorySlug(product.categories.name)}`)}
+                onClick={() =>
+                  router.push(
+                    `/category/${getCategorySlug(product.categories.name)}`
+                  )
+                }
                 className="hover:text-foreground transition-colors"
               >
                 {product.categories.name}

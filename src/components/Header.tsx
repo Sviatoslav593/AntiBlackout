@@ -104,298 +104,281 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [searchQuery]);
 
-  // Handle cart clearing event from order success page
+  // Handle escape key
   useEffect(() => {
-    const handleCartCleared = () => {
-      console.log("🔄 Cart cleared event received, updating UI...");
-      // Force re-render by updating a dummy state
-      // The cart context will handle the actual state update
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (isSearchExpanded) {
+          setIsSearchExpanded(false);
+          searchInputRef.current?.blur();
+        }
+        if (isMenuOpen) {
+          setIsMenuOpen(false);
+        }
+        if (isCartDrawerOpen) {
+          setIsCartDrawerOpen(false);
+        }
+      }
     };
 
-    window.addEventListener("cartCleared", handleCartCleared);
-    return () => window.removeEventListener("cartCleared", handleCartCleared);
-  }, []);
-
-  const navigation = [
-    { name: "Головна", href: "/" },
-    { name: "Товари", href: "/#products" },
-    { name: "Про нас", href: "/about" },
-    { name: "FAQ", href: "/faq" },
-    { name: "Контакти", href: "/contacts" },
-    // Тільки для розробки - видалити в продакшні
-    ...(process.env.NODE_ENV === "development"
-      ? [{ name: "Адмін", href: "/admin" }]
-      : []),
-  ];
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isSearchExpanded, isMenuOpen, isCartDrawerOpen]);
 
   return (
-    <header
-      className="fixed top-0 left-0 right-0 z-[200] w-full border-b bg-white/95 backdrop-blur-md shadow-sm supports-[backdrop-filter]:bg-white/80"
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9999,
-        width: "100%",
-        backgroundColor: "rgba(255, 255, 255, 0.95)",
-        backdropFilter: "blur(12px)",
-        borderBottom: "1px solid #e5e7eb",
-        boxShadow: "0 1px 3px 0 rgb(0 0 0 / 0.1)",
-      }}
-    >
-      <div className="container px-2 sm:px-4">
-        <div className="flex h-14 sm:h-16 items-center justify-between">
+    <>
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center space-x-1 sm:space-x-2 cursor-pointer min-w-0 flex-shrink"
-          >
-            <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
-              <svg
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="h-4 w-4 sm:h-5 sm:w-5"
-              >
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-              </svg>
+          <Link href="/" className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">AB</span>
+              </div>
+              <span className="font-bold text-xl">AntiBlackout</span>
             </div>
-            <span className="text-sm sm:text-xl font-bold text-foreground truncate max-w-[120px] sm:max-w-none">
-              AntiBlackout
-            </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
-              >
-                {item.name}
-              </Link>
-            ))}
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link
+              href="/"
+              className="text-sm font-medium transition-colors hover:text-primary"
+            >
+              Головна
+            </Link>
+            <Link
+              href="/products"
+              className="text-sm font-medium transition-colors hover:text-primary"
+            >
+              Товари
+            </Link>
+            <Link
+              href="/about"
+              className="text-sm font-medium transition-colors hover:text-primary"
+            >
+              Про нас
+            </Link>
+            <Link
+              href="/contact"
+              className="text-sm font-medium transition-colors hover:text-primary"
+            >
+              Контакти
+            </Link>
           </nav>
 
-          {/* Search & Actions */}
-          <div className="flex items-center space-x-1 sm:space-x-2 h-8 sm:h-10 flex-shrink-0">
-            {/* Search Field - Desktop */}
+          {/* Desktop Search */}
+          <div className="hidden md:flex items-center space-x-4">
             <div
               ref={searchContainerRef}
-              className="hidden md:flex items-center"
+              className={`relative transition-all duration-300 ${
+                isSearchExpanded ? "w-80" : "w-10"
+              }`}
             >
-              <AnimatePresence>
-                {isSearchExpanded ? (
-                  <motion.div
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: "240px", opacity: 1 }}
-                    exit={{ width: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="relative overflow-hidden"
+              <form className="relative">
+                <Search
+                  className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground transition-opacity duration-200 ${
+                    isSearchExpanded ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+                <Input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Пошук товарів..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onKeyPress={handleSearchKeyPress}
+                  className={`pl-10 pr-10 transition-all duration-300 ${
+                    isSearchExpanded
+                      ? "opacity-100 w-full"
+                      : "opacity-0 w-0 cursor-pointer"
+                  }`}
+                />
+                {isSearchExpanded && searchQuery && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+                    onClick={handleSearchClear}
                   >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </form>
+              {!isSearchExpanded && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute inset-0 h-full w-full p-0"
+                  onClick={handleSearchToggle}
+                  data-search-button
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+
+            {/* Favorites */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative"
+              onClick={() => scrollToProducts()}
+            >
+              <Heart className="h-4 w-4" />
+              {favoritesCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
+                  {favoritesCount}
+                </span>
+              )}
+            </Button>
+
+            {/* Cart */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative"
+              onClick={() => setIsCartDrawerOpen(true)}
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {state.items.length > 0 && (
+                <motion.span
+                  className={`absolute -top-1 -right-1 h-5 w-5 rounded-full bg-blue-600 text-xs text-white flex items-center justify-center ${
+                    isCartAnimating ? "animate-bounce" : ""
+                  }`}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                >
+                  {state.items.length}
+                </motion.span>
+              )}
+            </Button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="md:hidden"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden border-t bg-background"
+            >
+              <div className="container py-4 space-y-4">
+                {/* Mobile Search */}
+                <div ref={mobileSearchRef} className="relative">
+                  <form className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      ref={searchInputRef}
                       type="text"
                       placeholder="Пошук товарів..."
                       value={searchQuery}
                       onChange={handleSearchChange}
                       onKeyPress={handleSearchKeyPress}
-                      className="w-full pr-8 h-9 text-sm border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                      aria-label="Пошук товарів"
-                      aria-expanded={isSearchExpanded}
-                      role="searchbox"
+                      className="pl-10 pr-10"
                     />
                     {searchQuery && (
                       <Button
+                        type="button"
                         variant="ghost"
                         size="sm"
+                        className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
                         onClick={handleSearchClear}
-                        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 hover:bg-gray-100"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-4 w-4" />
                       </Button>
                     )}
-                  </motion.div>
-                ) : null}
-              </AnimatePresence>
+                  </form>
+                </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleSearchToggle}
-                data-search-button
-                className="ml-1 sm:ml-2 h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
-              >
-                <Search className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-            </div>
-
-            {/* Search Button - Mobile */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSearchToggle}
-              data-search-button
-              className="md:hidden h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
-              aria-label="Відкрити пошук товарів"
-              title="Відкрити пошук товарів"
-            >
-              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
-
-            {/* Favorites Button */}
-            <Link href="/favorites">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
-                aria-label={`Улюблені товари (${favoritesCount} товарів)`}
-                title="Перейти до улюблених товарів"
-              >
-                <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
-                {favoritesCount > 0 && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center font-semibold"
+                {/* Mobile Navigation Links */}
+                <nav className="space-y-2">
+                  <Link
+                    href="/"
+                    className="block py-2 text-sm font-medium transition-colors hover:text-primary"
+                    onClick={() => setIsMenuOpen(false)}
                   >
-                    {favoritesCount}
-                  </motion.span>
-                )}
-              </Button>
-            </Link>
+                    Головна
+                  </Link>
+                  <Link
+                    href="/products"
+                    className="block py-2 text-sm font-medium transition-colors hover:text-primary"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Товари
+                  </Link>
+                  <Link
+                    href="/about"
+                    className="block py-2 text-sm font-medium transition-colors hover:text-primary"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Про нас
+                  </Link>
+                  <Link
+                    href="/contact"
+                    className="block py-2 text-sm font-medium transition-colors hover:text-primary"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Контакти
+                  </Link>
+                </nav>
 
-            {/* Cart Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-transform duration-200 cursor-pointer flex items-center justify-center"
-              onClick={() => setIsCartDrawerOpen(true)}
-              aria-label={`Кошик покупок (${state.itemCount} товарів)`}
-              title="Відкрити кошик покупок"
-            >
-              <motion.div
-                animate={
-                  isCartAnimating
-                    ? {
-                        scale: [1, 1.2, 1],
-                        rotate: [0, -10, 10, 0],
-                      }
-                    : {}
-                }
-                transition={{ duration: 0.6, ease: "easeInOut" }}
-              >
-                <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-              </motion.div>
-              {state.itemCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-blue-600 text-xs text-white flex items-center justify-center font-semibold"
-                >
-                  {state.itemCount}
-                </motion.span>
-              )}
-            </Button>
-
-            {/* Cart Drawer */}
-            <CartDrawer
-              isOpen={isCartDrawerOpen}
-              onClose={() => setIsCartDrawerOpen(false)}
-            />
-
-            {/* Mobile menu button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden h-8 w-8 sm:h-10 sm:w-10 hover:scale-105 transition-all duration-200 cursor-pointer flex items-center justify-center"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              <div className="relative w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
-                <Menu
-                  className={`h-4 w-4 sm:h-5 sm:w-5 absolute transition-all duration-200 ${
-                    isMenuOpen ? "rotate-90 opacity-0" : "rotate-0 opacity-100"
-                  }`}
-                />
-                <X
-                  className={`h-4 w-4 sm:h-5 sm:w-5 absolute transition-all duration-200 ${
-                    isMenuOpen ? "rotate-0 opacity-100" : "-rotate-90 opacity-0"
-                  }`}
-                />
-              </div>
-            </Button>
-          </div>
-        </div>
-
-        {/* Mobile Search */}
-        <AnimatePresence>
-          {isSearchExpanded && (
-            <motion.div
-              ref={mobileSearchRef}
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="md:hidden border-t bg-white/95 backdrop-blur-md overflow-hidden"
-            >
-              <div className="px-4 py-3">
-                <div className="relative">
-                  <Input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder="Пошук товарів..."
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    onKeyPress={handleSearchKeyPress}
-                    className="w-full pr-8 h-10 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                    aria-label="Пошук товарів"
-                    aria-expanded={isSearchExpanded}
-                    role="searchbox"
-                  />
-                  {searchQuery && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleSearchClear}
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
+                {/* Mobile Action Buttons */}
+                <div className="flex items-center space-x-4 pt-4 border-t">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center space-x-2"
+                    onClick={() => {
+                      scrollToProducts();
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <Heart className="h-4 w-4" />
+                    <span>Обране ({favoritesCount})</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center space-x-2"
+                    onClick={() => {
+                      setIsCartDrawerOpen(true);
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    <span>Кошик ({state.items.length})</span>
+                  </Button>
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+      </header>
 
-        {/* Mobile Navigation */}
-        <div
-          className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-            isMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
-          }`}
-        >
-          <div className="px-2 pt-2 pb-3 space-y-1 border-t">
-            {navigation.map((item, index) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:bg-muted/50 rounded-md transform cursor-pointer ${
-                  isMenuOpen
-                    ? "translate-x-0 opacity-100"
-                    : "-translate-x-4 opacity-0"
-                }`}
-                style={{
-                  transitionDelay: isMenuOpen ? `${index * 50}ms` : "0ms",
-                }}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-    </header>
+      {/* Cart Drawer */}
+      <CartDrawer
+        isOpen={isCartDrawerOpen}
+        onClose={() => setIsCartDrawerOpen(false)}
+      />
+    </>
   );
 }

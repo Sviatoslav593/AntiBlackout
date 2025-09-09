@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 
 interface Category {
@@ -19,7 +25,9 @@ interface CategoryContextType {
   getCategorySlug: (categoryName: string) => string;
 }
 
-const CategoryContext = createContext<CategoryContextType | undefined>(undefined);
+const CategoryContext = createContext<CategoryContextType | undefined>(
+  undefined
+);
 
 export function CategoryProvider({ children }: { children: ReactNode }) {
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
@@ -44,7 +52,7 @@ export function CategoryProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const getCategorySlug = (categoryName: string) => {
-    return categoryName.toLowerCase().replace(/\s+/g, '-');
+    return categoryName.toLowerCase().replace(/\s+/g, "-");
   };
 
   const navigateToCategory = (categorySlug: string) => {

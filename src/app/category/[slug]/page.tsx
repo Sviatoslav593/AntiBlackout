@@ -5,7 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import Layout from "@/components/Layout";
 import ProductCard, { Product } from "@/components/ProductCard";
 import Filters, { FilterState } from "@/components/Filters";
-import SortDropdown, { SortOption, sortProducts } from "@/components/SortDropdown";
+import SortDropdown, {
+  SortOption,
+  sortProducts,
+} from "@/components/SortDropdown";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -55,8 +58,9 @@ export default function CategoryPage() {
         }
 
         // Find category by slug (convert name to slug)
-        const foundCategory = categoriesData.flat.find((cat: Category) => 
-          cat.name.toLowerCase().replace(/\s+/g, '-') === categorySlug
+        const foundCategory = categoriesData.flat.find(
+          (cat: Category) =>
+            cat.name.toLowerCase().replace(/\s+/g, "-") === categorySlug
         );
 
         if (!foundCategory) {
@@ -71,7 +75,7 @@ export default function CategoryPage() {
         const getAllChildIds = (cat: Category): number[] => {
           const ids = [cat.id];
           if (cat.children) {
-            cat.children.forEach(child => {
+            cat.children.forEach((child) => {
               ids.push(...getAllChildIds(child));
             });
           }
@@ -88,7 +92,9 @@ export default function CategoryPage() {
 
         if (productsData.success) {
           setProducts(productsData.products);
-          setTotalPages(Math.ceil(productsData.products.length / ITEMS_PER_PAGE));
+          setTotalPages(
+            Math.ceil(productsData.products.length / ITEMS_PER_PAGE)
+          );
         }
       } catch (error) {
         console.error("Error fetching category data:", error);
@@ -114,7 +120,10 @@ export default function CategoryPage() {
       }
 
       // Brand filter
-      if (filters.brands.length > 0 && !filters.brands.includes(product.brand)) {
+      if (
+        filters.brands.length > 0 &&
+        !filters.brands.includes(product.brand)
+      ) {
         return false;
       }
 
@@ -218,7 +227,9 @@ export default function CategoryPage() {
 
         {/* Category Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">{category.name}</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+            {category.name}
+          </h1>
           <p className="text-muted-foreground">
             {sortedProducts.length} товарів
           </p>
@@ -270,13 +281,15 @@ export default function CategoryPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      onClick={() =>
+                        setCurrentPage(Math.max(1, currentPage - 1))
+                      }
                       disabled={currentPage === 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
                       Попередня
                     </Button>
-                    
+
                     <div className="flex items-center space-x-1">
                       {Array.from({ length: totalPages }, (_, i) => i + 1)
                         .filter(
@@ -291,7 +304,9 @@ export default function CategoryPage() {
                               <span className="px-2">...</span>
                             )}
                             <Button
-                              variant={currentPage === page ? "default" : "outline"}
+                              variant={
+                                currentPage === page ? "default" : "outline"
+                              }
                               size="sm"
                               onClick={() => setCurrentPage(page)}
                             >
@@ -304,7 +319,9 @@ export default function CategoryPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      onClick={() =>
+                        setCurrentPage(Math.min(totalPages, currentPage + 1))
+                      }
                       disabled={currentPage === totalPages}
                     >
                       Наступна

@@ -1,18 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Layout from "@/components/Layout";
 import ProductCard, { Product } from "@/components/ProductCard";
-import Filters, { FilterState } from "@/components/Filters";
-import SortDropdown, {
-  SortOption,
-  sortProducts,
-} from "@/components/SortDropdown";
-import { Battery, Zap, Shield, Truck } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
-import { useSearch } from "@/context/SearchContext";
+import { Battery, Zap, Shield, Truck, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
 import { SITE_CONFIG } from "@/lib/seo";
-import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
 const features = [
@@ -39,135 +33,84 @@ const features = [
   },
 ];
 
+interface Category {
+  id: number;
+  name: string;
+  parent_id?: number;
+  children?: Category[];
+}
+
 export default function Home() {
-  // State for products
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [popularPowerBanks, setPopularPowerBanks] = useState<Product[]>([]);
+  const [popularCables, setPopularCables] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Search context
-  const { searchQuery, clearSearch } = useSearch();
-
-  // Scroll restoration
   useEffect(() => {
-    const savedScrollPosition = sessionStorage.getItem("scrollPosition");
-    if (savedScrollPosition) {
-      window.scrollTo(0, parseInt(savedScrollPosition));
-      sessionStorage.removeItem("scrollPosition");
-    }
-  }, []);
-
-  // Save scroll position when navigating away
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      sessionStorage.setItem("scrollPosition", window.scrollY.toString());
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, []);
-
-  // Fetch products from database
-  useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchHomeData = async () => {
       try {
         setLoading(true);
 
-        const response = await fetch("/api/products");
-        const data = await response.json();
+        // Fetch categories
+        const categoriesResponse = await fetch("/api/categories");
+        const categoriesData = await categoriesResponse.json();
 
-        if (!data.success) {
-          console.error("Error fetching products:", data.error);
-          return;
+        if (categoriesData.success) {
+          setCategories(categoriesData.categories);
         }
 
-        console.log("Fetched products from API:", data.products.length);
+        // Fetch popular power banks (category 3 and its children)
+        const powerBanksResponse = await fetch(
+          "/api/products?categoryId=3&limit=50"
+        );
+        const powerBanksData = await powerBanksResponse.json();
 
-        setAllProducts(data.products);
+        if (powerBanksData.success) {
+          setPopularPowerBanks(powerBanksData.products.slice(0, 50));
+        }
+
+        // Fetch popular cables (category 16)
+        const cablesResponse = await fetch(
+          "/api/products?categoryId=16&limit=50"
+        );
+        const cablesData = await cablesResponse.json();
+
+        if (cablesData.success) {
+          setPopularCables(cablesData.products.slice(0, 50));
+        }
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Error fetching home data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchHomeData();
   }, []);
-
-  // Filter and sort state
-  const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
-  const [filters, setFilters] = useState<FilterState>({
-    priceRange: { min: 0, max: 10000 },
-    inStockOnly: false,
-    categories: [],
-    brands: [],
-    capacityRange: { min: 0, max: 50000 },
-  });
-
-  // Available categories for filtering
-  const availableCategories = useMemo(() => {
-    const categorySet = new Set<string>();
-    allProducts.forEach((product) => {
-      if (product.categories?.name) {
-        categorySet.add(product.categories.name);
-      }
-    });
-    return Array.from(categorySet).sort();
-  }, [allProducts]);
-
-  // Filter and sort products
-  const filteredAndSortedProducts = useMemo(() => {
-    let filtered = allProducts.filter((product) => {
-      // Search filter
-      if (searchQuery) {
-        const searchLower = searchQuery.toLowerCase();
-        const matchesSearch =
-          product.name.toLowerCase().includes(searchLower) ||
-          product.description?.toLowerCase().includes(searchLower) ||
-          product.categories?.name?.toLowerCase().includes(searchLower);
-        if (!matchesSearch) return false;
-      }
-
-      // Price filter
-      if (
-        product.price < filters.priceRange.min ||
-        product.price > filters.priceRange.max
-      ) {
-        return false;
-      }
-
-      // Stock filter
-      if (filters.inStockOnly && !product.inStock) {
-        return false;
-      }
-
-      // Category filter
-      if (filters.categories.length > 0) {
-        const productCategory = product.categories?.name;
-        if (!productCategory || !filters.categories.includes(productCategory)) {
-          return false;
-        }
-      }
-
-      // Capacity filter (for power banks)
-      if (product.capacity) {
-        if (
-          product.capacity < filters.capacityRange.min ||
-          product.capacity > filters.capacityRange.max
-        ) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-
-    return sortProducts(filtered, sortBy);
-  }, [allProducts, searchQuery, filters, sortBy]);
 
   const scrollToProducts = () => {
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const getCategorySlug = (categoryName: string) => {
+    return categoryName.toLowerCase().replace(/\s+/g, "-");
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container py-16">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Завантаження...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -258,53 +201,75 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Products Section */}
+      {/* Categories Section */}
       <section id="products" className="py-16">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Всі Товари</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Категорії Товарів
+            </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Знайдіть ідеальний товар для забезпечення безперебійної роботи
-              ваших пристроїв
+              Оберіть категорію, яка вас цікавить
             </p>
           </div>
 
-          {/* Filters and Sort */}
-          <div className="mb-8">
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-              <Filters
-                filters={filters}
-                onFiltersChange={setFilters}
-                availableCategories={availableCategories}
-                availableBrands={[]}
-                priceRange={{ min: 0, max: 10000 }}
-                capacityRange={{ min: 0, max: 50000 }}
-              />
-              <SortDropdown value={sortBy} onValueChange={setSortBy} />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+            {categories.map((category) => (
+              <Card
+                key={category.id}
+                className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105"
+                onClick={() =>
+                  router.push(`/category/${getCategorySlug(category.name)}`)
+                }
+              >
+                <CardHeader className="text-center">
+                  <CardTitle className="text-xl group-hover:text-blue-600 transition-colors">
+                    {category.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <p className="text-muted-foreground mb-4">
+                    {category.children?.length || 0} підкатегорій
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-all duration-300"
+                  >
+                    Переглянути
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
+        </div>
+      </section>
 
-          {/* Products Grid */}
-          {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Завантаження товарів...</p>
+      {/* Popular Power Banks Section */}
+      {popularPowerBanks.length > 0 && (
+        <section className="py-16 bg-gray-50">
+          <div className="container">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold mb-2">
+                  Популярні Павербанки
+                </h2>
+                <p className="text-xl text-muted-foreground">
+                  Найкращі портативні батареї для вашого пристрою
+                </p>
               </div>
-            </div>
-          ) : filteredAndSortedProducts.length === 0 ? (
-            <div className="text-center py-16">
-              <h3 className="text-xl font-semibold mb-2">Товари не знайдені</h3>
-              <p className="text-muted-foreground mb-4">
-                Спробуйте змінити фільтри або пошуковий запит
-              </p>
-              <Button onClick={clearSearch} variant="outline">
-                Очистити фільтри
+              <Button
+                variant="outline"
+                onClick={() => router.push("/category/portativni-batarei")}
+                className="hidden sm:flex"
+              >
+                Переглянути всі
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredAndSortedProducts.map((product, index) => (
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {popularPowerBanks.slice(0, 10).map((product, index) => (
                 <div
                   key={product.id}
                   className="animate-slide-up"
@@ -314,9 +279,67 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          )}
-        </div>
-      </section>
+
+            <div className="text-center mt-8 sm:hidden">
+              <Button
+                variant="outline"
+                onClick={() => router.push("/category/portativni-batarei")}
+              >
+                Переглянути всі павербанки
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Popular Cables Section */}
+      {popularCables.length > 0 && (
+        <section className="py-16">
+          <div className="container">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold mb-2">
+                  Популярні Кабелі
+                </h2>
+                <p className="text-xl text-muted-foreground">
+                  Якісні кабелі для швидкої зарядки та передачі даних
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/category/kabeli-usb")}
+                className="hidden sm:flex"
+              >
+                Переглянути всі
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {popularCables.slice(0, 10).map((product, index) => (
+                <div
+                  key={product.id}
+                  className="animate-slide-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center mt-8 sm:hidden">
+              <Button
+                variant="outline"
+                onClick={() => router.push("/category/kabeli-usb")}
+              >
+                Переглянути всі кабелі
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="py-16 bg-blue-600 text-white">
