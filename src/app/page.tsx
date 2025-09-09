@@ -284,104 +284,53 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        {/* Hero Section */}
-        <section className="relative py-16 lg:py-24 overflow-hidden">
+      <div className="min-h-screen">
+        {/* Hero Section - previous good design */}
+        <section className="relative hero-gradient text-white overflow-hidden">
+          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse"></div>
+          <div className="relative container py-24 md:py-32">
+            <div className="max-w-3xl mx-auto text-center space-y-8 animate-fade-in">
+              <h1 className="text-4xl md:text-6xl font-bold leading-tight animate-slide-up">
+                Залишайтесь на Зв'язку Під Час Будь-якого Блекауту
+              </h1>
+              <p className="text-xl md:text-2xl text-blue-100 leading-relaxed animate-slide-up-delay">
+                Купуйте павербанки, зарядні пристрої та кабелі, щоб залишатися на
+                зв'язку, коли це найбільш важливо. Ніколи не дозволяйте
+                відключенню електроенергії застати вас зненацька.
+              </p>
+              <div className="flex justify-center animate-slide-up-delay-2">
+                <Button
+                  size="lg"
+                  onClick={scrollToProducts}
+                  className="bg-white text-blue-700 hover:bg-gray-100 hover:scale-105 text-lg px-8 py-6 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
+                >
+                  Купити Зараз
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section - previous good design */}
+        <section className="py-16 bg-muted/30">
           <div className="container">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="space-y-8"
-              >
-                <div className="space-y-4">
-                  <Badge className="inline-block bg-blue-100 text-blue-800">
-                    🔋 Новинка
-                  </Badge>
-                  <h1 className="text-4xl lg:text-6xl font-bold tracking-tight text-gray-900">
-                    Завжди на зв'язку
-                    <span className="block text-blue-600">з AntiBlackout</span>
-                  </h1>
-                  <p className="text-xl text-gray-600 leading-relaxed">
-                    Професійні рішення для зарядки та живлення ваших пристроїв.
-                    Найширший асортимент павербанків, зарядних пристроїв та
-                    аксесуарів в Україні.
-                  </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Button
-                    size="lg"
-                    onClick={scrollToProducts}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold cursor-pointer"
-                  >
-                    <ShoppingBag className="w-5 h-5 mr-2" />
-                    Переглянути каталог
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    asChild
-                    className="border-blue-200 text-blue-600 hover:bg-blue-50 px-8 py-3 text-lg font-semibold cursor-pointer"
-                  >
-                    <Link href="/about">
-                      Дізнатися більше
-                      <ArrowRight className="w-5 h-5 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
-
-                {/* Features */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8">
-                  <div className="flex items-center gap-3">
-                    <Shield className="w-8 h-8 text-green-600" />
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        Гарантія якості
-                      </p>
-                      <p className="text-sm text-gray-600">Офіційна гарантія</p>
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[{icon: Battery, title: "Довготривала Робота", description: "Потужні батареї, які забезпечують роботу протягом днів"}, {icon: Zap, title: "Швидка Зарядка", description: "Технологія швидкої зарядки повертає 100% заряду миттєво"}, {icon: Shield, title: "Безпека та Надійність", description: "Вбудовані функції безпеки захищають ваші пристрої від пошкоджень"}, {icon: Truck, title: "Швидка Доставка", description: "Відправлення в день замовлення по всій Україні"}].map((feature, index) => (
+                <div
+                  key={index}
+                  className="text-center space-y-4 group hover:scale-105 transition-transform duration-300"
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  <div className="mx-auto w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center group-hover:bg-blue-700 group-hover:rotate-6 transition-all duration-300">
+                    <feature.icon className="h-6 w-6 text-white" />
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Truck className="w-8 h-8 text-blue-600" />
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        Швидка доставка
-                      </p>
-                      <p className="text-sm text-gray-600">По всій Україні</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Headphones className="w-8 h-8 text-purple-600" />
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        Підтримка 24/7
-                      </p>
-                      <p className="text-sm text-gray-600">Завжди на зв'язку</p>
-                    </div>
-                  </div>
+                  <h3 className="font-semibold text-lg group-hover:text-blue-600 transition-colors duration-300">
+                    {feature.title}
+                  </h3>
+                  <p className="text-muted-foreground">{feature.description}</p>
                 </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="relative"
-              >
-                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 p-8">
-                  <Image
-                    src="/hero-image.jpg"
-                    alt="Power Banks and Chargers"
-                    width={600}
-                    height={400}
-                    className="w-full h-auto rounded-lg"
-                    priority
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-lg" />
-                </div>
-              </motion.div>
+              ))}
             </div>
           </div>
         </section>
