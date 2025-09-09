@@ -8,7 +8,7 @@ import SortDropdown, {
   SortOption,
   sortProducts,
 } from "@/components/SortDropdown";
-import { Battery, Zap, Shield, Truck } from "lucide-react";
+import { Battery, Zap, Shield, Truck, Smartphone, Wifi, Plug, Cable } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { useSearch } from "@/context/SearchContext";
 import { SITE_CONFIG } from "@/lib/seo";
@@ -39,10 +39,18 @@ const features = [
   },
 ];
 
+interface Category {
+  id: number;
+  name: string;
+  parent_id?: number;
+  children?: Category[];
+}
+
 export default function Home() {
   // State for products
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
 
   // Search context
@@ -67,31 +75,39 @@ export default function Home() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
 
-  // Fetch products from database
+  // Fetch products and categories from database
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
 
-        const response = await fetch("/api/products");
-        const data = await response.json();
+        // Fetch products
+        const productsResponse = await fetch("/api/products?limit=500");
+        const productsData = await productsResponse.json();
 
-        if (!data.success) {
-          console.error("Error fetching products:", data.error);
+        if (!productsData.success) {
+          console.error("Error fetching products:", productsData.error);
           return;
         }
 
-        console.log("Fetched products from API:", data.products.length);
+        console.log("Fetched products from API:", productsData.products.length);
+        setAllProducts(productsData.products);
 
-        setAllProducts(data.products);
+        // Fetch categories
+        const categoriesResponse = await fetch("/api/categories");
+        const categoriesData = await categoriesResponse.json();
+
+        if (categoriesData.success) {
+          setCategories(categoriesData.categories);
+        }
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
   // Filter and sort state
@@ -169,6 +185,20 @@ export default function Home() {
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const getCategorySlug = (categoryName: string) => {
+    return categoryName.toLowerCase().replace(/\s+/g, "-");
+  };
+
+  const getCategoryIcon = (categoryName: string) => {
+    const name = categoryName.toLowerCase();
+    if (name.includes("акумулятор") || name.includes("powerbank")) return Battery;
+    if (name.includes("зарядк") || name.includes("кабел")) return Cable;
+    if (name.includes("портативн") || name.includes("батаре")) return Smartphone;
+    if (name.includes("бездротов")) return Wifi;
+    if (name.includes("мережев")) return Plug;
+    return Zap;
+  };
+
   return (
     <Layout>
       {/* Structured Data for Homepage */}
@@ -206,21 +236,13 @@ export default function Home() {
               Купуйте павербанки, зарядні пристрої та кабелі, щоб залишатися на
               зв'язку навіть під час відключення електроенергії
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up-delay-2">
+            <div className="flex justify-center animate-slide-up-delay-2">
               <Button
                 size="lg"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                 onClick={scrollToProducts}
               >
                 Переглянути Товари
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg font-semibold rounded-xl backdrop-blur-sm transition-all duration-300 hover:scale-105"
-                onClick={scrollToProducts}
-              >
-                Дізнатися Більше
               </Button>
             </div>
           </div>
@@ -254,6 +276,47 @@ export default function Home() {
                 <p className="text-muted-foreground">{feature.description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Категорії Товарів
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Оберіть категорію, яка вас цікавить
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+            {categories.slice(0, 6).map((category) => {
+              const IconComponent = getCategoryIcon(category.name);
+              return (
+                <div
+                  key={category.id}
+                  className="group cursor-pointer bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-200"
+                  onClick={() =>
+                    router.push(`/category/${getCategorySlug(category.name)}`)
+                  }
+                >
+                  <div className="text-center">
+                    <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-600 group-hover:scale-110 transition-all duration-300 mb-4">
+                      <IconComponent className="h-8 w-8 text-blue-600 group-hover:text-white transition-colors" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
+                      {category.name}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {category.children?.length || 0} підкатегорій
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
