@@ -200,7 +200,12 @@ export default function Header() {
     return categoryName.toLowerCase().replace(/\s+/g, "-");
   };
 
-  const handleMobileCategoryClick = (categoryName: string) => {
+  const handleMobileCategoryClick = (categoryName: string, e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     // Check if we're on the client side
     if (typeof window === "undefined") return;
 
@@ -283,8 +288,8 @@ export default function Header() {
                         <div key={category.id} className="space-y-1">
                           <button
                             className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-                            onClick={() => {
-                              handleMobileCategoryClick(category.name);
+                            onClick={(e) => {
+                              handleMobileCategoryClick(category.name, e);
                               setIsProductsDropdownOpen(false);
                             }}
                           >
@@ -297,9 +302,10 @@ export default function Header() {
                                   <button
                                     key={subcategory.id}
                                     className="block w-full text-left px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
-                                    onClick={() => {
+                                    onClick={(e) => {
                                       handleMobileCategoryClick(
-                                        subcategory.name
+                                        subcategory.name,
+                                        e
                                       );
                                       setIsProductsDropdownOpen(false);
                                     }}
@@ -538,8 +544,8 @@ export default function Header() {
                               <div key={category.id}>
                                 <button
                                   className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-                                  onClick={() =>
-                                    handleMobileCategoryClick(category.name)
+                                  onClick={(e) =>
+                                    handleMobileCategoryClick(category.name, e)
                                   }
                                 >
                                   {category.name}
@@ -551,9 +557,10 @@ export default function Header() {
                                         <button
                                           key={subcategory.id}
                                           className="block w-full text-left py-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-                                          onClick={() =>
+                                          onClick={(e) =>
                                             handleMobileCategoryClick(
-                                              subcategory.name
+                                              subcategory.name,
+                                              e
                                             )
                                           }
                                         >

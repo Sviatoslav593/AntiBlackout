@@ -51,7 +51,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
   const quantity = getItemQuantity(product.id);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     e.stopPropagation(); // Prevent card click
     addItem(product);
 
@@ -66,26 +67,30 @@ export default function ProductCard({ product }: ProductCardProps) {
     });
   };
 
-  const handleIncrement = (e: React.MouseEvent) => {
+  const handleIncrement = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     e.stopPropagation(); // Prevent card click
     updateQuantity(product.id, quantity + 1);
   };
 
-  const handleDecrement = (e: React.MouseEvent) => {
+  const handleDecrement = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     e.stopPropagation(); // Prevent card click
     if (quantity > 1) {
       updateQuantity(product.id, quantity - 1);
     }
   };
 
-  const handleDetailsClick = (e: React.MouseEvent) => {
+  const handleDetailsClick = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     e.stopPropagation(); // Prevent card click (though it does the same thing)
     // Save scroll position before navigating
     sessionStorage.setItem("scrollPosition", window.scrollY.toString());
     router.push(`/product/${product.id}`);
   };
 
-  const handleFavoriteToggle = (e: React.MouseEvent) => {
+  const handleFavoriteToggle = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     e.stopPropagation(); // Prevent card click
 
     const isCurrentlyFavorite = isFavorite(product.id.toString());
@@ -124,12 +129,13 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  const handleCardClick = (e: React.MouseEvent | React.TouchEvent) => {
     // Don't navigate if clicking on buttons
     const target = e.target as HTMLElement;
     const isButton = target.closest("button") || target.tagName === "BUTTON";
 
     if (!isButton) {
+      e.preventDefault();
       // Save scroll position before navigating
       sessionStorage.setItem("scrollPosition", window.scrollY.toString());
       router.push(`/product/${product.id}`);
@@ -141,10 +147,10 @@ export default function ProductCard({ product }: ProductCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      whileHover={{ y: -4 }}
+      className="group"
     >
       <Card
-        className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 cursor-pointer"
+        className="group relative overflow-hidden transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-blue-500/10"
         onClick={handleCardClick}
       >
         {/* Badge */}
@@ -169,21 +175,19 @@ export default function ProductCard({ product }: ProductCardProps) {
               variant="ghost"
               size="sm"
               onClick={handleFavoriteToggle}
-              className={`absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white/95 transition-all cursor-pointer ${
+              className={`absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-white/90 backdrop-blur-sm transition-all cursor-pointer ${
                 isFavorite(product.id.toString())
-                  ? "text-red-500 hover:text-red-600"
-                  : "text-gray-600 hover:text-gray-700"
+                  ? "text-red-500"
+                  : "text-gray-600"
               }`}
             >
-              <motion.div whileTap={{ scale: 0.8 }} whileHover={{ scale: 1.1 }}>
-                <Heart
-                  className={`h-4 w-4 transition-colors ${
-                    isFavorite(product.id.toString())
-                      ? "fill-red-500 text-red-500"
-                      : "text-gray-600"
-                  }`}
-                />
-              </motion.div>
+              <Heart
+                className={`h-4 w-4 transition-colors ${
+                  isFavorite(product.id.toString())
+                    ? "fill-red-500 text-red-500"
+                    : "text-gray-600"
+                }`}
+              />
             </Button>
           </div>
         </CardHeader>
@@ -256,32 +260,22 @@ export default function ProductCard({ product }: ProductCardProps) {
                 </Button>
               </div>
             ) : (
-              <motion.div
-                whileTap={{ scale: 0.95 }}
-                whileHover={{ scale: 1.02 }}
+              <Button
+                onClick={handleAddToCart}
+                disabled={!product.inStock}
+                className="w-full transition-all duration-200 cursor-pointer disabled:cursor-not-allowed text-xs sm:text-sm px-2 py-2 sm:py-3 min-h-[36px] sm:min-h-[48px]"
+                size="sm"
               >
-                <Button
-                  onClick={handleAddToCart}
-                  disabled={!product.inStock}
-                  className="w-full transition-all duration-200 cursor-pointer disabled:cursor-not-allowed text-xs sm:text-sm px-2 py-2 sm:py-3 min-h-[36px] sm:min-h-[48px]"
-                  size="sm"
-                >
-                  {product.inStock ? (
-                    <>
-                      <motion.div
-                        animate={{ rotate: [0, 15, -15, 0] }}
-                        transition={{ duration: 0.5, repeat: 0 }}
-                      >
-                        <ShoppingCart className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
-                      </motion.div>
-                      <span className="hidden xs:inline">Додати в кошик</span>
-                      <span className="xs:hidden">Додати</span>
-                    </>
-                  ) : (
-                    <span className="text-xs">Немає в наявності</span>
-                  )}
-                </Button>
-              </motion.div>
+                {product.inStock ? (
+                  <>
+                    <ShoppingCart className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden xs:inline">Додати в кошик</span>
+                    <span className="xs:hidden">Додати</span>
+                  </>
+                ) : (
+                  <span className="text-xs">Немає в наявності</span>
+                )}
+              </Button>
             )}
 
             {/* Details Button - Always below cart button */}

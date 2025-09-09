@@ -79,7 +79,12 @@ export default function Filters({
     });
   };
 
-  const handleCategoryToggle = (category: string) => {
+  const handleCategoryToggle = (category: string, e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     const newCategories = filters.categories.includes(category)
       ? filters.categories.filter((c) => c !== category)
       : [...filters.categories, category];
@@ -90,7 +95,12 @@ export default function Filters({
     });
   };
 
-  const handleBrandToggle = (brand: string) => {
+  const handleBrandToggle = (brand: string, e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     const newBrands = filters.brands.includes(brand)
       ? filters.brands.filter((b) => b !== brand)
       : [...filters.brands, brand];
@@ -101,7 +111,12 @@ export default function Filters({
     });
   };
 
-  const handleInStockToggle = () => {
+  const handleInStockToggle = (e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     handleFiltersChange({
       ...filters,
       inStockOnly: !filters.inStockOnly,
@@ -182,7 +197,7 @@ export default function Filters({
                   <input
                     type="checkbox"
                     checked={filters.categories.includes(category)}
-                    onChange={() => handleCategoryToggle(category)}
+                    onChange={(e) => handleCategoryToggle(category, e)}
                     className="rounded border-gray-300"
                   />
                   <span className="text-sm">{category}</span>
@@ -208,7 +223,7 @@ export default function Filters({
                   <input
                     type="checkbox"
                     checked={filters.brands.includes(brand)}
-                    onChange={() => handleBrandToggle(brand)}
+                    onChange={(e) => handleBrandToggle(brand, e)}
                     className="rounded border-gray-300"
                   />
                   <span className="text-sm">{brand}</span>
@@ -236,7 +251,7 @@ export default function Filters({
           <input
             type="checkbox"
             checked={filters.inStockOnly}
-            onChange={handleInStockToggle}
+            onChange={(e) => handleInStockToggle(e)}
             className="rounded border-gray-300"
           />
           <span className="text-sm">Тільки в наявності</span>
