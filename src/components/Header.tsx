@@ -80,8 +80,10 @@ export default function Header() {
     // If there's a search query and we haven't scrolled yet, scroll to products
     if (query.trim() && !hasScrolledToProducts) {
       // Scroll to products section - delay is handled in SearchContext
-      scrollToProducts();
-      setHasScrolledToProducts(true);
+      setTimeout(() => {
+        scrollToProducts();
+        setHasScrolledToProducts(true);
+      }, 200);
     }
   };
 

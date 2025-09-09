@@ -37,21 +37,19 @@ export function SearchProvider({ children }: SearchProviderProps) {
         const header = document.querySelector("header");
         const headerHeight = header ? header.offsetHeight : 80; // fallback to 80px
 
-        // Find the search results text element within the products section
-        const searchResultsText = productsSection.querySelector(
-          'p[class*="text-blue-600"]'
-        );
-
+        // Find the filters section within the products section
+        const filtersSection = productsSection.querySelector('[class*="mb-8"]');
+        
         let targetElement = productsSection;
         let additionalOffset = 0;
 
-        if (searchResultsText) {
-          // If search results text exists, scroll to it instead of the section start
-          targetElement = searchResultsText as HTMLElement;
-          additionalOffset = -20; // Small offset to show the text nicely
+        if (filtersSection) {
+          // If filters section exists, scroll to it
+          targetElement = filtersSection as HTMLElement;
+          additionalOffset = -20; // Small offset to show the filters nicely
         } else {
-          // If no search results text, scroll to the section with more offset
-          additionalOffset = 60; // More offset to show the "Знайдено X товарів" text
+          // If no filters section, scroll to the section with more offset
+          additionalOffset = 100; // More offset to show the filters area
         }
 
         // Calculate position accounting for fixed header
