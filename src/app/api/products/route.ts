@@ -146,6 +146,9 @@ export async function GET(request: NextRequest) {
             } else if (typeof value === "number") {
               capacity = value;
             }
+            console.log(
+              `Capacity conversion: ${rawCap} -> ${capacity} for product ${product.id}`
+            );
           }
 
           return {
@@ -176,14 +179,33 @@ export async function GET(request: NextRequest) {
 
       // Apply capacity filters after conversion (post-filter to avoid SQL casting issues)
       if (minCapacity || maxCapacity) {
+        console.log(
+          `Applying capacity filter: minCapacity=${minCapacity}, maxCapacity=${maxCapacity}`
+        );
+        console.log(`Before filtering: ${convertedProducts.length} products`);
         convertedProducts = convertedProducts.filter((product) => {
-          if (product.capacity === 0) return false;
-          if (minCapacity && product.capacity < parseInt(minCapacity))
+          if (product.capacity === 0) {
+            console.log(`Product ${product.id} filtered out: capacity is 0`);
             return false;
-          if (maxCapacity && product.capacity > parseInt(maxCapacity))
+          }
+          if (minCapacity && product.capacity < parseInt(minCapacity)) {
+            console.log(
+              `Product ${product.id} filtered out: capacity ${product.capacity} < minCapacity ${minCapacity}`
+            );
             return false;
+          }
+          if (maxCapacity && product.capacity > parseInt(maxCapacity)) {
+            console.log(
+              `Product ${product.id} filtered out: capacity ${product.capacity} > maxCapacity ${maxCapacity}`
+            );
+            return false;
+          }
+          console.log(
+            `Product ${product.id} passed filter: capacity ${product.capacity}`
+          );
           return true;
         });
+        console.log(`After filtering: ${convertedProducts.length} products`);
       }
 
       return NextResponse.json({

@@ -58,10 +58,16 @@ export default function CapacitySelectFilter({
   // Handle capacity selection
   const handleCapacitySelect = useCallback(
     (value: string) => {
-      console.log("CapacitySelectFilter: handleCapacitySelect called with:", value);
+      console.log(
+        "CapacitySelectFilter: handleCapacitySelect called with:",
+        value
+      );
       setSelectedCapacity(value);
       const capacity = value === "all" || value === "" ? null : parseInt(value);
-      console.log("CapacitySelectFilter: calling onCapacityChange with:", capacity);
+      console.log(
+        "CapacitySelectFilter: calling onCapacityChange with:",
+        capacity
+      );
       onCapacityChange(capacity);
     },
     [onCapacityChange]
@@ -85,8 +91,8 @@ export default function CapacitySelectFilter({
         </div>
       ) : (
         <div className="space-y-3">
-          <select 
-            value={selectedCapacity} 
+          <select
+            value={selectedCapacity}
             onChange={(e) => handleCapacitySelect(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded-md bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >

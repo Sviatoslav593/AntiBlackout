@@ -403,7 +403,10 @@ function HomeContent() {
     });
 
     // Always apply filters, even if no active filters (to reset to default state)
-    console.log("Applying filters regardless of hasActiveFilters:", hasActiveFilters);
+    console.log(
+      "Applying filters regardless of hasActiveFilters:",
+      hasActiveFilters
+    );
 
     // Apply filters
     const applyFilters = async () => {
@@ -775,13 +778,39 @@ function HomeContent() {
                   priceRange={priceRange}
                   capacityRange={capacityRange}
                   onApplyFilters={async (filterParams) => {
-                    console.log("Page: Apply filters called with:", filterParams);
+                    console.log(
+                      "Page: Apply filters called with:",
+                      filterParams
+                    );
                     setCurrentPage(1);
                     setHasMoreProducts(true);
 
                     // Convert filterParams to the format expected by fetchProducts
+                    // Always include current category if not specified in filterParams
+                    let categoryIds = filterParams.categoryIds;
+                    if (!categoryIds || categoryIds.length === 0) {
+                      // Determine category based on current filter state
+                      const isPowerBankCategory = filters.categories.some(
+                        (cat) =>
+                          cat.includes("Портативні батареї") ||
+                          cat.includes("павербанк") ||
+                          cat.includes("батареї")
+                      );
+                      const isCableCategory = filters.categories.some(
+                        (cat) =>
+                          cat.includes("Зарядки та кабелі") ||
+                          cat.includes("кабелі") ||
+                          cat.includes("зарядки")
+                      );
+                      categoryIds = isPowerBankCategory
+                        ? ["1001"]
+                        : isCableCategory
+                        ? ["1002"]
+                        : ["1001"]; // Default to power banks
+                    }
+                    
                     const convertedParams: any = {
-                      categoryIds: filterParams.categoryIds,
+                      categoryIds: categoryIds,
                       brandIds: filterParams.brandIds,
                       search: filterParams.search,
                       inStockOnly: filterParams.inStockOnly,
