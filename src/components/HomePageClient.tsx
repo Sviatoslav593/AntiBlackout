@@ -175,6 +175,8 @@ function HomePageClient() {
         const productsData = await productsResponse.json();
 
         if (productsData.success && productsData.products) {
+          console.log("Loaded products:", productsData.products.slice(0, 2));
+          console.log("First product structure:", productsData.products[0]);
           setAllProducts(productsData.products);
           useProductStore.getState().setProducts(productsData.products);
         }
@@ -445,13 +447,13 @@ function HomePageClient() {
             {isMobileFiltersOpen && (
               <div className="fixed inset-0 z-50 lg:hidden">
                 <div
-                  className="fixed inset-0 bg-black bg-opacity-50"
+                  className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
                   onClick={() => setIsMobileFiltersOpen(false)}
                 />
-                <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-xl overflow-y-auto">
+                <div className="fixed left-0 top-0 h-full w-4/5 max-w-sm bg-white shadow-xl overflow-y-auto transform transition-transform duration-300 ease-in-out animate-in slide-in-from-left">
                   <div className="p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-lg font-semibold">Фільтри</h3>
+                    <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b">
+                      <h3 className="text-xl font-semibold">Фільтри товарів</h3>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
@@ -461,15 +463,19 @@ function HomePageClient() {
                         >
                           Очистити
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsMobileFiltersOpen(false)}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
                       </div>
                     </div>
+                    
+                    {/* Close button in top-right corner */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsMobileFiltersOpen(false)}
+                      className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full"
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
+                    
                     <FiltersSPA
                       availableCategories={allCategories || []}
                       availableBrands={allBrands || []}

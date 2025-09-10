@@ -168,10 +168,15 @@ export const useProductStore = create<ProductState>()(
             console.log(
               "Category filter:",
               filters.categoryIds,
+              "Product category:",
+              product.category,
               "Product categoryId:",
               product.categoryId
             );
-            if (!filters.categoryIds.includes(product.categoryId)) {
+            // Check both category name and categoryId
+            const categoryMatch = filters.categoryIds.includes(product.category) || 
+                                 filters.categoryIds.includes(product.categoryId);
+            if (!categoryMatch) {
               return false;
             }
           }
