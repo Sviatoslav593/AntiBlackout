@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 
 interface USBCableFiltersProps {
@@ -18,11 +18,21 @@ interface FilterOption {
   count: number;
 }
 
+// Global cache for loaded options to prevent re-loading
+const optionsCache = new Map<number, {
+  inputOptions: FilterOption[];
+  outputOptions: FilterOption[];
+  lengthOptions: FilterOption[];
+}>();
+
 export default function USBCableFilters({
   onFiltersChange,
   categoryId,
 }: USBCableFiltersProps) {
-  console.log("USBCableFilters: Component rendered with categoryId:", categoryId);
+  console.log(
+    "USBCableFilters: Component rendered with categoryId:",
+    categoryId
+  );
   const [inputConnector, setInputConnector] = useState<string>("");
   const [outputConnector, setOutputConnector] = useState<string>("");
   const [cableLength, setCableLength] = useState<string>("");
@@ -50,7 +60,24 @@ export default function USBCableFilters({
       hasLoaded
     );
 
-    if (!categoryId || hasLoaded) {
+    if (!categoryId) {
+      console.log("USBCableFilters: No categoryId provided");
+      return;
+    }
+
+    // Check if options are already cached
+    if (optionsCache.has(categoryId)) {
+      console.log("USBCableFilters: Using cached options for categoryId:", categoryId);
+      const cached = optionsCache.get(categoryId)!;
+      setInputOptions(cached.inputOptions);
+      setOutputOptions(cached.outputOptions);
+      setLengthOptions(cached.lengthOptions);
+      setHasLoaded(true);
+      setIsLoaded(true);
+      return;
+    }
+
+    if (hasLoaded) {
       console.log(
         "USBCableFilters: Skipping load - categoryId:",
         categoryId,
@@ -78,34 +105,38 @@ export default function USBCableFilters({
           const { inputConnectors, outputConnectors, cableLengths } =
             data.options;
 
-          // Set input options
-          setInputOptions(
-            inputConnectors.map((value: string) => ({
-              value,
-              label: value,
-              count: 0,
-            }))
-          );
+          // Create options arrays
+          const inputOptions = inputConnectors.map((value: string) => ({
+            value,
+            label: value,
+            count: 0,
+          }));
 
-          // Set output options
-          setOutputOptions(
-            outputConnectors.map((value: string) => ({
-              value,
-              label: value,
-              count: 0,
-            }))
-          );
+          const outputOptions = outputConnectors.map((value: string) => ({
+            value,
+            label: value,
+            count: 0,
+          }));
 
-          // Set length options
-          setLengthOptions(
-            cableLengths.map((value: string) => ({
-              value,
-              label: value,
-              count: 0,
-            }))
-          );
+          const lengthOptions = cableLengths.map((value: string) => ({
+            value,
+            label: value,
+            count: 0,
+          }));
 
-          console.log("USBCableFilters: Successfully loaded options:", {
+          // Cache the options
+          optionsCache.set(categoryId, {
+            inputOptions,
+            outputOptions,
+            lengthOptions,
+          });
+
+          // Set state
+          setInputOptions(inputOptions);
+          setOutputOptions(outputOptions);
+          setLengthOptions(lengthOptions);
+
+          console.log("USBCableFilters: Successfully loaded and cached options:", {
             input: inputConnectors.length,
             output: outputConnectors.length,
             length: cableLengths.length,
@@ -156,7 +187,13 @@ export default function USBCableFilters({
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [inputConnector, outputConnector, cableLength, isLoaded, stableOnFiltersChange]);
+  }, [
+    inputConnector,
+    outputConnector,
+    cableLength,
+    isLoaded,
+    stableOnFiltersChange,
+  ]);
 
   const clearFilters = () => {
     setInputConnector("");
