@@ -107,9 +107,9 @@ export default function USBCableFilters({
         );
         
         console.log("USBCableFilters: Loaded options:", {
-          input: inputOptions.length,
-          output: outputOptions.length,
-          length: lengthOptions.length
+          input: Array.from(inputMap.entries()).length,
+          output: Array.from(outputMap.entries()).length,
+          length: Array.from(lengthMap.entries()).length
         });
       }
     } catch (error) {
