@@ -45,10 +45,20 @@ export function CartDrawer({ isOpen, onClose, children }: CartDrawerProps) {
         className="w-full sm:max-w-lg flex flex-col h-full p-3 sm:p-4"
       >
         <SheetHeader className="mb-3 sm:mb-4">
-          <SheetTitle className="flex items-center space-x-2 text-sm sm:text-base">
-            <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span>Кошик ({state.itemCount})</span>
-          </SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle className="flex items-center space-x-2 text-sm sm:text-base">
+              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span>Кошик ({state.itemCount})</span>
+            </SheetTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto py-2">
