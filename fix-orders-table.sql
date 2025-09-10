@@ -53,3 +53,24 @@ AND order_items.product_price IS NULL;
 -- Make product_price NOT NULL after updating existing records
 ALTER TABLE order_items 
 ALTER COLUMN product_price SET NOT NULL;
+
+-- ==========================================
+-- FIX ORDERS TABLE - ADD updated_at COLUMN
+-- ==========================================
+
+-- Add updated_at column to existing orders table
+ALTER TABLE orders 
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE;
+
+-- Update existing orders with current timestamp
+UPDATE orders 
+SET updated_at = NOW()
+WHERE updated_at IS NULL;
+
+-- Make updated_at NOT NULL after updating existing records
+ALTER TABLE orders 
+ALTER COLUMN updated_at SET NOT NULL;
+
+-- Add default value for future orders
+ALTER TABLE orders 
+ALTER COLUMN updated_at SET DEFAULT NOW();
