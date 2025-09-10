@@ -1,7 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 
 interface USBCableFiltersProps {
   onFiltersChange: (filters: {
@@ -18,33 +27,10 @@ interface FilterOption {
   count: number;
 }
 
-// Global cache for loaded options to prevent re-loading
-let optionsCache: Map<
-  number,
-  {
-    inputOptions: FilterOption[];
-    outputOptions: FilterOption[];
-    lengthOptions: FilterOption[];
-  }
-> | null = null;
-
-// Initialize cache if not exists
-const getOptionsCache = () => {
-  if (!optionsCache) {
-    optionsCache = new Map();
-  }
-  return optionsCache;
-};
-
 export default function USBCableFilters({
   onFiltersChange,
   categoryId,
 }: USBCableFiltersProps) {
-  console.log(
-    "USBCableFilters: Component rendered with categoryId:",
-    categoryId
-  );
-
   const [inputConnector, setInputConnector] = useState<string>("");
   const [outputConnector, setOutputConnector] = useState<string>("");
   const [cableLength, setCableLength] = useState<string>("");
@@ -52,161 +38,61 @@ export default function USBCableFilters({
   const [inputOptions, setInputOptions] = useState<FilterOption[]>([]);
   const [outputOptions, setOutputOptions] = useState<FilterOption[]>([]);
   const [lengthOptions, setLengthOptions] = useState<FilterOption[]>([]);
-
-  const [isInputOpen, setIsInputOpen] = useState(false);
-  const [isOutputOpen, setIsOutputOpen] = useState(false);
-  const [isLengthOpen, setIsLengthOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Use refs to persist state across re-renders
-  const isLoadedRef = useRef(false);
-  const hasInitializedRef = useRef(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Stable callback that doesn't change
-  const stableOnFiltersChange = useCallback(onFiltersChange, []);
-
-  // Load filter options from products - only once when component mounts
+  // Load filter options when categoryId changes
   useEffect(() => {
-    if (!categoryId || hasInitializedRef.current) {
-      return;
-    }
+    if (!categoryId || isLoaded) return;
 
-    console.log("USBCableFilters: Initializing for categoryId:", categoryId);
-
-    // Check if options are already cached
-    const cache = getOptionsCache();
-    if (cache.has(categoryId)) {
-      console.log(
-        "USBCableFilters: Using cached options for categoryId:",
-        categoryId
-      );
-      const cached = cache.get(categoryId)!;
-      setInputOptions(cached.inputOptions);
-      setOutputOptions(cached.outputOptions);
-      setLengthOptions(cached.lengthOptions);
-      isLoadedRef.current = true;
-      hasInitializedRef.current = true;
-      return;
-    }
-
-    // Load options from API
     const loadOptions = async () => {
-      console.log(
-        "USBCableFilters: Loading options for categoryId:",
-        categoryId
-      );
       setLoading(true);
-
       try {
-        const response = await fetch(
-          `/api/filter-options?categoryId=${categoryId}`
-        );
+        const response = await fetch(`/api/filter-options?categoryId=${categoryId}`);
         const data = await response.json();
-        console.log("USBCableFilters: Filter options API response:", data);
 
         if (data.success && data.options) {
-          const { inputConnectors, outputConnectors, cableLengths } =
-            data.options;
+          const { inputConnectors, outputConnectors, cableLengths } = data.options;
 
-          // Create options arrays
-          const inputOptions = inputConnectors.map((value: string) => ({
-            value,
-            label: value,
-            count: 0,
-          }));
-
-          const outputOptions = outputConnectors.map((value: string) => ({
-            value,
-            label: value,
-            count: 0,
-          }));
-
-          const lengthOptions = cableLengths.map((value: string) => ({
-            value,
-            label: value,
-            count: 0,
-          }));
-
-          // Cache the options
-          const cache = getOptionsCache();
-          cache.set(categoryId, {
-            inputOptions,
-            outputOptions,
-            lengthOptions,
-          });
-
-          // Set state
-          setInputOptions(inputOptions);
-          setOutputOptions(outputOptions);
-          setLengthOptions(lengthOptions);
-
-          console.log(
-            "USBCableFilters: Successfully loaded and cached options:",
-            {
-              input: inputConnectors.length,
-              output: outputConnectors.length,
-              length: cableLengths.length,
-            }
-          );
-
-          isLoadedRef.current = true;
-          hasInitializedRef.current = true;
-        } else {
-          console.error("USBCableFilters: API returned error:", data.error);
-          isLoadedRef.current = true;
-          hasInitializedRef.current = true;
+          setInputOptions(inputConnectors.map((value: string) => ({ value, label: value, count: 0 })));
+          setOutputOptions(outputConnectors.map((value: string) => ({ value, label: value, count: 0 })));
+          setLengthOptions(cableLengths.map((value: string) => ({ value, label: value, count: 0 })));
+          setIsLoaded(true);
         }
       } catch (error) {
         console.error("Error loading filter options:", error);
-        isLoadedRef.current = true;
-        hasInitializedRef.current = true;
       } finally {
         setLoading(false);
       }
     };
 
     loadOptions();
-  }, [categoryId]);
+  }, [categoryId, isLoaded]);
 
-  // Debounced filter change - only when values change
+  // Debounced filter change
   useEffect(() => {
-    // Don't call onFiltersChange until options are loaded
-    if (!isLoadedRef.current) {
-      console.log(
-        "USBCableFilters: Skipping onFiltersChange - options not loaded yet"
-      );
-      return;
-    }
+    if (!isLoaded) return;
 
-    // Clear previous timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
-    console.log("USBCableFilters: Filter values changed:", {
-      inputConnector,
-      outputConnector,
-      cableLength,
-    });
-
-    // Set new timeout
     timeoutRef.current = setTimeout(() => {
-      console.log("USBCableFilters: Calling onFiltersChange");
-      stableOnFiltersChange({
+      onFiltersChange({
         inputConnector: inputConnector || undefined,
         outputConnector: outputConnector || undefined,
         cableLength: cableLength || undefined,
       });
     }, 300);
 
-    // Cleanup function
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [inputConnector, outputConnector, cableLength, stableOnFiltersChange]);
+  }, [inputConnector, outputConnector, cableLength, onFiltersChange, isLoaded]);
 
   const clearFilters = () => {
     setInputConnector("");
@@ -214,155 +100,66 @@ export default function USBCableFilters({
     setCableLength("");
   };
 
-  if (!categoryId) {
-    return null;
-  }
-
   return (
     <div className="space-y-4">
       <h4 className="font-medium">Фільтри для кабелів</h4>
-
       {loading ? (
-        <div className="text-sm text-muted-foreground">
-          Завантаження опцій...
-        </div>
+        <div className="text-sm text-muted-foreground">Завантаження опцій...</div>
       ) : (
         <div className="space-y-3">
           {/* Input Connector */}
           {inputOptions.length > 0 && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Вхід (Тип коннектора)
-              </label>
-              <div className="relative">
-                <button
-                  type="button"
-                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  onClick={() => setIsInputOpen(!isInputOpen)}
-                >
-                  <span
-                    className={
-                      inputConnector ? "text-gray-900" : "text-gray-500"
-                    }
-                  >
-                    {inputConnector || "Оберіть вхід"}
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
-                </button>
-
-                {isInputOpen && (
-                  <div className="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                    {inputOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-                        onClick={() => {
-                          setInputConnector(option.value);
-                          setIsInputOpen(false);
-                        }}
-                      >
-                        {option.label} ({option.count})
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <Select value={inputConnector} onValueChange={setInputConnector}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Вхід (Тип коннектора)" />
+              </SelectTrigger>
+              <SelectContent className="z-[100]">
+                {inputOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
 
           {/* Output Connector */}
           {outputOptions.length > 0 && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Вихід (Тип коннектора)
-              </label>
-              <div className="relative">
-                <button
-                  type="button"
-                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  onClick={() => setIsOutputOpen(!isOutputOpen)}
-                >
-                  <span
-                    className={
-                      outputConnector ? "text-gray-900" : "text-gray-500"
-                    }
-                  >
-                    {outputConnector || "Оберіть вихід"}
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
-                </button>
-
-                {isOutputOpen && (
-                  <div className="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                    {outputOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-                        onClick={() => {
-                          setOutputConnector(option.value);
-                          setIsOutputOpen(false);
-                        }}
-                      >
-                        {option.label} ({option.count})
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <Select value={outputConnector} onValueChange={setOutputConnector}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Вихід (Тип коннектора)" />
+              </SelectTrigger>
+              <SelectContent className="z-[100]">
+                {outputOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
 
           {/* Cable Length */}
           {lengthOptions.length > 0 && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Довжина кабелю, м</label>
-              <div className="relative">
-                <button
-                  type="button"
-                  className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  onClick={() => setIsLengthOpen(!isLengthOpen)}
-                >
-                  <span
-                    className={cableLength ? "text-gray-900" : "text-gray-500"}
-                  >
-                    {cableLength || "Оберіть довжину"}
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
-                </button>
-
-                {isLengthOpen && (
-                  <div className="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                    {lengthOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-                        onClick={() => {
-                          setCableLength(option.value);
-                          setIsLengthOpen(false);
-                        }}
-                      >
-                        {option.label} м ({option.count})
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <Select value={cableLength} onValueChange={setCableLength}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Довжина кабелю, м" />
+              </SelectTrigger>
+              <SelectContent className="z-[100]">
+                {lengthOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
         </div>
       )}
-
       {(inputConnector || outputConnector || cableLength) && (
-        <button
-          type="button"
-          onClick={clearFilters}
-          className="w-full px-3 py-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
-        >
+        <Button variant="ghost" size="sm" onClick={clearFilters} className="cursor-pointer w-full">
           Очистити фільтри кабелів
-        </button>
+        </Button>
       )}
     </div>
   );

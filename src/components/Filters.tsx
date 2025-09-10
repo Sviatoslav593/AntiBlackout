@@ -7,8 +7,13 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import PriceFilter from "@/components/PriceFilter";
 import CapacityFilter from "@/components/CapacityFilter";
-import USBCableFilters from "@/components/USBCableFilters";
-import { useFilters } from "@/context/FilterContext";
+import dynamic from "next/dynamic";
+
+const USBCableFilters = dynamic(() => import("@/components/USBCableFilters"), {
+  ssr: false,
+  loading: () => <div className="text-sm text-muted-foreground">Завантаження фільтрів...</div>
+});
+import { useFilters, FilterState } from "@/context/FilterContext";
 import {
   Sheet,
   SheetContent,
@@ -18,24 +23,7 @@ import {
 } from "@/components/ui/sheet";
 import { Filter } from "lucide-react";
 
-export interface FilterState {
-  priceRange: {
-    min: number;
-    max: number;
-  };
-  categories: string[];
-  brands: string[];
-  capacityRange: {
-    min: number;
-    max: number;
-  };
-  inStockOnly: boolean;
-  usbFilters: {
-    inputConnector?: string;
-    outputConnector?: string;
-    cableLength?: string;
-  };
-}
+// FilterState is now imported from FilterContext
 
 interface FiltersProps {
   filters: FilterState;
