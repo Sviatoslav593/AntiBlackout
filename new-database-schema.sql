@@ -51,6 +51,7 @@ CREATE TABLE products (
 -- ==========================================
 CREATE TABLE orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_number TEXT UNIQUE NOT NULL DEFAULT 'ORD-' || EXTRACT(EPOCH FROM NOW())::TEXT,
     customer_name TEXT NOT NULL,
     customer_email TEXT,
     customer_phone TEXT,
