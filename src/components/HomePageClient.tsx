@@ -124,17 +124,30 @@ function HomePageClient() {
   // Block background scrolling when mobile filters are open
   useEffect(() => {
     if (isMobileFiltersOpen) {
-      // Store original overflow value
+      // Store current scroll position
+      const scrollY = window.scrollY;
+
+      // Store original styles
       const originalOverflow = document.body.style.overflow;
+      const originalPosition = document.body.style.position;
+      const originalTop = document.body.style.top;
+      const originalWidth = document.body.style.width;
+
+      // Apply scroll lock
       document.body.style.overflow = "hidden";
       document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
       document.body.style.width = "100%";
-      
+
       // Cleanup function
       return () => {
         document.body.style.overflow = originalOverflow;
-        document.body.style.position = "";
-        document.body.style.width = "";
+        document.body.style.position = originalPosition;
+        document.body.style.top = originalTop;
+        document.body.style.width = originalWidth;
+
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
       };
     }
   }, [isMobileFiltersOpen]);
@@ -171,7 +184,7 @@ function HomePageClient() {
             (cat: any) => cat.name
           );
           setAllCategories(categoryNames);
-          
+
           // Also load categories into store for filtering
           useProductStore.getState().setCategories(categoryNames);
         }
@@ -182,7 +195,7 @@ function HomePageClient() {
 
         if (brandsData.success && brandsData.brands) {
           setAllBrands(brandsData.brands);
-          
+
           // Also load brands into store for filtering
           useProductStore.getState().setBrands(brandsData.brands);
         }
@@ -428,6 +441,15 @@ function HomePageClient() {
             <AnimatePresence>
               {isMobileFiltersOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
+                  {/* Background overlay for closing on click */}
+                  <motion.div
+                    className="fixed inset-0 bg-black bg-opacity-20"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={() => setIsMobileFiltersOpen(false)}
+                  />
                   <motion.div
                     className="fixed left-0 top-0 h-full w-4/5 max-w-sm bg-white shadow-xl overflow-y-auto"
                     initial={{ x: "-100%" }}
@@ -457,7 +479,7 @@ function HomePageClient() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setIsMobileFiltersOpen(false)}
-                        className="absolute top-6 right-4 p-2 hover:bg-gray-100 rounded-full z-20"
+                        className="absolute top-20 right-4 p-2 hover:bg-gray-100 rounded-full z-30 bg-white shadow-sm"
                       >
                         <X className="w-5 h-5" />
                       </Button>
