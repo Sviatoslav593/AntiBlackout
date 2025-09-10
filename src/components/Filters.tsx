@@ -105,14 +105,14 @@ export default function Filters({
     if (onApplyFilters) {
       console.log("Capacity filter changed:", capacityRange);
       const filterParams: any = {};
-      
+
       if (capacityRange.min > 0) {
         filterParams.minCapacity = capacityRange.min;
       }
       if (capacityRange.max < 50000) {
         filterParams.maxCapacity = capacityRange.max;
       }
-      
+
       await onApplyFilters(filterParams);
     }
   };
@@ -339,7 +339,15 @@ export default function Filters({
       )}
 
       {/* Capacity Range - only for power banks */}
-      {memoizedSelectedCategoryId === 1001 && (
+      {(() => {
+        const shouldShowCapacity = memoizedSelectedCategoryId === 1001 || filters.categories.includes("Портативні батареї");
+        console.log("Capacity filter visibility:", {
+          memoizedSelectedCategoryId,
+          categories: filters.categories,
+          shouldShowCapacity
+        });
+        return shouldShowCapacity;
+      })() && (
         <>
           <CapacityFilter
             value={filters.capacityRange}
