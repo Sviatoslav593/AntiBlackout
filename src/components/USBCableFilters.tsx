@@ -38,38 +38,66 @@ export default function USBCableFilters({
 
   // Load filter options from products - only once when component mounts
   useEffect(() => {
-    console.log("USBCableFilters: useEffect triggered - categoryId:", categoryId, "isLoaded:", isLoaded);
-    
+    console.log(
+      "USBCableFilters: useEffect triggered - categoryId:",
+      categoryId,
+      "isLoaded:",
+      isLoaded
+    );
+
     if (!categoryId || isLoaded) {
-      console.log("USBCableFilters: Skipping load - categoryId:", categoryId, "isLoaded:", isLoaded);
+      console.log(
+        "USBCableFilters: Skipping load - categoryId:",
+        categoryId,
+        "isLoaded:",
+        isLoaded
+      );
       return;
     }
 
     const loadOptions = async () => {
-      console.log("USBCableFilters: Loading options for categoryId:", categoryId);
+      console.log(
+        "USBCableFilters: Loading options for categoryId:",
+        categoryId
+      );
       setLoading(true);
 
       try {
-        const response = await fetch(`/api/filter-options?categoryId=${categoryId}`);
+        const response = await fetch(
+          `/api/filter-options?categoryId=${categoryId}`
+        );
         const data = await response.json();
         console.log("USBCableFilters: Filter options API response:", data);
 
         if (data.success && data.options) {
-          const { inputConnectors, outputConnectors, cableLengths } = data.options;
+          const { inputConnectors, outputConnectors, cableLengths } =
+            data.options;
 
           // Set input options
           setInputOptions(
-            inputConnectors.map((value: string) => ({ value, label: value, count: 0 }))
+            inputConnectors.map((value: string) => ({
+              value,
+              label: value,
+              count: 0,
+            }))
           );
 
           // Set output options
           setOutputOptions(
-            outputConnectors.map((value: string) => ({ value, label: value, count: 0 }))
+            outputConnectors.map((value: string) => ({
+              value,
+              label: value,
+              count: 0,
+            }))
           );
 
           // Set length options
           setLengthOptions(
-            cableLengths.map((value: string) => ({ value, label: value, count: 0 }))
+            cableLengths.map((value: string) => ({
+              value,
+              label: value,
+              count: 0,
+            }))
           );
 
           console.log("USBCableFilters: Successfully loaded options:", {
