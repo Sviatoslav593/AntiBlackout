@@ -235,7 +235,12 @@ export default function Filters({
     )
       count++;
     if (filters.inStockOnly) count++;
-    if (filters.usbFilters.inputConnector || filters.usbFilters.outputConnector || filters.usbFilters.cableLength) count++;
+    if (
+      filters.usbFilters?.inputConnector ||
+      filters.usbFilters?.outputConnector ||
+      filters.usbFilters?.cableLength
+    )
+      count++;
     return count;
   };
 
@@ -303,7 +308,10 @@ export default function Filters({
               // Update USB filters in the main filter state
               handleFiltersChange({
                 ...filters,
-                usbFilters: usbFilters,
+                usbFilters: {
+                  ...filters.usbFilters,
+                  ...usbFilters,
+                },
               });
             }}
             categoryId={selectedCategoryId}
