@@ -15,6 +15,8 @@ export type SortOption =
   | "price-asc"
   | "price-desc"
   | "name-asc"
+  | "name-desc"
+  | "rating-desc"
   | "newest-first";
 
 interface SortDropdownProps {
@@ -38,6 +40,14 @@ const sortOptions = [
   {
     value: "name-asc" as SortOption,
     label: "За назвою (А-Я)",
+  },
+  {
+    value: "name-desc" as SortOption,
+    label: "За назвою (Я-А)",
+  },
+  {
+    value: "rating-desc" as SortOption,
+    label: "За рейтингом",
   },
   {
     value: "newest-first" as SortOption,

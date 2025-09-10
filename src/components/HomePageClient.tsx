@@ -83,6 +83,8 @@ type SortOption =
   | "price-asc"
   | "price-desc"
   | "name-asc"
+  | "name-desc"
+  | "rating-desc"
   | "newest-first";
 
 const sortProducts = (products: Product[], sortBy: SortOption): Product[] => {
@@ -126,6 +128,7 @@ function HomePageClient() {
     if (isMobileFiltersOpen) {
       // Store current scroll position
       const scrollY = window.scrollY;
+      console.log('Locking scroll at position:', scrollY);
 
       // Store original styles
       const originalOverflow = document.body.style.overflow;
@@ -141,6 +144,7 @@ function HomePageClient() {
 
       // Cleanup function
       return () => {
+        console.log('Unlocking scroll, restoring position:', scrollY);
         document.body.style.overflow = originalOverflow;
         document.body.style.position = originalPosition;
         document.body.style.top = originalTop;
@@ -240,14 +244,14 @@ function HomePageClient() {
       case "popularity-desc":
       default:
         return products.sort(
-          (a, b) => (b.popularity || 0) - (a.popularity || 0)
+          (a, b) => (b.reviewCount || 0) - (a.reviewCount || 0)
         );
     }
   }, [filteredProducts, allProducts, sortBy, activeFilters]);
 
   // Handle sort change
   const handleSortChange = (newSort: string) => {
-    setSortBy(newSort);
+    setSortBy(newSort as any);
   };
 
   // Handle scroll to products
@@ -479,7 +483,7 @@ function HomePageClient() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setIsMobileFiltersOpen(false)}
-                        className="absolute top-20 right-4 p-2 hover:bg-gray-100 rounded-full z-30 bg-white shadow-sm"
+                        className="absolute top-16 right-4 p-2 hover:bg-gray-100 rounded-full z-30 bg-white shadow-sm"
                       >
                         <X className="w-5 h-5" />
                       </Button>
