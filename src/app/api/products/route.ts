@@ -87,10 +87,10 @@ export async function GET(request: NextRequest) {
         });
       }
       if (cableLength) {
-        const lengthNum = parseFloat(cableLength);
-        const lengthValue = Number.isNaN(lengthNum) ? cableLength : lengthNum;
+        // Use contains for cable length matching
+        console.log(`Cable length filter: ${cableLength}`);
         query = query.contains("characteristics", {
-          "Довжина кабелю, м": lengthValue,
+          "Довжина кабелю, м": cableLength,
         });
       }
 
@@ -285,10 +285,10 @@ export async function GET(request: NextRequest) {
         });
       }
       if (cableLength) {
-        const lengthNum = parseFloat(cableLength);
-        const lengthValue = Number.isNaN(lengthNum) ? cableLength : lengthNum;
+        // Use contains for cable length matching
+        console.log(`Cable length filter: ${cableLength}`);
         query = query.contains("characteristics", {
-          "Довжина кабелю, м": lengthValue,
+          "Довжина кабелю, м": cableLength,
         });
       }
 

@@ -84,7 +84,10 @@ export default function USBCableFilters({
   // Handle individual filter changes
   const handleInputConnectorChange = useCallback(
     (value: string) => {
-      console.log("USBCableFilters: handleInputConnectorChange called with:", value);
+      console.log(
+        "USBCableFilters: handleInputConnectorChange called with:",
+        value
+      );
       setInputConnector(value);
       const filters = {
         inputConnector: value || undefined,
@@ -99,7 +102,10 @@ export default function USBCableFilters({
 
   const handleOutputConnectorChange = useCallback(
     (value: string) => {
-      console.log("USBCableFilters: handleOutputConnectorChange called with:", value);
+      console.log(
+        "USBCableFilters: handleOutputConnectorChange called with:",
+        value
+      );
       setOutputConnector(value);
       const filters = {
         inputConnector: inputConnector || undefined,
@@ -114,7 +120,10 @@ export default function USBCableFilters({
 
   const handleCableLengthChange = useCallback(
     (value: string) => {
-      console.log("USBCableFilters: handleCableLengthChange called with:", value);
+      console.log(
+        "USBCableFilters: handleCableLengthChange called with:",
+        value
+      );
       setCableLength(value);
       const filters = {
         inputConnector: inputConnector || undefined,
