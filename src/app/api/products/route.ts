@@ -17,6 +17,11 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get("maxPrice");
     const inStockOnly = searchParams.get("inStockOnly") === "true";
     const searchQuery = searchParams.get("search");
+    
+    // USB Cable characteristics filters
+    const inputConnector = searchParams.get("inputConnector");
+    const outputConnector = searchParams.get("outputConnector");
+    const cableLength = searchParams.get("cableLength");
 
     const supabase = createClient();
 
@@ -66,6 +71,17 @@ export async function GET(request: NextRequest) {
         query = query.or(
           `name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,brand.ilike.%${searchQuery}%`
         );
+      }
+
+      // USB Cable characteristics filters
+      if (inputConnector) {
+        query = query.filter('characteristics->>Вхід (Тип коннектора)', 'ilike', `%${inputConnector}%`);
+      }
+      if (outputConnector) {
+        query = query.filter('characteristics->>Вихід (Тип коннектора)', 'ilike', `%${outputConnector}%`);
+      }
+      if (cableLength) {
+        query = query.filter('characteristics->>Довжина кабелю, м', 'ilike', `%${cableLength}%`);
       }
 
       const { data: products, error } = await query;
@@ -182,6 +198,17 @@ export async function GET(request: NextRequest) {
         query = query.or(
           `name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,brand.ilike.%${searchQuery}%`
         );
+      }
+
+      // USB Cable characteristics filters
+      if (inputConnector) {
+        query = query.filter('characteristics->>Вхід (Тип коннектора)', 'ilike', `%${inputConnector}%`);
+      }
+      if (outputConnector) {
+        query = query.filter('characteristics->>Вихід (Тип коннектора)', 'ilike', `%${outputConnector}%`);
+      }
+      if (cableLength) {
+        query = query.filter('characteristics->>Довжина кабелю, м', 'ilike', `%${cableLength}%`);
       }
 
       const { data: batchProducts, error } = await query;

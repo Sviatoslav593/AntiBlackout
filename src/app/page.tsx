@@ -135,6 +135,9 @@ export default function Home() {
         inStockOnly?: boolean;
         minPrice?: number;
         maxPrice?: number;
+        inputConnector?: string;
+        outputConnector?: string;
+        cableLength?: string;
       },
       page: number = 1,
       append: boolean = false
@@ -158,6 +161,12 @@ export default function Home() {
           params.append("minPrice", filterParams.minPrice.toString());
         if (filterParams?.maxPrice)
           params.append("maxPrice", filterParams.maxPrice.toString());
+        if (filterParams?.inputConnector)
+          params.append("inputConnector", filterParams.inputConnector);
+        if (filterParams?.outputConnector)
+          params.append("outputConnector", filterParams.outputConnector);
+        if (filterParams?.cableLength)
+          params.append("cableLength", filterParams.cableLength);
 
         // Add pagination parameters
         params.append("limit", "50");
@@ -703,6 +712,10 @@ export default function Home() {
                     priceRange={priceRange}
                     capacityRange={capacityRange}
                     onApplyFilters={fetchProducts}
+                    selectedCategoryId={filters.categories.length === 1 ? 
+                      allProducts.find(p => p.categories?.name === filters.categories[0])?.category_id : 
+                      undefined
+                    }
                   />
                 </div>
 

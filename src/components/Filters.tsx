@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import PriceFilter from "@/components/PriceFilter";
 import CapacityFilter from "@/components/CapacityFilter";
+import USBCableFilters from "@/components/USBCableFilters";
 import { useFilters } from "@/context/FilterContext";
 import {
   Sheet,
@@ -44,7 +45,11 @@ interface FiltersProps {
     inStockOnly?: boolean;
     minPrice?: number;
     maxPrice?: number;
+    inputConnector?: string;
+    outputConnector?: string;
+    cableLength?: string;
   }) => Promise<void>;
+  selectedCategoryId?: number;
 }
 
 export default function Filters({
@@ -55,6 +60,7 @@ export default function Filters({
   priceRange,
   capacityRange,
   onApplyFilters,
+  selectedCategoryId,
 }: FiltersProps) {
   // Use FilterContext when available, fallback to props
   const { filters: contextFilters, setFilters } = useFilters();
@@ -278,6 +284,25 @@ export default function Filters({
               ))}
             </div>
           </div>
+          <Separator />
+        </>
+      )}
+
+      {/* USB Cable Filters - only for "Зарядки та кабелі" category */}
+      {selectedCategoryId === 1002 && (
+        <>
+          <USBCableFilters
+            onFiltersChange={(usbFilters) => {
+              if (onApplyFilters) {
+                onApplyFilters({
+                  inputConnector: usbFilters.inputConnector,
+                  outputConnector: usbFilters.outputConnector,
+                  cableLength: usbFilters.cableLength,
+                });
+              }
+            }}
+            categoryId={selectedCategoryId}
+          />
           <Separator />
         </>
       )}
