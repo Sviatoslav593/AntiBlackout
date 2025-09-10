@@ -11,7 +11,11 @@ import dynamic from "next/dynamic";
 
 const USBCableFilters = dynamic(() => import("@/components/USBCableFilters"), {
   ssr: false,
-  loading: () => <div className="text-sm text-muted-foreground">Завантаження фільтрів кабелів...</div>
+  loading: () => (
+    <div className="text-sm text-muted-foreground">
+      Завантаження фільтрів кабелів...
+    </div>
+  ),
 });
 import { useFilters } from "@/context/FilterContext";
 import {
