@@ -17,6 +17,7 @@ interface FiltersSPAProps {
   availableBrands?: string[];
   priceRange: { min: number; max: number };
   capacityRange: { min: number; max: number };
+  isMobile?: boolean;
 }
 
 export default function FiltersSPA({
@@ -24,6 +25,7 @@ export default function FiltersSPA({
   availableBrands,
   priceRange,
   capacityRange,
+  isMobile = false,
 }: FiltersSPAProps) {
   const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
     useUrlFilters();
@@ -168,24 +170,8 @@ export default function FiltersSPA({
     return count;
   }, [localFilters]);
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Фільтри</span>
-          {activeFilterCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClearFilters}
-              className="text-blue-600 hover:text-blue-700"
-            >
-              Очистити
-            </Button>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
+  const FilterContent = () => (
+    <div className="space-y-6">
         {/* Categories */}
         {availableCategories && availableCategories.length > 0 && (
           <div className="space-y-3">
@@ -280,6 +266,32 @@ export default function FiltersSPA({
             <span className="text-sm font-medium">Тільки в наявності</span>
           </label>
         </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return <FilterContent />;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>Фільтри</span>
+          {activeFilterCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+              className="text-blue-600 hover:text-blue-700"
+            >
+              Очистити
+            </Button>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <FilterContent />
       </CardContent>
     </Card>
   );

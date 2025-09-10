@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import SortDropdown from "@/components/SortDropdown";
@@ -8,11 +8,13 @@ import ProductCard from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ScrollToProductsButton from "@/components/ScrollToProductsButton";
-import { useUrlFilters } from "@/hooks/useUrlFilters";
-import { useProducts } from "@/hooks/useProducts";
 import { useScrollPosition } from "@/hooks/useScrollPosition";
-import { useProductStore } from "@/store/productStore";
-import FiltersSPA from "@/components/FiltersSPA";
+import {
+  useFilters,
+  FilterState,
+  FilterProvider,
+} from "@/context/FilterContext";
+import Filters from "@/components/Filters";
 import {
   Battery,
   Shield,
@@ -21,8 +23,6 @@ import {
   ShoppingBag,
   Headphones,
   Smartphone,
-  Filter,
-  X,
 } from "lucide-react";
 
 const features = [
@@ -50,21 +50,89 @@ const stats = [
   { label: "Гарантія якості", value: "100%" },
 ];
 
-export default function HomePageClient() {
-  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
-    useUrlFilters();
-  const {
-    filteredProducts,
-    categories,
-    brands,
-    isLoading,
-    isLoadingMore,
-    hasMoreProducts,
-    handleLoadMore,
-  } = useProducts();
+// Product interface matching the database structure
+interface Product {
+  id: string;
+  external_id?: string;
+  name: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  image: string;
+  images?: string[];
+  rating: number;
+  reviewCount: number;
+  inStock: boolean;
+  badge?: string;
+  capacity: number;
+  brand: string;
+  popularity: number;
+  createdAt: string;
+  categories?: {
+    id: number;
+    name: string;
+  };
+  category_id?: number;
+  vendor_code?: string;
+  quantity?: number;
+  characteristics?: Record<string, any>;
+}
+
+type SortOption =
+  | "popularity-desc"
+  | "price-asc"
+  | "price-desc"
+  | "name-asc"
+  | "newest-first";
+
+const sortProducts = (products: Product[], sortBy: SortOption): Product[] => {
+  const sortedProducts = [...products];
+
+  switch (sortBy) {
+    case "price-asc":
+      return sortedProducts.sort((a, b) => a.price - b.price);
+    case "price-desc":
+      return sortedProducts.sort((a, b) => b.price - a.price);
+    case "name-asc":
+      return sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
+    case "newest-first":
+      return sortedProducts.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    case "popularity-desc":
+    default:
+      return sortedProducts.sort((a, b) => b.popularity - a.popularity);
+  }
+};
+
+function HomeContent() {
+  // State for products
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [allCategories, setAllCategories] = useState<string[]>([]);
+  const [allBrands, setAllBrands] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreProducts, setHasMoreProducts] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const prevFilterState = useRef<string>("");
+
+  // Context hooks
+  const { filters: contextFilters, setFilters } = useFilters();
   const { restoreScrollPosition } = useScrollPosition();
-  const { sortBy, setSortBy } = useProductStore();
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+
+  // Ensure filters has default values
+  const filters = contextFilters || {
+    priceRange: { min: 0, max: 10000 },
+    inStockOnly: false,
+    categories: [],
+    brands: [],
+    capacityRange: { min: 0, max: 50000 },
+    usbFilters: {},
+  };
 
   // Restore scroll position on mount
   useEffect(() => {
@@ -256,13 +324,13 @@ export default function HomePageClient() {
             {isMobileFiltersOpen && (
               <div className="fixed inset-0 z-50 lg:hidden">
                 <div
-                  className="fixed inset-0 bg-black bg-opacity-50"
+                  className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
                   onClick={() => setIsMobileFiltersOpen(false)}
                 />
-                <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-xl overflow-y-auto">
+                <div className="fixed left-0 top-0 h-full w-full bg-white shadow-xl overflow-y-auto transform transition-transform duration-300 ease-in-out animate-in slide-in-from-left">
                   <div className="p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-lg font-semibold">Фільтри</h3>
+                    <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b">
+                      <h3 className="text-xl font-semibold">Фільтри товарів</h3>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
@@ -276,8 +344,9 @@ export default function HomePageClient() {
                           variant="ghost"
                           size="sm"
                           onClick={() => setIsMobileFiltersOpen(false)}
+                          className="p-2"
                         >
-                          <X className="w-4 h-4" />
+                          <X className="w-5 h-5" />
                         </Button>
                       </div>
                     </div>
@@ -286,6 +355,7 @@ export default function HomePageClient() {
                       availableBrands={brands || []}
                       priceRange={{ min: 0, max: 10000 }}
                       capacityRange={{ min: 0, max: 50000 }}
+                      isMobile={true}
                     />
                   </div>
                 </div>

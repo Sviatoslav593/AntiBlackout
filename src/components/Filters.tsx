@@ -51,6 +51,11 @@ interface FiltersProps {
     inStockOnly?: boolean;
     minPrice?: number;
     maxPrice?: number;
+    minCapacity?: number;
+    maxCapacity?: number;
+    inputConnector?: string;
+    outputConnector?: string;
+    cableLength?: string;
   }) => Promise<void>;
   selectedCategoryId?: number;
 }
@@ -330,7 +335,7 @@ export default function Filters({
                     type="checkbox"
                     checked={filters.categories.includes(category)}
                     onChange={(e) => handleCategoryToggle(category, e)}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-sm">{category}</span>
                 </label>
@@ -356,7 +361,7 @@ export default function Filters({
                     type="checkbox"
                     checked={filters.brands.includes(brand)}
                     onChange={(e) => handleBrandToggle(brand, e)}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-sm">{brand}</span>
                 </label>
@@ -443,7 +448,7 @@ export default function Filters({
             type="checkbox"
             checked={filters.inStockOnly}
             onChange={(e) => handleInStockToggle(e)}
-            className="rounded border-gray-300"
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
           <span className="text-sm">Тільки в наявності</span>
         </label>
