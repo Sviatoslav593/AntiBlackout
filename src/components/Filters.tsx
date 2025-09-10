@@ -17,7 +17,7 @@ const USBCableFilters = dynamic(() => import("@/components/USBCableFilters"), {
     </div>
   ),
 });
-import { useFilters } from "@/context/FilterContext";
+import { useFilters, FilterState } from "@/context/FilterContext";
 import {
   Sheet,
   SheetContent,
@@ -26,25 +26,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Filter } from "lucide-react";
-
-export interface FilterState {
-  priceRange: {
-    min: number;
-    max: number;
-  };
-  categories: string[];
-  brands: string[];
-  capacityRange: {
-    min: number;
-    max: number;
-  };
-  inStockOnly: boolean;
-  usbFilters: {
-    inputConnector?: string;
-    outputConnector?: string;
-    cableLength?: string;
-  };
-}
 
 interface FiltersProps {
   filters: FilterState;
