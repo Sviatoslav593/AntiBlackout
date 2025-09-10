@@ -39,11 +39,17 @@ export default function USBCableFilters({
   useEffect(() => {
     console.log("USBCableFilters useEffect:", { categoryId });
     // Always load options, but use categoryId 1002 for cables
-    const effectiveCategoryId = categoryId === 1002 ? 1002 : 1002; // Always use 1002 for cables
-    console.log("USBCableFilters: Using effective categoryId:", effectiveCategoryId);
+    const effectiveCategoryId = 1002; // Always use 1002 for cables
+    console.log(
+      "USBCableFilters: Using effective categoryId:",
+      effectiveCategoryId
+    );
 
     const loadOptions = async () => {
-      console.log("Loading USB filter options for effectiveCategoryId:", effectiveCategoryId);
+      console.log(
+        "Loading USB filter options for effectiveCategoryId:",
+        effectiveCategoryId
+      );
       setLoading(true);
       try {
         const response = await fetch(
@@ -78,7 +84,7 @@ export default function USBCableFilters({
     };
 
     loadOptions();
-  }, [effectiveCategoryId]);
+  }, [categoryId]);
 
   // Handle individual filter changes
   const handleInputConnectorChange = useCallback(

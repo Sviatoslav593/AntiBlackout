@@ -20,14 +20,22 @@ export default function CapacitySelectFilter({
   useEffect(() => {
     console.log("CapacitySelectFilter useEffect:", { categoryId });
     // Always load options, but use categoryId 1001 for power banks
-    const effectiveCategoryId = categoryId === 1001 ? 1001 : 1001; // Always use 1001 for power banks
-    console.log("CapacitySelectFilter: Using effective categoryId:", effectiveCategoryId);
+    const effectiveCategoryId = 1001; // Always use 1001 for power banks
+    console.log(
+      "CapacitySelectFilter: Using effective categoryId:",
+      effectiveCategoryId
+    );
 
     const loadCapacities = async () => {
-      console.log("Loading capacities for effectiveCategoryId:", effectiveCategoryId);
+      console.log(
+        "Loading capacities for effectiveCategoryId:",
+        effectiveCategoryId
+      );
       setLoading(true);
       try {
-        const response = await fetch(`/api/products?categoryId=${effectiveCategoryId}`);
+        const response = await fetch(
+          `/api/products?categoryId=${effectiveCategoryId}`
+        );
         const data = await response.json();
         console.log("Capacity API response:", data);
 
@@ -52,7 +60,7 @@ export default function CapacitySelectFilter({
     };
 
     loadCapacities();
-  }, [effectiveCategoryId]);
+  }, [categoryId]);
 
   // Handle capacity selection
   const handleCapacitySelect = useCallback(
