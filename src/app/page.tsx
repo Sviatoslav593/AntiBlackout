@@ -15,7 +15,7 @@ import {
   FilterState,
   FilterProvider,
 } from "@/context/FilterContext";
-// import Filters from "@/components/Filters";
+import SimpleFilters from "@/components/SimpleFilters";
 import {
   Battery,
   Shield,
@@ -724,7 +724,7 @@ export default function Home() {
               <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
                 {/* Filters Sidebar */}
                 <div className="xl:col-span-1">
-                  {/* <Filters
+                  <SimpleFilters
                     filters={filters}
                     onFiltersChange={() => {}} // Use FilterContext instead
                     availableCategories={availableCategories}
@@ -739,7 +739,7 @@ export default function Home() {
                         ? 1002
                         : undefined
                     }
-                  /> */}
+                  />
                 </div>
 
                 {/* Products Grid */}
