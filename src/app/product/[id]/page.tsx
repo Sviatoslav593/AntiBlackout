@@ -74,7 +74,8 @@ export default function ProductPage() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [isCharacteristicsExpanded, setIsCharacteristicsExpanded] = useState(false);
+  const [isCharacteristicsExpanded, setIsCharacteristicsExpanded] =
+    useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -312,7 +313,9 @@ export default function ProductPage() {
   };
 
   const getSpecifications = (product: Product) => {
-    const basicSpecs = [{ label: "Бренд", value: product.brand, icon: Smartphone }];
+    const basicSpecs = [
+      { label: "Бренд", value: product.brand, icon: Smartphone },
+    ];
 
     // Add vendor code if available
     if (product.vendor_code) {
@@ -332,7 +335,8 @@ export default function ProductPage() {
       });
     }
 
-    const additionalSpecs: Array<{ label: string; value: string; icon: any }> = [];
+    const additionalSpecs: Array<{ label: string; value: string; icon: any }> =
+      [];
 
     // Add characteristics from JSONB field
     if (
@@ -532,28 +536,29 @@ export default function ProductPage() {
                     </div>
                   </div>
                 ))}
-                
+
                 {/* Additional specifications - shown when expanded */}
-                {isCharacteristicsExpanded && specifications.additionalSpecs.map((spec, index) => (
-                  <div
-                    key={`additional-${index}`}
-                    className="flex items-start gap-3 py-2 border-b border-gray-100 last:border-b-0"
-                  >
-                    <spec.icon className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row">
-                        <span className="text-sm text-muted-foreground sm:w-1/3 flex-shrink-0">
-                          {spec.label}:
-                        </span>
-                        <span className="text-sm font-medium sm:w-2/3 break-words">
-                          {spec.value}
-                        </span>
+                {isCharacteristicsExpanded &&
+                  specifications.additionalSpecs.map((spec, index) => (
+                    <div
+                      key={`additional-${index}`}
+                      className="flex items-start gap-3 py-2 border-b border-gray-100 last:border-b-0"
+                    >
+                      <spec.icon className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row">
+                          <span className="text-sm text-muted-foreground sm:w-1/3 flex-shrink-0">
+                            {spec.label}:
+                          </span>
+                          <span className="text-sm font-medium sm:w-2/3 break-words">
+                            {spec.value}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
-              
+
               {/* Show more/less button for additional characteristics */}
               {specifications.additionalSpecs.length > 0 && (
                 <button
@@ -562,7 +567,9 @@ export default function ProductPage() {
                   }
                   className="mt-3 text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
                 >
-                  {isCharacteristicsExpanded ? "Показати менше" : `Показати ще (${specifications.additionalSpecs.length})`}
+                  {isCharacteristicsExpanded
+                    ? "Показати менше"
+                    : `Показати ще (${specifications.additionalSpecs.length})`}
                 </button>
               )}
             </div>

@@ -645,13 +645,13 @@ export default function Home() {
               </div>
 
               <div className="flex justify-center">
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 max-w-4xl">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 w-full max-w-4xl">
                   {availableCategories.map((category, index) => {
                     const Icon = getCategoryIcon(category);
                     return (
                       <div
                         key={category}
-                        className="group relative bg-white border-2 border-gray-100 rounded-2xl p-6 hover:border-blue-200 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                        className="group relative bg-white border-2 border-gray-100 rounded-2xl p-6 hover:border-blue-200 hover:shadow-lg transition-all duration-300 cursor-pointer w-full"
                         onClick={(e) => handleCategoryClick(category, e)}
                       >
                         <div className="flex flex-col items-center text-center space-y-4">
