@@ -402,14 +402,12 @@ function HomeContent() {
       search: debouncedSearchQuery,
     });
 
-    // If no active filters, don't do anything - products are already loaded
-    if (!hasActiveFilters) {
-      console.log("No active filters, keeping current products");
-      return;
-    }
+    // Always apply filters, even if no active filters (to reset to default state)
+    console.log("Applying filters regardless of hasActiveFilters:", hasActiveFilters);
 
     // Apply filters
     const applyFilters = async () => {
+      console.log("applyFilters: Starting with filters:", filters);
       const filterParams: any = {};
 
       // Convert category names to category IDs
@@ -489,7 +487,7 @@ function HomeContent() {
         filterParams.cableLength = filters.usbFilters.cableLength;
       }
 
-      console.log("Applying filters:", filterParams);
+      console.log("applyFilters: Final filterParams:", filterParams);
       console.log("Filter params details:", {
         minCapacity: filterParams.minCapacity,
         maxCapacity: filterParams.maxCapacity,
