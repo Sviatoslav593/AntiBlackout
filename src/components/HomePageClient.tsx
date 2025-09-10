@@ -121,33 +121,65 @@ function HomePageClient() {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const prevFilterState = useRef<string>("");
 
+  // Block background scrolling when mobile filters are open
+  useEffect(() => {
+    if (isMobileFiltersOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileFiltersOpen]);
+
   // Context hooks
   const { restoreScrollPosition } = useScrollPosition();
   const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
     useUrlFilters();
   const { filteredProducts } = useProductStore();
 
-  // Load products on mount
+  // Load products, categories, and brands on mount
   useEffect(() => {
-    const loadProducts = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/products?categoryId=1001&limit=20");
-        const data = await response.json();
+        
+        // Load products
+        const productsResponse = await fetch("/api/products?categoryId=1001&limit=20");
+        const productsData = await productsResponse.json();
+        
+        if (productsData.success && productsData.products) {
+          setAllProducts(productsData.products);
+          useProductStore.getState().setProducts(productsData.products);
+        }
 
-        if (data.success && data.products) {
-          setAllProducts(data.products);
-          // Also load into store
-          useProductStore.getState().setProducts(data.products);
+        // Load categories
+        const categoriesResponse = await fetch("/api/categories");
+        const categoriesData = await categoriesResponse.json();
+        
+        if (categoriesData.success && categoriesData.categories) {
+          const categoryNames = categoriesData.categories.map((cat: any) => cat.name);
+          setAllCategories(categoryNames);
+        }
+
+        // Load brands
+        const brandsResponse = await fetch("/api/brands");
+        const brandsData = await brandsResponse.json();
+        
+        if (brandsData.success && brandsData.brands) {
+          setAllBrands(brandsData.brands);
         }
       } catch (error) {
-        console.error("Error loading products:", error);
+        console.error("Error loading data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadProducts();
+    loadData();
   }, []);
 
   // Restore scroll position on mount
@@ -158,6 +190,14 @@ function HomePageClient() {
   // Sort products
   const sortedProducts = useMemo(() => {
     const products = [...(filteredProducts || allProducts)];
+    
+    // Debug logging
+    console.log('HomePageClient sortedProducts:', {
+      filteredProducts: filteredProducts?.length,
+      allProducts: allProducts.length,
+      usingFiltered: !!filteredProducts,
+      activeFilters
+    });
 
     switch (sortBy) {
       case "price-asc":
@@ -176,7 +216,7 @@ function HomePageClient() {
           (a, b) => (b.popularity || 0) - (a.popularity || 0)
         );
     }
-  }, [filteredProducts, allProducts, sortBy]);
+  }, [filteredProducts, allProducts, sortBy, activeFilters]);
 
   // Handle sort change
   const handleSortChange = (newSort: string) => {
@@ -199,25 +239,27 @@ function HomePageClient() {
   // Handle load more products
   const handleLoadMore = async () => {
     if (loadingMore || !hasMoreProducts) return;
-    
+
     try {
       setLoadingMore(true);
       const nextPage = currentPage + 1;
-      const response = await fetch(`/api/products?categoryId=1001&limit=20&page=${nextPage}`);
+      const response = await fetch(
+        `/api/products?categoryId=1001&limit=20&page=${nextPage}`
+      );
       const data = await response.json();
-      
+
       if (data.success && data.products) {
         const newProducts = [...allProducts, ...data.products];
         setAllProducts(newProducts);
         useProductStore.getState().setProducts(newProducts);
         setCurrentPage(nextPage);
-        
+
         if (data.products.length < 20) {
           setHasMoreProducts(false);
         }
       }
     } catch (error) {
-      console.error('Error loading more products:', error);
+      console.error("Error loading more products:", error);
     } finally {
       setLoadingMore(false);
     }
@@ -387,38 +429,51 @@ function HomePageClient() {
                     exit={{ x: "-100%" }}
                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
                   >
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b">
-                      <h3 className="text-xl font-semibold">Фільтри товарів</h3>
-                      <div className="flex items-center gap-2">
+                    <div className="p-6 pt-16">
+                      <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b z-10">
+                        <h3 className="text-xl font-semibold">
+                          Фільтри товарів
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleClearFilters}
+                            className="text-sm"
+                          >
+                            Очистити
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Close button in top-right corner */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsMobileFiltersOpen(false)}
+                        className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full z-20"
+                      >
+                        <X className="w-5 h-5" />
+                      </Button>
+                      <FiltersSPA
+                        availableCategories={allCategories || []}
+                        availableBrands={allBrands || []}
+                        priceRange={{ min: 0, max: 10000 }}
+                        capacityRange={{ min: 0, max: 50000 }}
+                        isMobile={true}
+                      />
+                      
+                      {/* Apply button at bottom */}
+                      <div className="sticky bottom-0 bg-white pt-4 border-t mt-6">
                         <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleClearFilters}
-                          className="text-sm"
+                          onClick={() => setIsMobileFiltersOpen(false)}
+                          className="w-full"
+                          size="lg"
                         >
-                          Очистити
+                          Застосувати фільтри
                         </Button>
                       </div>
                     </div>
-
-                    {/* Close button in top-right corner */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsMobileFiltersOpen(false)}
-                      className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full"
-                    >
-                      <X className="w-5 h-5" />
-                    </Button>
-                    <FiltersSPA
-                      availableCategories={allCategories || []}
-                      availableBrands={allBrands || []}
-                      priceRange={{ min: 0, max: 10000 }}
-                      capacityRange={{ min: 0, max: 50000 }}
-                      isMobile={true}
-                    />
-                  </div>
                   </motion.div>
                 </div>
               )}

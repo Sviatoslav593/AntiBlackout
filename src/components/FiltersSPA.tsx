@@ -226,7 +226,10 @@ export default function FiltersSPA({
       <div className="space-y-3">
         <h4 className="font-medium">Ціна</h4>
         <PriceFilter
-          value={priceRange}
+          value={{
+            min: localFilters.minPrice || priceRange.min,
+            max: localFilters.maxPrice || priceRange.max,
+          }}
           onChange={handlePriceChange}
           min={priceRange.min}
           max={priceRange.max}
