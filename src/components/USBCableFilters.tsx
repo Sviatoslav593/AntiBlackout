@@ -50,15 +50,36 @@ export default function USBCableFilters({
     const loadOptions = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/filter-options?categoryId=${categoryId}`);
+        const response = await fetch(
+          `/api/filter-options?categoryId=${categoryId}`
+        );
         const data = await response.json();
 
         if (data.success && data.options) {
-          const { inputConnectors, outputConnectors, cableLengths } = data.options;
+          const { inputConnectors, outputConnectors, cableLengths } =
+            data.options;
 
-          setInputOptions(inputConnectors.map((value: string) => ({ value, label: value, count: 0 })));
-          setOutputOptions(outputConnectors.map((value: string) => ({ value, label: value, count: 0 })));
-          setLengthOptions(cableLengths.map((value: string) => ({ value, label: value, count: 0 })));
+          setInputOptions(
+            inputConnectors.map((value: string) => ({
+              value,
+              label: value,
+              count: 0,
+            }))
+          );
+          setOutputOptions(
+            outputConnectors.map((value: string) => ({
+              value,
+              label: value,
+              count: 0,
+            }))
+          );
+          setLengthOptions(
+            cableLengths.map((value: string) => ({
+              value,
+              label: value,
+              count: 0,
+            }))
+          );
           setIsLoaded(true);
         }
       } catch (error) {
@@ -104,7 +125,9 @@ export default function USBCableFilters({
     <div className="space-y-4">
       <h4 className="font-medium">Фільтри для кабелів</h4>
       {loading ? (
-        <div className="text-sm text-muted-foreground">Завантаження опцій...</div>
+        <div className="text-sm text-muted-foreground">
+          Завантаження опцій...
+        </div>
       ) : (
         <div className="space-y-3">
           {/* Input Connector */}
@@ -157,7 +180,12 @@ export default function USBCableFilters({
         </div>
       )}
       {(inputConnector || outputConnector || cableLength) && (
-        <Button variant="ghost" size="sm" onClick={clearFilters} className="cursor-pointer w-full">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={clearFilters}
+          className="cursor-pointer w-full"
+        >
           Очистити фільтри кабелів
         </Button>
       )}

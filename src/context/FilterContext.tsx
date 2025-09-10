@@ -72,6 +72,7 @@ export function useFilters() {
         categories: [],
         brands: [],
         capacityRange: { min: 0, max: 50000 },
+        usbFilters: {},
       },
       setFilters: () => {},
       clearFilters: () => {},
