@@ -10,17 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ScrollToProductsButton from "@/components/ScrollToProductsButton";
 import { useSearch } from "@/context/SearchContext";
-import { useFilters, FilterState, FilterProvider } from "@/context/FilterContext";
-import dynamic from "next/dynamic";
-
-const Filters = dynamic(() => import("@/components/Filters"), {
-  ssr: false,
-  loading: () => (
-    <div className="text-sm text-muted-foreground">
-      Завантаження фільтрів...
-    </div>
-  ),
-});
+import {
+  useFilters,
+  FilterState,
+  FilterProvider,
+} from "@/context/FilterContext";
+// import Filters from "@/components/Filters";
 import {
   Battery,
   Shield,
@@ -729,7 +724,7 @@ export default function Home() {
               <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
                 {/* Filters Sidebar */}
                 <div className="xl:col-span-1">
-                  <Filters
+                  {/* <Filters
                     filters={filters}
                     onFiltersChange={() => {}} // Use FilterContext instead
                     availableCategories={availableCategories}
@@ -744,7 +739,7 @@ export default function Home() {
                         ? 1002
                         : undefined
                     }
-                  />
+                  /> */}
                 </div>
 
                 {/* Products Grid */}

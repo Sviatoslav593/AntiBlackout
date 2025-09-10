@@ -8,16 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import PriceFilter from "@/components/PriceFilter";
 import CapacityFilter from "@/components/CapacityFilter";
 import { useFilters, FilterState } from "@/context/FilterContext";
-import dynamic from "next/dynamic";
-
-const USBCableFilters = dynamic(() => import("@/components/USBCableFilters"), {
-  ssr: false,
-  loading: () => (
-    <div className="text-sm text-muted-foreground">
-      Завантаження фільтрів...
-    </div>
-  ),
-});
+// import USBCableFilters from "@/components/USBCableFilters";
 import {
   Sheet,
   SheetContent,
@@ -316,10 +307,10 @@ export default function Filters({
       {/* USB Cable Filters - only for "Зарядки та кабелі" category */}
       {memoizedSelectedCategoryId === 1002 && (
         <>
-          <USBCableFilters
+          {/* <USBCableFilters
             onFiltersChange={handleUSBFiltersChange}
             categoryId={memoizedSelectedCategoryId}
-          />
+          /> */}
           <Separator />
         </>
       )}
