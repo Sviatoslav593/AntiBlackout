@@ -15,6 +15,7 @@ import {
   FilterProvider,
 } from "@/context/FilterContext";
 import Filters from "@/components/Filters";
+import FiltersSPA from "@/components/FiltersSPA";
 import {
   Battery,
   Shield,
@@ -23,6 +24,8 @@ import {
   ShoppingBag,
   Headphones,
   Smartphone,
+  Filter,
+  X,
 } from "lucide-react";
 
 const features = [
@@ -68,7 +71,7 @@ interface Product {
   brand: string;
   popularity: number;
   createdAt: string;
-  categories?: {
+  allCategories?: {
     id: number;
     name: string;
   };
@@ -106,7 +109,7 @@ const sortProducts = (products: Product[], sortBy: SortOption): Product[] => {
   }
 };
 
-function HomeContent() {
+function HomePageClient() {
   // State for products
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [allCategories, setAllCategories] = useState<string[]>([]);
@@ -118,6 +121,7 @@ function HomeContent() {
   const [hasMoreProducts, setHasMoreProducts] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const prevFilterState = useRef<string>("");
 
   // Context hooks
@@ -128,8 +132,8 @@ function HomeContent() {
   const filters = contextFilters || {
     priceRange: { min: 0, max: 10000 },
     inStockOnly: false,
-    categories: [],
-    brands: [],
+    allCategories: [],
+    allBrands: [],
     capacityRange: { min: 0, max: 50000 },
     usbFilters: {},
   };
@@ -141,7 +145,7 @@ function HomeContent() {
 
   // Sort products
   const sortedProducts = useMemo(() => {
-    const products = [...filteredProducts];
+    const products = [...allProducts];
 
     switch (sortBy) {
       case "price-asc":
@@ -160,7 +164,7 @@ function HomeContent() {
           (a, b) => (b.popularity || 0) - (a.popularity || 0)
         );
     }
-  }, [filteredProducts, sortBy]);
+  }, [allProducts, sortBy]);
 
   // Handle sort change
   const handleSortChange = (newSort: string) => {
@@ -173,6 +177,18 @@ function HomeContent() {
     if (productsSection) {
       productsSection.scrollIntoView({ behavior: "smooth" });
     }
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setFilters({
+      priceRange: { min: 0, max: 10000 },
+      inStockOnly: false,
+      allCategories: [],
+      allBrands: [],
+      capacityRange: { min: 0, max: 50000 },
+      usbFilters: {},
+    });
   };
 
   return (
@@ -273,7 +289,7 @@ function HomeContent() {
                 Наші товари
               </h2>
               <p className="text-gray-600">
-                {isLoading
+                {loading
                   ? "Завантаження..."
                   : `Знайдено ${sortedProducts.length} товарів`}
               </p>
@@ -312,8 +328,8 @@ function HomeContent() {
                   </Button>
                 </div>
                 <FiltersSPA
-                  availableCategories={categories || []}
-                  availableBrands={brands || []}
+                  availableCategories={allCategories || []}
+                  availableBrands={allBrands || []}
                   priceRange={{ min: 0, max: 10000 }}
                   capacityRange={{ min: 0, max: 50000 }}
                 />
@@ -351,8 +367,8 @@ function HomeContent() {
                       </div>
                     </div>
                     <FiltersSPA
-                      availableCategories={categories || []}
-                      availableBrands={brands || []}
+                      availableCategories={allCategories || []}
+                      availableBrands={allBrands || []}
                       priceRange={{ min: 0, max: 10000 }}
                       capacityRange={{ min: 0, max: 50000 }}
                       isMobile={true}
@@ -364,7 +380,7 @@ function HomeContent() {
 
             {/* Products Grid */}
             <div className="lg:w-3/4">
-              {isLoading ? (
+              {loading ? (
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {Array.from({ length: 6 }).map((_, index) => (
                     <div
@@ -391,11 +407,11 @@ function HomeContent() {
                     <div className="text-center mt-12">
                       <Button
                         onClick={handleLoadMore}
-                        disabled={isLoadingMore}
+                        disabled={loadingMore}
                         size="lg"
                         className="px-8"
                       >
-                        {isLoadingMore ? (
+                        {loadingMore ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                             Завантаження...
@@ -457,3 +473,5 @@ function HomeContent() {
     </>
   );
 }
+
+export default HomePageClient;

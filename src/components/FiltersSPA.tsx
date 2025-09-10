@@ -172,100 +172,100 @@ export default function FiltersSPA({
 
   const FilterContent = () => (
     <div className="space-y-6">
-        {/* Categories */}
-        {availableCategories && availableCategories.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="font-medium">Категорії</h4>
-            <div className="space-y-2">
-              {availableCategories.map((category) => (
-                <label
-                  key={category}
-                  className="flex items-center space-x-2 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={
-                      localFilters.categoryIds?.includes(category) || false
-                    }
-                    onChange={() => handleCategoryToggle(category)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm">{category}</span>
-                </label>
-              ))}
-            </div>
-            <Separator />
+      {/* Categories */}
+      {availableCategories && availableCategories.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="font-medium">Категорії</h4>
+          <div className="space-y-2">
+            {availableCategories.map((category) => (
+              <label
+                key={category}
+                className="flex items-center space-x-2 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={
+                    localFilters.categoryIds?.includes(category) || false
+                  }
+                  onChange={() => handleCategoryToggle(category)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm">{category}</span>
+              </label>
+            ))}
           </div>
-        )}
+          <Separator />
+        </div>
+      )}
 
-        {/* Brands */}
-        {availableBrands && availableBrands.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="font-medium">Бренди</h4>
-            <div className="space-y-2">
-              {availableBrands.map((brand) => (
-                <label
-                  key={brand}
-                  className="flex items-center space-x-2 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={localFilters.brandIds?.includes(brand) || false}
-                    onChange={() => handleBrandToggle(brand)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm">{brand}</span>
-                </label>
-              ))}
-            </div>
-            <Separator />
+      {/* Brands */}
+      {availableBrands && availableBrands.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="font-medium">Бренди</h4>
+          <div className="space-y-2">
+            {availableBrands.map((brand) => (
+              <label
+                key={brand}
+                className="flex items-center space-x-2 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={localFilters.brandIds?.includes(brand) || false}
+                  onChange={() => handleBrandToggle(brand)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm">{brand}</span>
+              </label>
+            ))}
           </div>
-        )}
+          <Separator />
+        </div>
+      )}
 
-        {/* Price Filter */}
-        <div className="space-y-3">
-          <h4 className="font-medium">Ціна</h4>
-          <PriceFilter
-            value={priceRange}
-            onChange={handlePriceChange}
-            min={priceRange.min}
-            max={priceRange.max}
+      {/* Price Filter */}
+      <div className="space-y-3">
+        <h4 className="font-medium">Ціна</h4>
+        <PriceFilter
+          value={priceRange}
+          onChange={handlePriceChange}
+          min={priceRange.min}
+          max={priceRange.max}
+        />
+      </div>
+      <Separator />
+
+      {/* Capacity Filter - always visible */}
+      <div className="space-y-3">
+        <h4 className="font-medium">Ємність павербанку</h4>
+        <CapacitySelectFilter
+          onCapacityChange={handleCapacityChange}
+          categoryId={1001}
+        />
+      </div>
+      <Separator />
+
+      {/* USB Cable Filters - always visible */}
+      <div className="space-y-3">
+        <h4 className="font-medium">Фільтри кабелів</h4>
+        <USBCableFilters
+          onFiltersChange={handleUSBFiltersChange}
+          categoryId={1002}
+        />
+      </div>
+      <Separator />
+
+      {/* Stock Filter */}
+      <div className="space-y-3">
+        <label className="flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={localFilters.inStockOnly || false}
+            onChange={handleStockToggle}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
-        </div>
-        <Separator />
-
-        {/* Capacity Filter - always visible */}
-        <div className="space-y-3">
-          <h4 className="font-medium">Ємність павербанку</h4>
-          <CapacitySelectFilter
-            onCapacityChange={handleCapacityChange}
-            categoryId={1001}
-          />
-        </div>
-        <Separator />
-
-        {/* USB Cable Filters - always visible */}
-        <div className="space-y-3">
-          <h4 className="font-medium">Фільтри кабелів</h4>
-          <USBCableFilters
-            onFiltersChange={handleUSBFiltersChange}
-            categoryId={1002}
-          />
-        </div>
-        <Separator />
-
-        {/* Stock Filter */}
-        <div className="space-y-3">
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={localFilters.inStockOnly || false}
-              onChange={handleStockToggle}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="text-sm font-medium">Тільки в наявності</span>
-          </label>
-        </div>
+          <span className="text-sm font-medium">Тільки в наявності</span>
+        </label>
+      </div>
     </div>
   );
 
