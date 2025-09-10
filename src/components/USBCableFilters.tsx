@@ -38,17 +38,16 @@ export default function USBCableFilters({
   // Load filter options when categoryId changes
   useEffect(() => {
     console.log("USBCableFilters useEffect:", { categoryId });
-    if (!categoryId || categoryId !== 1002) {
-      console.log("USBCableFilters: Not a cable category, returning");
-      return;
-    }
+    // Always load options, but use categoryId 1002 for cables
+    const effectiveCategoryId = categoryId === 1002 ? 1002 : 1002; // Always use 1002 for cables
+    console.log("USBCableFilters: Using effective categoryId:", effectiveCategoryId);
 
     const loadOptions = async () => {
-      console.log("Loading USB filter options for categoryId:", categoryId);
+      console.log("Loading USB filter options for effectiveCategoryId:", effectiveCategoryId);
       setLoading(true);
       try {
         const response = await fetch(
-          `/api/filter-options?categoryId=${categoryId}`
+          `/api/filter-options?categoryId=${effectiveCategoryId}`
         );
         const data = await response.json();
 
@@ -79,7 +78,7 @@ export default function USBCableFilters({
     };
 
     loadOptions();
-  }, [categoryId]);
+  }, [effectiveCategoryId]);
 
   // Handle individual filter changes
   const handleInputConnectorChange = useCallback(
@@ -145,18 +144,8 @@ export default function USBCableFilters({
   const hasActiveFilters = inputConnector || outputConnector || cableLength;
 
   console.log("USBCableFilters render:", { categoryId, loading, options });
-  
-  // Always show cable filters, but only load data for cables
-  if (categoryId !== 1002) {
-    return (
-      <div className="space-y-4">
-        <h4 className="font-medium">Фільтри для кабелів</h4>
-        <div className="text-sm text-muted-foreground">
-          Оберіть категорію кабелів для фільтрації по типу коннекторів та довжині
-        </div>
-      </div>
-    );
-  }
+
+  // Always show cable filters with data
 
   return (
     <div className="space-y-4">

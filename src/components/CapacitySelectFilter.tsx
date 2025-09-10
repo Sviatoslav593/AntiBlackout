@@ -19,16 +19,15 @@ export default function CapacitySelectFilter({
   // Load available capacities when categoryId changes
   useEffect(() => {
     console.log("CapacitySelectFilter useEffect:", { categoryId });
-    if (!categoryId || categoryId !== 1001) {
-      console.log("CapacitySelectFilter: Not a power bank category, returning");
-      return;
-    }
+    // Always load options, but use categoryId 1001 for power banks
+    const effectiveCategoryId = categoryId === 1001 ? 1001 : 1001; // Always use 1001 for power banks
+    console.log("CapacitySelectFilter: Using effective categoryId:", effectiveCategoryId);
 
     const loadCapacities = async () => {
-      console.log("Loading capacities for categoryId:", categoryId);
+      console.log("Loading capacities for effectiveCategoryId:", effectiveCategoryId);
       setLoading(true);
       try {
-        const response = await fetch(`/api/products?categoryId=${categoryId}`);
+        const response = await fetch(`/api/products?categoryId=${effectiveCategoryId}`);
         const data = await response.json();
         console.log("Capacity API response:", data);
 
@@ -53,7 +52,7 @@ export default function CapacitySelectFilter({
     };
 
     loadCapacities();
-  }, [categoryId]);
+  }, [effectiveCategoryId]);
 
   // Handle capacity selection
   const handleCapacitySelect = useCallback(
@@ -78,17 +77,7 @@ export default function CapacitySelectFilter({
     onCapacityChange(null);
   };
 
-  // Always show capacity filter, but only load data for power banks
-  if (categoryId !== 1001) {
-    return (
-      <div className="space-y-4">
-        <h4 className="font-medium">Ємність акумулятора</h4>
-        <div className="text-sm text-muted-foreground">
-          Оберіть категорію павербанків для фільтрації по ємності
-        </div>
-      </div>
-    );
-  }
+  // Always show capacity filter with data
 
   return (
     <div className="space-y-4">
