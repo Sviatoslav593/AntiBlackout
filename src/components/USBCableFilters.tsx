@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ChevronDown } from "lucide-react";
 
 interface USBCableFiltersProps {
@@ -22,6 +22,7 @@ export default function USBCableFilters({
   onFiltersChange,
   categoryId,
 }: USBCableFiltersProps) {
+  console.log("USBCableFilters: Component rendered with categoryId:", categoryId);
   const [inputConnector, setInputConnector] = useState<string>("");
   const [outputConnector, setOutputConnector] = useState<string>("");
   const [cableLength, setCableLength] = useState<string>("");
@@ -36,6 +37,9 @@ export default function USBCableFilters({
   const [loading, setLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
+
+  // Memoize onFiltersChange to prevent unnecessary re-renders
+  const stableOnFiltersChange = useMemo(() => onFiltersChange, []);
 
   // Load filter options from products - only once when component mounts
   useEffect(() => {
@@ -144,7 +148,7 @@ export default function USBCableFilters({
 
     const timeoutId = setTimeout(() => {
       console.log("USBCableFilters: Calling onFiltersChange");
-      onFiltersChange({
+      stableOnFiltersChange({
         inputConnector: inputConnector || undefined,
         outputConnector: outputConnector || undefined,
         cableLength: cableLength || undefined,
@@ -152,7 +156,7 @@ export default function USBCableFilters({
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [inputConnector, outputConnector, cableLength, isLoaded]);
+  }, [inputConnector, outputConnector, cableLength, isLoaded, stableOnFiltersChange]);
 
   const clearFilters = () => {
     setInputConnector("");
