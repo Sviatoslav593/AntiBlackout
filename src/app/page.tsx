@@ -854,31 +854,39 @@ function HomeContent() {
                           cat.includes("кабелі") ||
                           cat.includes("зарядки")
                       );
-                      
+
                       // Check if USB filters are being applied (cable filters)
-                      const hasUSBFilters = filterParams.inputConnector || 
-                                          filterParams.outputConnector || 
-                                          filterParams.cableLength;
-                      
+                      const hasUSBFilters =
+                        filterParams.inputConnector ||
+                        filterParams.outputConnector ||
+                        filterParams.cableLength;
+
                       // Check if capacity filters are being applied (power bank filters)
-                      const hasCapacityFilters = filterParams.minCapacity || 
-                                               filterParams.maxCapacity;
-                      
+                      const hasCapacityFilters =
+                        filterParams.minCapacity || filterParams.maxCapacity;
+
                       if (hasUSBFilters) {
                         categoryIds = ["1002"]; // Cables
-                        console.log("Page: Using cable category due to USB filters");
+                        console.log(
+                          "Page: Using cable category due to USB filters"
+                        );
                       } else if (hasCapacityFilters) {
                         categoryIds = ["1001"]; // Power banks
-                        console.log("Page: Using power bank category due to capacity filters");
+                        console.log(
+                          "Page: Using power bank category due to capacity filters"
+                        );
                       } else {
                         categoryIds = isCableCategory
                           ? ["1002"]
                           : isPowerBankCategory
                           ? ["1001"]
                           : ["1001"]; // Default to power banks
-                        console.log("Page: Using category based on filter state:", categoryIds);
+                        console.log(
+                          "Page: Using category based on filter state:",
+                          categoryIds
+                        );
                       }
-                      
+
                       console.log("Page: Final categoryIds:", categoryIds);
                     }
 

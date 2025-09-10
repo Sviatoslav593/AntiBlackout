@@ -192,7 +192,7 @@ export default function OriginalFilters({
         <>
           <div className="space-y-3">
             <h4 className="font-medium">Бренди</h4>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="space-y-2">
               {availableBrands.map((brand) => (
                 <label
                   key={brand}

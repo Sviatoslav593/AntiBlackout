@@ -346,7 +346,7 @@ export default function Filters({
         <>
           <div className="space-y-3">
             <h4 className="font-medium">Бренди</h4>
-            <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <div className="space-y-2">
               {availableBrands.map((brand) => (
                 <label
                   key={brand}
