@@ -34,14 +34,15 @@ export default function SimpleFilters({
 }: SimpleFiltersProps) {
   // Use FilterContext when available, fallback to props
   const { filters: contextFilters, setFilters } = useFilters();
-  const actualFilters = contextFilters || filters || {
-    priceRange: { min: 0, max: 10000 },
-    inStockOnly: false,
-    categories: [],
-    brands: [],
-    capacityRange: { min: 0, max: 50000 },
-    usbFilters: {},
-  };
+  const actualFilters = contextFilters ||
+    filters || {
+      priceRange: { min: 0, max: 10000 },
+      inStockOnly: false,
+      categories: [],
+      brands: [],
+      capacityRange: { min: 0, max: 50000 },
+      usbFilters: {},
+    };
 
   // Stable callback for filters to prevent re-renders
   const handleFiltersChange = useCallback(

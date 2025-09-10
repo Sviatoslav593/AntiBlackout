@@ -15,7 +15,7 @@ import {
   FilterState,
   FilterProvider,
 } from "@/context/FilterContext";
-import MinimalFilters from "@/components/MinimalFilters";
+import BasicOriginalFilters from "@/components/BasicOriginalFilters";
 import {
   Battery,
   Shield,
@@ -102,7 +102,17 @@ function HomeContent() {
 
   // Context hooks
   const { searchQuery } = useSearch();
-  const { filters, setFilters } = useFilters();
+  const { filters: contextFilters, setFilters } = useFilters();
+  
+  // Ensure filters has default values
+  const filters = contextFilters || {
+    priceRange: { min: 0, max: 10000 },
+    inStockOnly: false,
+    categories: [],
+    brands: [],
+    capacityRange: { min: 0, max: 50000 },
+    usbFilters: {},
+  };
 
   // Handle URL parameters for category filtering
   useEffect(() => {
@@ -720,11 +730,22 @@ function HomeContent() {
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
               {/* Filters Sidebar */}
               <div className="xl:col-span-1">
-                <MinimalFilters
+                <BasicOriginalFilters
                   filters={filters}
                   onFiltersChange={setFilters}
                   availableCategories={availableCategories}
                   availableBrands={availableBrands}
+                  selectedCategoryId={
+                    availableCategories.includes("Зарядки та кабелі") &&
+                    (filters.categories.length === 0 ||
+                      filters.categories.includes("Зарядки та кабелі"))
+                      ? 1002
+                      : availableCategories.includes("Портативні батареї") &&
+                        (filters.categories.length === 0 ||
+                          filters.categories.includes("Портативні батареї"))
+                      ? 1001
+                      : undefined
+                  }
                 />
               </div>
 
