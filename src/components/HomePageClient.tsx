@@ -220,8 +220,8 @@ export default function HomePageClient() {
                   </Button>
                 </div>
                 <FiltersSPA
-                  availableCategories={categories}
-                  availableBrands={brands}
+                  availableCategories={categories || []}
+                  availableBrands={brands || []}
                   priceRange={{ min: 0, max: 10000 }}
                   capacityRange={{ min: 0, max: 50000 }}
                 />

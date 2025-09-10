@@ -12,8 +12,8 @@ import { useProductStore } from "@/store/productStore";
 import { FilterParams } from "@/store/productStore";
 
 interface FiltersSPAProps {
-  availableCategories: string[];
-  availableBrands: string[];
+  availableCategories?: string[];
+  availableBrands?: string[];
   priceRange: { min: number; max: number };
   capacityRange: { min: number; max: number };
 }
@@ -194,7 +194,7 @@ export default function FiltersSPA({
       <Separator />
 
       {/* Categories */}
-      {availableCategories.length > 0 && (
+      {availableCategories && availableCategories.length > 0 && (
         <>
           <div className="space-y-3">
             <h4 className="font-medium">Категорії</h4>
@@ -222,7 +222,7 @@ export default function FiltersSPA({
       )}
 
       {/* Brands */}
-      {availableBrands.length > 0 && (
+      {availableBrands && availableBrands.length > 0 && (
         <>
           <div className="space-y-3">
             <h4 className="font-medium">Бренди</h4>
@@ -251,8 +251,10 @@ export default function FiltersSPA({
       <div className="space-y-3">
         <h4 className="font-medium">Ціна</h4>
         <PriceFilter
-          priceRange={priceRange}
-          onPriceChange={handlePriceChange}
+          value={priceRange}
+          onChange={handlePriceChange}
+          min={priceRange.min}
+          max={priceRange.max}
         />
       </div>
       <Separator />
