@@ -38,3 +38,18 @@ AND order_items.product_name IS NULL;
 -- Make product_name NOT NULL after updating existing records
 ALTER TABLE order_items 
 ALTER COLUMN product_name SET NOT NULL;
+
+-- Add product_price column to existing order_items table
+ALTER TABLE order_items 
+ADD COLUMN IF NOT EXISTS product_price NUMERIC;
+
+-- Update existing order_items with product prices
+UPDATE order_items 
+SET product_price = p.price
+FROM products p
+WHERE order_items.product_id = p.id
+AND order_items.product_price IS NULL;
+
+-- Make product_price NOT NULL after updating existing records
+ALTER TABLE order_items 
+ALTER COLUMN product_price SET NOT NULL;

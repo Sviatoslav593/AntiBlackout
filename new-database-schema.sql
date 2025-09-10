@@ -71,6 +71,7 @@ CREATE TABLE order_items (
     order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
     product_id UUID REFERENCES products(id),
     product_name TEXT NOT NULL,
+    product_price NUMERIC NOT NULL,
     quantity INTEGER NOT NULL,
     price NUMERIC NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
