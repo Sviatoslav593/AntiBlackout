@@ -358,9 +358,9 @@ export default function Home() {
       filters.priceRange.min > 0 ||
       filters.priceRange.max < 10000 ||
       debouncedSearchQuery ||
-      (filters.usbFilters?.inputConnector) ||
-      (filters.usbFilters?.outputConnector) ||
-      (filters.usbFilters?.cableLength);
+      filters.usbFilters?.inputConnector ||
+      filters.usbFilters?.outputConnector ||
+      filters.usbFilters?.cableLength;
 
     console.log("Filter change detected:", {
       hasActiveFilters,

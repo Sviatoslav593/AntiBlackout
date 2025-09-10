@@ -37,12 +37,17 @@ export default function USBCableFilters({
 
   // Load filter options from products
   const loadFilterOptions = useCallback(async () => {
-    if (!categoryId) return;
-
+    if (!categoryId) {
+      console.log("USBCableFilters: No categoryId provided");
+      return;
+    }
+    
+    console.log("USBCableFilters: Loading options for categoryId:", categoryId);
     setLoading(true);
     try {
       const response = await fetch(`/api/products?categoryId=${categoryId}`);
       const data = await response.json();
+      console.log("USBCableFilters: API response:", data);
 
       if (data.success && data.products) {
         const products = data.products;
@@ -100,6 +105,12 @@ export default function USBCableFilters({
               return a.label.localeCompare(b.label);
             })
         );
+        
+        console.log("USBCableFilters: Loaded options:", {
+          input: inputOptions.length,
+          output: outputOptions.length,
+          length: lengthOptions.length
+        });
       }
     } catch (error) {
       console.error("Error loading filter options:", error);
@@ -123,7 +134,7 @@ export default function USBCableFilters({
     }, 500); // Increased debounce time to prevent rapid API calls
 
     return () => clearTimeout(timeoutId);
-  }, [inputConnector, outputConnector, cableLength, onFiltersChange]);
+  }, [inputConnector, outputConnector, cableLength]); // Removed onFiltersChange from dependencies
 
   const clearFilters = () => {
     setInputConnector("");

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -304,7 +305,7 @@ export default function Filters({
       {selectedCategoryId === 1002 && (
         <>
           <USBCableFilters
-            onFiltersChange={(usbFilters) => {
+            onFiltersChange={useCallback((usbFilters) => {
               // Update USB filters in the main filter state
               handleFiltersChange({
                 ...filters,
@@ -313,7 +314,7 @@ export default function Filters({
                   ...usbFilters,
                 },
               });
-            }}
+            }, [filters, handleFiltersChange])}
             categoryId={selectedCategoryId}
           />
           <Separator />
