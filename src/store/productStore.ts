@@ -159,15 +159,25 @@ export const useProductStore = create<ProductState>()(
         const filtered = state.allProducts.filter((product) => {
           // Category filter
           if (filters.categoryIds && filters.categoryIds.length > 0) {
-            console.log('Category filter:', filters.categoryIds, 'Product category:', product.category);
-            if (!filters.categoryIds.includes(product.category)) {
+            console.log(
+              "Category filter:",
+              filters.categoryIds,
+              "Product categoryId:",
+              product.categoryId
+            );
+            if (!filters.categoryIds.includes(product.categoryId)) {
               return false;
             }
           }
 
           // Brand filter
           if (filters.brandIds && filters.brandIds.length > 0) {
-            console.log('Brand filter:', filters.brandIds, 'Product brand:', product.brand);
+            console.log(
+              "Brand filter:",
+              filters.brandIds,
+              "Product brand:",
+              product.brand
+            );
             if (!filters.brandIds.includes(product.brand)) {
               return false;
             }

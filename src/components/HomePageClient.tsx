@@ -128,7 +128,7 @@ function HomePageClient() {
     if (isMobileFiltersOpen) {
       // Store current scroll position
       const scrollY = window.scrollY;
-      console.log('Locking scroll at position:', scrollY);
+      console.log("Locking scroll at position:", scrollY);
 
       // Store original styles
       const originalOverflow = document.body.style.overflow;
@@ -144,7 +144,7 @@ function HomePageClient() {
 
       // Cleanup function
       return () => {
-        console.log('Unlocking scroll, restoring position:', scrollY);
+        console.log("Unlocking scroll, restoring position:", scrollY);
         document.body.style.overflow = originalOverflow;
         document.body.style.position = originalPosition;
         document.body.style.top = originalTop;
@@ -445,13 +445,12 @@ function HomePageClient() {
             <AnimatePresence>
               {isMobileFiltersOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
-                  {/* Background overlay for closing on click */}
                   <motion.div
-                    className="fixed inset-0 bg-black bg-opacity-20"
+                    className="fixed inset-0 bg-black bg-opacity-50"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.3 }}
                     onClick={() => setIsMobileFiltersOpen(false)}
                   />
                   <motion.div
@@ -461,7 +460,7 @@ function HomePageClient() {
                     exit={{ x: "-100%" }}
                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
                   >
-                    <div className="p-6 pt-20">
+                    <div className="p-6 pt-16">
                       <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b z-10">
                         <h3 className="text-xl font-semibold">
                           Фільтри товарів
@@ -483,7 +482,7 @@ function HomePageClient() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setIsMobileFiltersOpen(false)}
-                        className="absolute top-16 right-4 p-2 hover:bg-gray-100 rounded-full z-30 bg-white shadow-sm"
+                        className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full z-20"
                       >
                         <X className="w-5 h-5" />
                       </Button>
