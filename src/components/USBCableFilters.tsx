@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 
 interface USBCableFiltersProps {
@@ -35,22 +35,23 @@ export default function USBCableFilters({
   const [isLengthOpen, setIsLengthOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const hasLoadedRef = useRef(false);
 
   // Load filter options from products - only once when component mounts
   useEffect(() => {
     console.log(
       "USBCableFilters: useEffect triggered - categoryId:",
       categoryId,
-      "isLoaded:",
-      isLoaded
+      "hasLoadedRef:",
+      hasLoadedRef.current
     );
 
-    if (!categoryId || isLoaded) {
+    if (!categoryId || hasLoadedRef.current) {
       console.log(
         "USBCableFilters: Skipping load - categoryId:",
         categoryId,
-        "isLoaded:",
-        isLoaded
+        "hasLoadedRef:",
+        hasLoadedRef.current
       );
       return;
     }
@@ -106,7 +107,11 @@ export default function USBCableFilters({
             length: cableLengths.length,
           });
 
+          hasLoadedRef.current = true;
           setIsLoaded(true);
+        } else {
+          console.error("USBCableFilters: API returned error:", data.error);
+          hasLoadedRef.current = true; // Mark as loaded even on error to prevent retries
         }
       } catch (error) {
         console.error("Error loading filter options:", error);
