@@ -75,13 +75,19 @@ export async function GET(request: NextRequest) {
 
       // USB Cable characteristics filters
       if (inputConnector) {
-        query = query.contains("characteristics", { "Вхід (Тип коннектора)": inputConnector });
+        query = query.contains("characteristics", {
+          "Вхід (Тип коннектора)": inputConnector,
+        });
       }
       if (outputConnector) {
-        query = query.contains("characteristics", { "Вихід (Тип коннектора)": outputConnector });
+        query = query.contains("characteristics", {
+          "Вихід (Тип коннектора)": outputConnector,
+        });
       }
       if (cableLength) {
-        query = query.contains("characteristics", { "Довжина кабелю, м": cableLength });
+        query = query.contains("characteristics", {
+          "Довжина кабелю, м": cableLength,
+        });
       }
 
       const { data: products, error } = await query;
@@ -202,13 +208,19 @@ export async function GET(request: NextRequest) {
 
       // USB Cable characteristics filters
       if (inputConnector) {
-        query = query.contains("characteristics", { "Вхід (Тип коннектора)": inputConnector });
+        query = query.contains("characteristics", {
+          "Вхід (Тип коннектора)": inputConnector,
+        });
       }
       if (outputConnector) {
-        query = query.contains("characteristics", { "Вихід (Тип коннектора)": outputConnector });
+        query = query.contains("characteristics", {
+          "Вихід (Тип коннектора)": outputConnector,
+        });
       }
       if (cableLength) {
-        query = query.contains("characteristics", { "Довжина кабелю, м": cableLength });
+        query = query.contains("characteristics", {
+          "Довжина кабелю, м": cableLength,
+        });
       }
 
       const { data: batchProducts, error } = await query;

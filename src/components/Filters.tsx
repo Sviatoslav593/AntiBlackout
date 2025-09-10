@@ -29,6 +29,11 @@ export interface FilterState {
     max: number;
   };
   inStockOnly: boolean;
+  usbFilters: {
+    inputConnector?: string;
+    outputConnector?: string;
+    cableLength?: string;
+  };
 }
 
 interface FiltersProps {
@@ -203,6 +208,7 @@ export default function Filters({
       brands: [],
       capacityRange: { min: capacityRange.min, max: capacityRange.max },
       inStockOnly: false,
+      usbFilters: {},
     };
 
     handleFiltersChange(clearedFilters);
@@ -229,6 +235,7 @@ export default function Filters({
     )
       count++;
     if (filters.inStockOnly) count++;
+    if (filters.usbFilters.inputConnector || filters.usbFilters.outputConnector || filters.usbFilters.cableLength) count++;
     return count;
   };
 
@@ -293,13 +300,11 @@ export default function Filters({
         <>
           <USBCableFilters
             onFiltersChange={(usbFilters) => {
-              if (onApplyFilters) {
-                onApplyFilters({
-                  inputConnector: usbFilters.inputConnector,
-                  outputConnector: usbFilters.outputConnector,
-                  cableLength: usbFilters.cableLength,
-                });
-              }
+              // Update USB filters in the main filter state
+              handleFiltersChange({
+                ...filters,
+                usbFilters: usbFilters,
+              });
             }}
             categoryId={selectedCategoryId}
           />

@@ -8,6 +8,11 @@ export interface FilterState {
   categories: string[];
   brands: string[];
   capacityRange: { min: number; max: number };
+  usbFilters: {
+    inputConnector?: string;
+    outputConnector?: string;
+    cableLength?: string;
+  };
 }
 
 interface FilterContextType {
@@ -34,6 +39,7 @@ export function FilterProvider({
       categories: [],
       brands: [],
       capacityRange: { min: 0, max: 50000 },
+      usbFilters: {},
     }
   );
 
@@ -44,6 +50,7 @@ export function FilterProvider({
       categories: [],
       brands: [],
       capacityRange: { min: 0, max: 50000 },
+      usbFilters: {},
     });
   };
 

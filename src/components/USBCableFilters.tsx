@@ -38,7 +38,7 @@ export default function USBCableFilters({
   // Load filter options from products
   const loadFilterOptions = useCallback(async () => {
     if (!categoryId) return;
-    
+
     setLoading(true);
     try {
       const response = await fetch(`/api/products?categoryId=${categoryId}`);
@@ -120,7 +120,7 @@ export default function USBCableFilters({
         outputConnector: outputConnector || undefined,
         cableLength: cableLength || undefined,
       });
-    }, 300);
+    }, 500); // Increased debounce time to prevent rapid API calls
 
     return () => clearTimeout(timeoutId);
   }, [inputConnector, outputConnector, cableLength, onFiltersChange]);
