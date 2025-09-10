@@ -7,8 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import PriceFilter from "@/components/PriceFilter";
 import CapacityFilter from "@/components/CapacityFilter";
-import { useFilters, FilterState } from "@/context/FilterContext";
-// import USBCableFilters from "@/components/USBCableFilters";
+import USBCableFilters from "@/components/USBCableFilters";
+import { useFilters } from "@/context/FilterContext";
 import {
   Sheet,
   SheetContent,
@@ -18,7 +18,24 @@ import {
 } from "@/components/ui/sheet";
 import { Filter } from "lucide-react";
 
-// FilterState is now imported from FilterContext
+export interface FilterState {
+  priceRange: {
+    min: number;
+    max: number;
+  };
+  categories: string[];
+  brands: string[];
+  capacityRange: {
+    min: number;
+    max: number;
+  };
+  inStockOnly: boolean;
+  usbFilters: {
+    inputConnector?: string;
+    outputConnector?: string;
+    cableLength?: string;
+  };
+}
 
 interface FiltersProps {
   filters: FilterState;
@@ -56,24 +73,18 @@ export default function Filters({
   const filters = contextFilters || propFilters;
 
   // Stable callback for USB filters to prevent re-renders
-  const handleUSBFiltersChange = useCallback(
-    (usbFilters: any) => {
-      handleFiltersChange((prevFilters) => ({
-        ...prevFilters,
-        usbFilters: {
-          ...prevFilters.usbFilters,
-          ...usbFilters,
-        },
-      }));
-    },
-    [handleFiltersChange]
-  );
+  const handleUSBFiltersChange = useCallback((usbFilters: any) => {
+    handleFiltersChange((prevFilters) => ({
+      ...prevFilters,
+      usbFilters: {
+        ...prevFilters.usbFilters,
+        ...usbFilters,
+      },
+    }));
+  }, [handleFiltersChange]);
 
   // Memoize selectedCategoryId to prevent unnecessary re-renders
-  const memoizedSelectedCategoryId = useMemo(
-    () => selectedCategoryId,
-    [selectedCategoryId]
-  );
+  const memoizedSelectedCategoryId = useMemo(() => selectedCategoryId, [selectedCategoryId]);
 
   // Handle filter changes through context or props
   const handleFiltersChange = (newFilters: FilterState) => {
@@ -307,10 +318,10 @@ export default function Filters({
       {/* USB Cable Filters - only for "Зарядки та кабелі" category */}
       {memoizedSelectedCategoryId === 1002 && (
         <>
-          {/* <USBCableFilters
+          <USBCableFilters
             onFiltersChange={handleUSBFiltersChange}
             categoryId={memoizedSelectedCategoryId}
-          /> */}
+          />
           <Separator />
         </>
       )}

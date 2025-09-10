@@ -53,7 +53,7 @@ export default function SimpleFilters({
     const newCategories = localFilters.categories.includes(category)
       ? localFilters.categories.filter((c) => c !== category)
       : [...localFilters.categories, category];
-    
+
     const newFilters = { ...localFilters, categories: newCategories };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
@@ -63,14 +63,17 @@ export default function SimpleFilters({
     const newBrands = localFilters.brands.includes(brand)
       ? localFilters.brands.filter((b) => b !== brand)
       : [...localFilters.brands, brand];
-    
+
     const newFilters = { ...localFilters, brands: newBrands };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
   };
 
   const handleInStockToggle = () => {
-    const newFilters = { ...localFilters, inStockOnly: !localFilters.inStockOnly };
+    const newFilters = {
+      ...localFilters,
+      inStockOnly: !localFilters.inStockOnly,
+    };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
   };
@@ -88,7 +91,7 @@ export default function SimpleFilters({
     onFiltersChange(clearedFilters);
   };
 
-  const hasActiveFilters = 
+  const hasActiveFilters =
     localFilters.categories.length > 0 ||
     localFilters.brands.length > 0 ||
     localFilters.inStockOnly ||
@@ -117,17 +120,13 @@ export default function SimpleFilters({
             <SheetHeader>
               <SheetTitle>Фільтри</SheetTitle>
             </SheetHeader>
-            <div className="mt-6 space-y-6">
-              {renderFilterContent()}
-            </div>
+            <div className="mt-6 space-y-6">{renderFilterContent()}</div>
           </SheetContent>
         </Sheet>
       </div>
 
       {/* Desktop Filters */}
-      <div className="hidden lg:block">
-        {renderFilterContent()}
-      </div>
+      <div className="hidden lg:block">{renderFilterContent()}</div>
     </div>
   );
 
@@ -205,11 +204,7 @@ export default function SimpleFilters({
 
         {/* Clear Filters */}
         {hasActiveFilters && (
-          <Button
-            variant="outline"
-            onClick={clearFilters}
-            className="w-full"
-          >
+          <Button variant="outline" onClick={clearFilters} className="w-full">
             Очистити фільтри
           </Button>
         )}

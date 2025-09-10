@@ -15,7 +15,16 @@ import {
   FilterState,
   FilterProvider,
 } from "@/context/FilterContext";
-import SimpleFilters from "@/components/SimpleFilters";
+import dynamic from "next/dynamic";
+
+const Filters = dynamic(() => import("@/components/Filters"), {
+  ssr: false,
+  loading: () => (
+    <div className="text-sm text-muted-foreground">
+      Завантаження фільтрів...
+    </div>
+  ),
+});
 import {
   Battery,
   Shield,
@@ -724,7 +733,7 @@ export default function Home() {
               <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
                 {/* Filters Sidebar */}
                 <div className="xl:col-span-1">
-                  <SimpleFilters
+                  <Filters
                     filters={filters}
                     onFiltersChange={() => {}} // Use FilterContext instead
                     availableCategories={availableCategories}
