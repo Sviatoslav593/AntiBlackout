@@ -340,11 +340,13 @@ export default function Filters({
 
       {/* Capacity Range - only for power banks */}
       {(() => {
-        const shouldShowCapacity = memoizedSelectedCategoryId === 1001 || filters.categories.includes("Портативні батареї");
+        const shouldShowCapacity =
+          memoizedSelectedCategoryId === 1001 ||
+          filters.categories.includes("Портативні батареї");
         console.log("Capacity filter visibility:", {
           memoizedSelectedCategoryId,
           categories: filters.categories,
-          shouldShowCapacity
+          shouldShowCapacity,
         });
         return shouldShowCapacity;
       })() && (
