@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import PriceFilter from "@/components/PriceFilter";
 import CapacityFilter from "@/components/CapacityFilter";
-// import USBCableFilters from "@/components/USBCableFilters";
+import USBCableFilters from "@/components/USBCableFilters";
 import { useFilters } from "@/context/FilterContext";
 import {
   Sheet,
@@ -30,11 +30,11 @@ export interface FilterState {
     max: number;
   };
   inStockOnly: boolean;
-  // usbFilters: {
-  //   inputConnector?: string;
-  //   outputConnector?: string;
-  //   cableLength?: string;
-  // };
+  usbFilters: {
+    inputConnector?: string;
+    outputConnector?: string;
+    cableLength?: string;
+  };
 }
 
 interface FiltersProps {
@@ -73,18 +73,21 @@ export default function Filters({
   const filters = contextFilters || propFilters;
 
   // Stable callback for USB filters to prevent re-renders
-  // const handleUSBFiltersChange = useCallback((usbFilters: any) => {
-  //   handleFiltersChange((prevFilters) => ({
-  //     ...prevFilters,
-  //     usbFilters: {
-  //       ...prevFilters.usbFilters,
-  //       ...usbFilters,
-  //     },
-  //   }));
-  // }, [handleFiltersChange]);
+  const handleUSBFiltersChange = useCallback((usbFilters: any) => {
+    handleFiltersChange((prevFilters) => ({
+      ...prevFilters,
+      usbFilters: {
+        ...prevFilters.usbFilters,
+        ...usbFilters,
+      },
+    }));
+  }, [handleFiltersChange]);
 
   // Memoize selectedCategoryId to prevent unnecessary re-renders
-  const memoizedSelectedCategoryId = useMemo(() => selectedCategoryId, [selectedCategoryId]);
+  const memoizedSelectedCategoryId = useMemo(
+    () => selectedCategoryId,
+    [selectedCategoryId]
+  );
 
   // Handle filter changes through context or props
   const handleFiltersChange = (newFilters: FilterState) => {
@@ -316,7 +319,7 @@ export default function Filters({
       )}
 
       {/* USB Cable Filters - only for "Зарядки та кабелі" category */}
-      {/* {memoizedSelectedCategoryId === 1002 && (
+      {memoizedSelectedCategoryId === 1002 && (
         <>
           <USBCableFilters
             onFiltersChange={handleUSBFiltersChange}
@@ -324,7 +327,7 @@ export default function Filters({
           />
           <Separator />
         </>
-      )} */}
+      )}
 
       {/* Brands */}
       {availableBrands.length > 0 && (
