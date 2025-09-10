@@ -121,15 +121,19 @@ export async function GET(request: NextRequest) {
         products?.map((product) => {
           // Extract capacity from characteristics
           let capacity = 0;
-          if (product.characteristics && product.characteristics["Ємність акумулятора, mah"]) {
-            const capacityValue = product.characteristics["Ємність акумулятора, mah"];
-            if (typeof capacityValue === 'string') {
+          if (
+            product.characteristics &&
+            product.characteristics["Ємність акумулятора, mah"]
+          ) {
+            const capacityValue =
+              product.characteristics["Ємність акумулятора, mah"];
+            if (typeof capacityValue === "string") {
               // Extract number from string like "10000 mAh" or "10000"
               const match = capacityValue.match(/(\d+)/);
               if (match) {
                 capacity = parseInt(match[1]);
               }
-            } else if (typeof capacityValue === 'number') {
+            } else if (typeof capacityValue === "number") {
               capacity = capacityValue;
             }
           }
@@ -164,15 +168,15 @@ export async function GET(request: NextRequest) {
       if (minCapacity || maxCapacity) {
         convertedProducts = convertedProducts.filter((product) => {
           if (product.capacity === 0) return false; // Skip products without capacity
-          
+
           if (minCapacity && product.capacity < parseInt(minCapacity)) {
             return false;
           }
-          
+
           if (maxCapacity && product.capacity > parseInt(maxCapacity)) {
             return false;
           }
-          
+
           return true;
         });
       }
@@ -298,15 +302,19 @@ export async function GET(request: NextRequest) {
       products?.map((product) => {
         // Extract capacity from characteristics
         let capacity = 0;
-        if (product.characteristics && product.characteristics["Ємність акумулятора, mah"]) {
-          const capacityValue = product.characteristics["Ємність акумулятора, mah"];
-          if (typeof capacityValue === 'string') {
+        if (
+          product.characteristics &&
+          product.characteristics["Ємність акумулятора, mah"]
+        ) {
+          const capacityValue =
+            product.characteristics["Ємність акумулятора, mah"];
+          if (typeof capacityValue === "string") {
             // Extract number from string like "10000 mAh" or "10000"
             const match = capacityValue.match(/(\d+)/);
             if (match) {
               capacity = parseInt(match[1]);
             }
-          } else if (typeof capacityValue === 'number') {
+          } else if (typeof capacityValue === "number") {
             capacity = capacityValue;
           }
         }
@@ -341,15 +349,15 @@ export async function GET(request: NextRequest) {
     if (minCapacity || maxCapacity) {
       convertedProducts = convertedProducts.filter((product) => {
         if (product.capacity === 0) return false; // Skip products without capacity
-        
+
         if (minCapacity && product.capacity < parseInt(minCapacity)) {
           return false;
         }
-        
+
         if (maxCapacity && product.capacity > parseInt(maxCapacity)) {
           return false;
         }
-        
+
         return true;
       });
     }
