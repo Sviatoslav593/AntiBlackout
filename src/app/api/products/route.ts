@@ -127,25 +127,15 @@ export async function GET(request: NextRequest) {
           ) {
             const capacityValue =
               product.characteristics["Ємність акумулятора, mah"];
-            console.log("Extracting capacity for product:", {
-              name: product.name,
-              capacityValue,
-              type: typeof capacityValue
-            });
-            
             if (typeof capacityValue === "string") {
               // Extract number from string like "10000 mAh" or "10000"
               const match = capacityValue.match(/(\d+)/);
               if (match) {
                 capacity = parseInt(match[1]);
-                console.log("Extracted capacity from string:", capacity);
               }
             } else if (typeof capacityValue === "number") {
               capacity = capacityValue;
-              console.log("Using numeric capacity:", capacity);
             }
-          } else {
-            console.log("No capacity found for product:", product.name);
           }
 
           return {
@@ -184,29 +174,18 @@ export async function GET(request: NextRequest) {
         
         const beforeFilter = convertedProducts.length;
         convertedProducts = convertedProducts.filter((product) => {
-          console.log("Product capacity check:", {
-            name: product.name,
-            capacity: product.capacity,
-            minCapacity: minCapacity ? parseInt(minCapacity) : null,
-            maxCapacity: maxCapacity ? parseInt(maxCapacity) : null
-          });
-          
           if (product.capacity === 0) {
-            console.log("Skipping product without capacity:", product.name);
             return false; // Skip products without capacity
           }
 
           if (minCapacity && product.capacity < parseInt(minCapacity)) {
-            console.log("Product below min capacity:", product.name, product.capacity, "<", parseInt(minCapacity));
             return false;
           }
 
           if (maxCapacity && product.capacity > parseInt(maxCapacity)) {
-            console.log("Product above max capacity:", product.name, product.capacity, ">", parseInt(maxCapacity));
             return false;
           }
 
-          console.log("Product passed capacity filter:", product.name, product.capacity);
           return true;
         });
         
