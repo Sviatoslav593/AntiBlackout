@@ -38,88 +38,44 @@ export default function USBCableFilters({
 
   // Load filter options from products - only once when component mounts
   useEffect(() => {
+    console.log("USBCableFilters: useEffect triggered - categoryId:", categoryId, "isLoaded:", isLoaded);
+    
     if (!categoryId || isLoaded) {
+      console.log("USBCableFilters: Skipping load - categoryId:", categoryId, "isLoaded:", isLoaded);
       return;
     }
 
     const loadOptions = async () => {
-      console.log(
-        "USBCableFilters: Loading options for categoryId:",
-        categoryId
-      );
+      console.log("USBCableFilters: Loading options for categoryId:", categoryId);
       setLoading(true);
 
       try {
-        const response = await fetch(`/api/products?categoryId=${categoryId}`);
+        const response = await fetch(`/api/filter-options?categoryId=${categoryId}`);
         const data = await response.json();
-        console.log("USBCableFilters: API response:", data);
+        console.log("USBCableFilters: Filter options API response:", data);
 
-        if (data.success && data.products) {
-          const products = data.products;
-
-          // Extract input connector options
-          const inputMap = new Map<string, number>();
-          const outputMap = new Map<string, number>();
-          const lengthMap = new Map<string, number>();
-
-          products.forEach((product: any) => {
-            if (product.characteristics) {
-              // Input connector
-              const input = product.characteristics["Вхід (Тип коннектора)"];
-              if (input) {
-                inputMap.set(input, (inputMap.get(input) || 0) + 1);
-              }
-
-              // Output connector
-              const output = product.characteristics["Вихід (Тип коннектора)"];
-              if (output) {
-                outputMap.set(output, (outputMap.get(output) || 0) + 1);
-              }
-
-              // Cable length
-              const length = product.characteristics["Довжина кабелю, м"];
-              if (length) {
-                lengthMap.set(
-                  String(length),
-                  (lengthMap.get(String(length)) || 0) + 1
-                );
-              }
-            }
-          });
+        if (data.success && data.options) {
+          const { inputConnectors, outputConnectors, cableLengths } = data.options;
 
           // Set input options
           setInputOptions(
-            Array.from(inputMap.entries())
-              .map(([value, count]) => ({ value, label: value, count }))
-              .sort((a, b) => a.label.localeCompare(b.label))
+            inputConnectors.map((value: string) => ({ value, label: value, count: 0 }))
           );
 
           // Set output options
           setOutputOptions(
-            Array.from(outputMap.entries())
-              .map(([value, count]) => ({ value, label: value, count }))
-              .sort((a, b) => a.label.localeCompare(b.label))
+            outputConnectors.map((value: string) => ({ value, label: value, count: 0 }))
           );
 
           // Set length options
           setLengthOptions(
-            Array.from(lengthMap.entries())
-              .map(([value, count]) => ({ value, label: value, count }))
-              .sort((a, b) => {
-                // Sort lengths numerically
-                const aNum = parseFloat(a.value);
-                const bNum = parseFloat(b.value);
-                if (!isNaN(aNum) && !isNaN(bNum)) {
-                  return aNum - bNum;
-                }
-                return a.label.localeCompare(b.label);
-              })
+            cableLengths.map((value: string) => ({ value, label: value, count: 0 }))
           );
 
-          console.log("USBCableFilters: Loaded options:", {
-            input: inputMap.size,
-            output: outputMap.size,
-            length: lengthMap.size,
+          console.log("USBCableFilters: Successfully loaded options:", {
+            input: inputConnectors.length,
+            output: outputConnectors.length,
+            length: cableLengths.length,
           });
 
           setIsLoaded(true);
@@ -132,7 +88,7 @@ export default function USBCableFilters({
     };
 
     loadOptions();
-  }, [categoryId, isLoaded]);
+  }, [categoryId]); // Removed isLoaded from dependencies to prevent infinite loop
 
   // Debounced filter change - only when values change
   useEffect(() => {
@@ -141,7 +97,7 @@ export default function USBCableFilters({
       outputConnector,
       cableLength,
     });
-    
+
     const timeoutId = setTimeout(() => {
       console.log("USBCableFilters: Calling onFiltersChange");
       onFiltersChange({
