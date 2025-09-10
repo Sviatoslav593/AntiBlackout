@@ -19,3 +19,22 @@ ALTER COLUMN order_number SET NOT NULL;
 -- Add default value for future orders
 ALTER TABLE orders 
 ALTER COLUMN order_number SET DEFAULT 'ORD-' || EXTRACT(EPOCH FROM NOW())::TEXT;
+
+-- ==========================================
+-- FIX ORDER_ITEMS TABLE - ADD product_name COLUMN
+-- ==========================================
+
+-- Add product_name column to existing order_items table
+ALTER TABLE order_items 
+ADD COLUMN IF NOT EXISTS product_name TEXT;
+
+-- Update existing order_items with product names
+UPDATE order_items 
+SET product_name = p.name
+FROM products p
+WHERE order_items.product_id = p.id
+AND order_items.product_name IS NULL;
+
+-- Make product_name NOT NULL after updating existing records
+ALTER TABLE order_items 
+ALTER COLUMN product_name SET NOT NULL;
