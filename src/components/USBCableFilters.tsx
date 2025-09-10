@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 
 interface USBCableFiltersProps {
@@ -34,6 +34,7 @@ export default function USBCableFilters({
   const [isOutputOpen, setIsOutputOpen] = useState(false);
   const [isLengthOpen, setIsLengthOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const hasLoaded = useRef(false);
 
   // Load filter options from products
   const loadFilterOptions = useCallback(async () => {
@@ -41,7 +42,13 @@ export default function USBCableFilters({
       console.log("USBCableFilters: No categoryId provided");
       return;
     }
-    
+
+    // Don't reload if already loaded
+    if (hasLoaded.current) {
+      console.log("USBCableFilters: Options already loaded");
+      return;
+    }
+
     console.log("USBCableFilters: Loading options for categoryId:", categoryId);
     setLoading(true);
     try {
@@ -105,12 +112,14 @@ export default function USBCableFilters({
               return a.label.localeCompare(b.label);
             })
         );
-        
+
         console.log("USBCableFilters: Loaded options:", {
           input: Array.from(inputMap.entries()).length,
           output: Array.from(outputMap.entries()).length,
-          length: Array.from(lengthMap.entries()).length
+          length: Array.from(lengthMap.entries()).length,
         });
+        
+        hasLoaded.current = true;
       }
     } catch (error) {
       console.error("Error loading filter options:", error);
@@ -120,8 +129,10 @@ export default function USBCableFilters({
   }, [categoryId]);
 
   useEffect(() => {
-    loadFilterOptions();
-  }, [loadFilterOptions]);
+    if (categoryId && !hasLoaded.current) {
+      loadFilterOptions();
+    }
+  }, [categoryId, loadFilterOptions]);
 
   // Debounced filter change
   useEffect(() => {

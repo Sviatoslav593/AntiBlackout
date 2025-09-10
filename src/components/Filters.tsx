@@ -305,16 +305,19 @@ export default function Filters({
       {selectedCategoryId === 1002 && (
         <>
           <USBCableFilters
-            onFiltersChange={useCallback((usbFilters) => {
-              // Update USB filters in the main filter state
-              handleFiltersChange({
-                ...filters,
-                usbFilters: {
-                  ...filters.usbFilters,
-                  ...usbFilters,
-                },
-              });
-            }, [filters, handleFiltersChange])}
+            onFiltersChange={useCallback(
+              (usbFilters) => {
+                // Update USB filters in the main filter state
+                handleFiltersChange({
+                  ...filters,
+                  usbFilters: {
+                    ...filters.usbFilters,
+                    ...usbFilters,
+                  },
+                });
+              },
+              [filters, handleFiltersChange]
+            )}
             categoryId={selectedCategoryId}
           />
           <Separator />
