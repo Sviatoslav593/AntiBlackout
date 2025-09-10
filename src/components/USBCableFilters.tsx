@@ -144,7 +144,10 @@ export default function USBCableFilters({
 
   const hasActiveFilters = inputConnector || outputConnector || cableLength;
 
+  console.log("USBCableFilters render:", { categoryId, loading, options });
+  
   if (categoryId !== 1002) {
+    console.log("USBCableFilters: Not a cable category, returning null");
     return null;
   }
 

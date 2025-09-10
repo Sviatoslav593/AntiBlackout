@@ -407,6 +407,7 @@ export default function Filters({
           memoizedSelectedCategoryId,
           categories: filters.categories,
           isCableCategory,
+          filtersObject: filters,
         });
         return isCableCategory;
       })() && (
