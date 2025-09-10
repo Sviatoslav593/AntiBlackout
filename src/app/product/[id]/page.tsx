@@ -74,6 +74,7 @@ export default function ProductPage() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [isCharacteristicsExpanded, setIsCharacteristicsExpanded] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -311,11 +312,11 @@ export default function ProductPage() {
   };
 
   const getSpecifications = (product: Product) => {
-    const specs = [{ label: "Бренд", value: product.brand, icon: Smartphone }];
+    const basicSpecs = [{ label: "Бренд", value: product.brand, icon: Smartphone }];
 
     // Add vendor code if available
     if (product.vendor_code) {
-      specs.push({
+      basicSpecs.push({
         label: "Артикул",
         value: product.vendor_code,
         icon: Zap,
@@ -324,12 +325,14 @@ export default function ProductPage() {
 
     // Add legacy capacity if available
     if (product.capacity > 0) {
-      specs.push({
+      basicSpecs.push({
         label: "Ємність",
         value: `${product.capacity.toLocaleString()} мАг`,
         icon: Battery,
       });
     }
+
+    const additionalSpecs: Array<{ label: string; value: string; icon: any }> = [];
 
     // Add characteristics from JSONB field
     if (
@@ -346,7 +349,7 @@ export default function ProductPage() {
             displayValue = String(value);
           }
 
-          specs.push({
+          additionalSpecs.push({
             label: key,
             value: displayValue,
             icon: Zap, // Default icon for characteristics
@@ -355,7 +358,7 @@ export default function ProductPage() {
       });
     }
 
-    return specs;
+    return { basicSpecs, additionalSpecs };
   };
 
   const currentQuantityInCart = getItemQuantity(product.id);
@@ -510,7 +513,8 @@ export default function ProductPage() {
             <div>
               <h3 className="font-semibold mb-3">Характеристики</h3>
               <div className="grid grid-cols-1 gap-3">
-                {specifications.map((spec, index) => (
+                {/* Basic specifications - always shown */}
+                {specifications.basicSpecs.map((spec, index) => (
                   <div
                     key={index}
                     className="flex items-start gap-3 py-2 border-b border-gray-100 last:border-b-0"
@@ -528,7 +532,39 @@ export default function ProductPage() {
                     </div>
                   </div>
                 ))}
+                
+                {/* Additional specifications - shown when expanded */}
+                {isCharacteristicsExpanded && specifications.additionalSpecs.map((spec, index) => (
+                  <div
+                    key={`additional-${index}`}
+                    className="flex items-start gap-3 py-2 border-b border-gray-100 last:border-b-0"
+                  >
+                    <spec.icon className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row">
+                        <span className="text-sm text-muted-foreground sm:w-1/3 flex-shrink-0">
+                          {spec.label}:
+                        </span>
+                        <span className="text-sm font-medium sm:w-2/3 break-words">
+                          {spec.value}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
+              
+              {/* Show more/less button for additional characteristics */}
+              {specifications.additionalSpecs.length > 0 && (
+                <button
+                  onClick={() =>
+                    setIsCharacteristicsExpanded(!isCharacteristicsExpanded)
+                  }
+                  className="mt-3 text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
+                >
+                  {isCharacteristicsExpanded ? "Показати менше" : `Показати ще (${specifications.additionalSpecs.length})`}
+                </button>
+              )}
             </div>
 
             <Separator />
