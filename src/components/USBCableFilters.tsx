@@ -37,12 +37,8 @@ export default function USBCableFilters({
 
   // Load filter options from products
   const loadFilterOptions = useCallback(async () => {
-    if (!categoryId) {
-      console.log("USBCableFilters: No categoryId provided");
-      return;
-    }
+    if (!categoryId) return;
     
-    console.log("USBCableFilters: Loading options for categoryId:", categoryId);
     setLoading(true);
     try {
       const response = await fetch(`/api/products?categoryId=${categoryId}`);

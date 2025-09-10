@@ -289,7 +289,6 @@ export default function Filters({
       )}
 
       {/* USB Cable Filters - only for "Зарядки та кабелі" category */}
-      {console.log("Filters: selectedCategoryId =", selectedCategoryId)}
       {selectedCategoryId === 1002 && (
         <>
           <USBCableFilters
