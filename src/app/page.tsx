@@ -841,7 +841,7 @@ function HomeContent() {
                     // Always include current category if not specified in filterParams
                     let categoryIds = filterParams.categoryIds;
                     if (!categoryIds || categoryIds.length === 0) {
-                      // Determine category based on current filter state
+                      // Determine category based on current filter state and filter types
                       const isPowerBankCategory = filters.categories.some(
                         (cat) =>
                           cat.includes("Портативні батареї") ||
@@ -854,11 +854,32 @@ function HomeContent() {
                           cat.includes("кабелі") ||
                           cat.includes("зарядки")
                       );
-                      categoryIds = isPowerBankCategory
-                        ? ["1001"]
-                        : isCableCategory
-                        ? ["1002"]
-                        : ["1001"]; // Default to power banks
+                      
+                      // Check if USB filters are being applied (cable filters)
+                      const hasUSBFilters = filterParams.inputConnector || 
+                                          filterParams.outputConnector || 
+                                          filterParams.cableLength;
+                      
+                      // Check if capacity filters are being applied (power bank filters)
+                      const hasCapacityFilters = filterParams.minCapacity || 
+                                               filterParams.maxCapacity;
+                      
+                      if (hasUSBFilters) {
+                        categoryIds = ["1002"]; // Cables
+                        console.log("Page: Using cable category due to USB filters");
+                      } else if (hasCapacityFilters) {
+                        categoryIds = ["1001"]; // Power banks
+                        console.log("Page: Using power bank category due to capacity filters");
+                      } else {
+                        categoryIds = isCableCategory
+                          ? ["1002"]
+                          : isPowerBankCategory
+                          ? ["1001"]
+                          : ["1001"]; // Default to power banks
+                        console.log("Page: Using category based on filter state:", categoryIds);
+                      }
+                      
+                      console.log("Page: Final categoryIds:", categoryIds);
                     }
 
                     const convertedParams: any = {
