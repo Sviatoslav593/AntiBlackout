@@ -16,27 +16,28 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
 export interface Product {
-  id: string; // UUID string
+  id: string;
   name: string;
   description: string;
   price: number;
   originalPrice?: number;
+  discount?: number;
   image: string;
+  images?: string[];
+  brand: string;
+  category: string;
+  categoryId: string;
+  inStock: boolean;
+  stockQuantity: number;
   rating: number;
   reviewCount: number;
-  inStock: boolean;
-  badge?: string;
-  capacity: number;
-  brand: string;
-  popularity: number;
-  createdAt: string;
-  category: string;
-  category_id?: number;
-  categories?: {
-    id: number;
-    name: string;
-    parent_id?: number;
-  };
+  specifications: Record<string, any>;
+  characteristics?: Record<string, any>;
+  external_id?: string;
+  slug?: string;
+  created_at?: string;
+  updated_at?: string;
+  popularity?: number;
 }
 
 interface ProductCardProps {
@@ -85,7 +86,9 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation(); // Prevent card click (though it does the same thing)
     // Save scroll position before navigating
-    sessionStorage.setItem("scrollPosition", window.scrollY.toString());
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem("scrollPosition", window.scrollY.toString());
+    }
     router.push(`/product/${product.id}`);
   };
 
@@ -112,10 +115,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         reviewCount: product.reviewCount,
         inStock: product.inStock,
         badge: product.badge,
-        capacity: product.capacity,
+        capacity: product.characteristics?.['Ємність акумулятора, mah'] || 0,
         brand: product.brand,
-        popularity: product.popularity,
-        createdAt: product.createdAt,
+        popularity: product.popularity || 0,
+        createdAt: product.created_at || new Date().toISOString(),
         category: product.category,
       });
       showToast({
@@ -137,7 +140,9 @@ export default function ProductCard({ product }: ProductCardProps) {
     if (!isButton) {
       e.preventDefault();
       // Save scroll position before navigating
-      sessionStorage.setItem("scrollPosition", window.scrollY.toString());
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem("scrollPosition", window.scrollY.toString());
+      }
       router.push(`/product/${product.id}`);
     }
   };
@@ -225,9 +230,14 @@ export default function ProductCard({ product }: ProductCardProps) {
               <span className="text-base sm:text-lg lg:text-2xl font-bold text-foreground">
                 {product.price} ₴
               </span>
-              {product.originalPrice && (
+              {(product.originalPrice || product.discount) && (
                 <span className="text-xs sm:text-sm text-muted-foreground line-through">
-                  {product.originalPrice} ₴
+                  {product.originalPrice || (product.price + (product.discount || 0))} ₴
+                </span>
+              )}
+              {product.discount && (
+                <span className="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded">
+                  -{product.discount} ₴
                 </span>
               )}
             </div>

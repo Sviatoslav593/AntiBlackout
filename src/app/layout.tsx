@@ -6,6 +6,7 @@ import { ToastProvider } from "@/context/ToastContext";
 import { SearchProvider } from "@/context/SearchContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { CategoryProvider } from "@/context/CategoryContext";
+import { FilterProvider } from "@/context/FilterContext";
 import { SITE_CONFIG, generateOrganizationStructuredData } from "@/lib/seo";
 import Script from "next/script";
 
@@ -155,7 +156,9 @@ export default function RootLayout({
           <SearchProvider>
             <FavoritesProvider>
               <CategoryProvider>
-                <CartProvider>{children}</CartProvider>
+                <FilterProvider>
+                  <CartProvider>{children}</CartProvider>
+                </FilterProvider>
               </CategoryProvider>
             </FavoritesProvider>
           </SearchProvider>
