@@ -49,16 +49,28 @@ export default function USBCableFilters({
     const loadOptions = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/filter-options?categoryId=${categoryId}`);
+        const response = await fetch(
+          `/api/filter-options?categoryId=${categoryId}`
+        );
         const data = await response.json();
 
         if (data.success && data.options) {
-          const { inputConnectors, outputConnectors, cableLengths } = data.options;
+          const { inputConnectors, outputConnectors, cableLengths } =
+            data.options;
 
           setOptions({
-            inputConnectors: inputConnectors.map((value: string) => ({ value, label: value })),
-            outputConnectors: outputConnectors.map((value: string) => ({ value, label: value })),
-            cableLengths: cableLengths.map((value: string) => ({ value, label: `${value} м` })),
+            inputConnectors: inputConnectors.map((value: string) => ({
+              value,
+              label: value,
+            })),
+            outputConnectors: outputConnectors.map((value: string) => ({
+              value,
+              label: value,
+            })),
+            cableLengths: cableLengths.map((value: string) => ({
+              value,
+              label: `${value} м`,
+            })),
           });
         }
       } catch (error) {
@@ -75,7 +87,11 @@ export default function USBCableFilters({
   const debouncedOnFiltersChange = useCallback(
     (() => {
       let timeoutId: NodeJS.Timeout;
-      return (filters: { inputConnector?: string; outputConnector?: string; cableLength?: string }) => {
+      return (filters: {
+        inputConnector?: string;
+        outputConnector?: string;
+        cableLength?: string;
+      }) => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
           onFiltersChange(filters);
@@ -110,7 +126,9 @@ export default function USBCableFilters({
     <div className="space-y-4">
       <h4 className="font-medium">Фільтри для кабелів</h4>
       {loading ? (
-        <div className="text-sm text-muted-foreground">Завантаження опцій...</div>
+        <div className="text-sm text-muted-foreground">
+          Завантаження опцій...
+        </div>
       ) : (
         <div className="space-y-3">
           {/* Input Connector */}

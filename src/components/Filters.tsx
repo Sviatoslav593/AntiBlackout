@@ -7,7 +7,12 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import PriceFilter from "@/components/PriceFilter";
 import CapacityFilter from "@/components/CapacityFilter";
-import USBCableFilters from "@/components/USBCableFilters";
+import dynamic from "next/dynamic";
+
+const USBCableFilters = dynamic(() => import("@/components/USBCableFilters"), {
+  ssr: false,
+  loading: () => <div className="text-sm text-muted-foreground">Завантаження фільтрів кабелів...</div>
+});
 import { useFilters } from "@/context/FilterContext";
 import {
   Sheet,
@@ -73,15 +78,18 @@ export default function Filters({
   const filters = contextFilters || propFilters;
 
   // Stable callback for USB filters to prevent re-renders
-  const handleUSBFiltersChange = useCallback((usbFilters: any) => {
-    handleFiltersChange((prevFilters) => ({
-      ...prevFilters,
-      usbFilters: {
-        ...prevFilters.usbFilters,
-        ...usbFilters,
-      },
-    }));
-  }, [handleFiltersChange]);
+  const handleUSBFiltersChange = useCallback(
+    (usbFilters: any) => {
+      handleFiltersChange((prevFilters) => ({
+        ...prevFilters,
+        usbFilters: {
+          ...prevFilters.usbFilters,
+          ...usbFilters,
+        },
+      }));
+    },
+    [handleFiltersChange]
+  );
 
   // Memoize selectedCategoryId to prevent unnecessary re-renders
   const memoizedSelectedCategoryId = useMemo(
