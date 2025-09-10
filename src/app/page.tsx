@@ -242,15 +242,16 @@ function HomeContent() {
     setIsMounted(true);
   }, []);
 
-  // Fetch products on component mount
+  // Fetch products on component mount - power banks by default
   useEffect(() => {
     if (!isMounted) return;
 
-    console.log("Component mounted, fetching products...");
+    console.log("Component mounted, fetching power banks...");
     const loadProducts = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/products?limit=50&offset=0");
+        // Load power banks by default (categoryId = 1001)
+        const response = await fetch("/api/products?categoryId=1001&limit=50&offset=0");
         const data = await response.json();
         console.log("Initial API response:", data);
 
@@ -258,7 +259,14 @@ function HomeContent() {
           setAllProducts(data.products);
           setHasMoreProducts(data.products.length === 50);
           setCurrentPage(1);
-          console.log("Set initial products:", data.products.length);
+          console.log("Set initial power banks:", data.products.length);
+          
+          // Set power bank category as active
+          setFilters((prev) => ({
+            ...prev,
+            categories: ["Портативні батареї"],
+            usbFilters: prev.usbFilters || {},
+          }));
         }
       } catch (error) {
         console.error("Error loading initial products:", error);
@@ -270,7 +278,7 @@ function HomeContent() {
     };
 
     loadProducts();
-  }, [isMounted]);
+  }, [isMounted, setFilters]);
 
   // Listen for category filter events from header
   useEffect(() => {
@@ -779,37 +787,54 @@ function HomeContent() {
                       inStockOnly: filterParams.inStockOnly,
                       minPrice: filterParams.minPrice,
                       maxPrice: filterParams.maxPrice,
-                      ...(filterParams.minCapacity && { minCapacity: filterParams.minCapacity }),
-                      ...(filterParams.maxCapacity && { maxCapacity: filterParams.maxCapacity }),
-                      ...(filterParams.inputConnector && { inputConnector: filterParams.inputConnector }),
-                      ...(filterParams.outputConnector && { outputConnector: filterParams.outputConnector }),
-                      ...(filterParams.cableLength && { cableLength: filterParams.cableLength }),
+                      ...(filterParams.minCapacity && {
+                        minCapacity: filterParams.minCapacity,
+                      }),
+                      ...(filterParams.maxCapacity && {
+                        maxCapacity: filterParams.maxCapacity,
+                      }),
+                      ...(filterParams.inputConnector && {
+                        inputConnector: filterParams.inputConnector,
+                      }),
+                      ...(filterParams.outputConnector && {
+                        outputConnector: filterParams.outputConnector,
+                      }),
+                      ...(filterParams.cableLength && {
+                        cableLength: filterParams.cableLength,
+                      }),
                     };
 
                     await fetchProducts(convertedParams, 1, false);
                   }}
                   selectedCategoryId={(() => {
                     // Check if any power bank category is selected
-                    const isPowerBankCategory = filters.categories.some(cat => 
-                      cat.includes("Портативні батареї") || 
-                      cat.includes("павербанк") || 
-                      cat.includes("батареї")
+                    const isPowerBankCategory = filters.categories.some(
+                      (cat) =>
+                        cat.includes("Портативні батареї") ||
+                        cat.includes("павербанк") ||
+                        cat.includes("батареї")
                     );
-                    
+
                     // Check if any cable category is selected
-                    const isCableCategory = filters.categories.some(cat => 
-                      cat.includes("Зарядки та кабелі") || 
-                      cat.includes("кабелі") || 
-                      cat.includes("зарядки")
+                    const isCableCategory = filters.categories.some(
+                      (cat) =>
+                        cat.includes("Зарядки та кабелі") ||
+                        cat.includes("кабелі") ||
+                        cat.includes("зарядки")
                     );
-                    
-                    const categoryId = isPowerBankCategory ? 1001 : isCableCategory ? 1002 : undefined;
-                    
-                    console.log("Selected category ID:", {
+
+                    const categoryId = isPowerBankCategory
+                      ? 1001
+                      : isCableCategory
+                      ? 1002
+                      : undefined;
+
+                    console.log("Selected category ID calculation:", {
                       categories: filters.categories,
                       isPowerBankCategory,
                       isCableCategory,
                       categoryId,
+                      filtersObject: filters,
                     });
                     return categoryId;
                   })()}

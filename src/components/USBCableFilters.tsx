@@ -44,9 +44,14 @@ export default function USBCableFilters({
 
   // Load filter options when categoryId changes
   useEffect(() => {
-    if (!categoryId || categoryId !== 1002) return;
+    console.log("USBCableFilters useEffect:", { categoryId });
+    if (!categoryId || categoryId !== 1002) {
+      console.log("USBCableFilters: Not a cable category, returning");
+      return;
+    }
 
     const loadOptions = async () => {
+      console.log("Loading USB filter options for categoryId:", categoryId);
       setLoading(true);
       try {
         const response = await fetch(

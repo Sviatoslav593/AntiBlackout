@@ -68,12 +68,19 @@ export default function Filters({
   // Use FilterContext when available, fallback to props
   const { filters: contextFilters, setFilters } = useFilters();
   const filters = contextFilters || propFilters;
+  
+  console.log("Filters component render:", {
+    selectedCategoryId,
+    categories: filters.categories,
+    contextFilters: !!contextFilters,
+    propFilters: !!propFilters,
+  });
 
   // Memoize selectedCategoryId to prevent unnecessary re-renders
-  const memoizedSelectedCategoryId = useMemo(
-    () => selectedCategoryId,
-    [selectedCategoryId]
-  );
+  const memoizedSelectedCategoryId = useMemo(() => {
+    console.log("Memoizing selectedCategoryId:", selectedCategoryId);
+    return selectedCategoryId;
+  }, [selectedCategoryId]);
 
   // Handle filter changes through context or props
   const handleFiltersChange = (newFilters: FilterState) => {
@@ -85,7 +92,10 @@ export default function Filters({
   };
 
   // Handle price filter changes
-  const handlePriceChange = async (priceRange: { min: number; max: number }) => {
+  const handlePriceChange = async (priceRange: {
+    min: number;
+    max: number;
+  }) => {
     handleFiltersChange({
       ...filters,
       priceRange,
@@ -355,11 +365,13 @@ export default function Filters({
 
       {/* Capacity Select - only for power banks */}
       {(() => {
-        const isPowerBankCategory = memoizedSelectedCategoryId === 1001 ||
-          filters.categories.some(cat => 
-            cat.includes("Портативні батареї") || 
-            cat.includes("павербанк") || 
-            cat.includes("батареї")
+        const isPowerBankCategory =
+          memoizedSelectedCategoryId === 1001 ||
+          filters.categories.some(
+            (cat) =>
+              cat.includes("Портативні батареї") ||
+              cat.includes("павербанк") ||
+              cat.includes("батареї")
           );
         console.log("Capacity filter visibility:", {
           memoizedSelectedCategoryId,
@@ -379,11 +391,13 @@ export default function Filters({
 
       {/* USB Cable Filters - only for cables category */}
       {(() => {
-        const isCableCategory = memoizedSelectedCategoryId === 1002 ||
-          filters.categories.some(cat => 
-            cat.includes("Зарядки та кабелі") || 
-            cat.includes("кабелі") || 
-            cat.includes("зарядки")
+        const isCableCategory =
+          memoizedSelectedCategoryId === 1002 ||
+          filters.categories.some(
+            (cat) =>
+              cat.includes("Зарядки та кабелі") ||
+              cat.includes("кабелі") ||
+              cat.includes("зарядки")
           );
         console.log("USB filter visibility:", {
           memoizedSelectedCategoryId,

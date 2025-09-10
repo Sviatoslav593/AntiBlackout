@@ -25,13 +25,19 @@ export default function CapacitySelectFilter({
 
   // Load available capacities when categoryId changes
   useEffect(() => {
-    if (!categoryId || categoryId !== 1001) return;
+    console.log("CapacitySelectFilter useEffect:", { categoryId });
+    if (!categoryId || categoryId !== 1001) {
+      console.log("CapacitySelectFilter: Not a power bank category, returning");
+      return;
+    }
 
     const loadCapacities = async () => {
+      console.log("Loading capacities for categoryId:", categoryId);
       setLoading(true);
       try {
         const response = await fetch(`/api/products?categoryId=${categoryId}`);
         const data = await response.json();
+        console.log("Capacity API response:", data);
 
         if (data.success && data.products) {
           const capacities = new Set<number>();
@@ -43,6 +49,7 @@ export default function CapacitySelectFilter({
           });
 
           const sortedCapacities = Array.from(capacities).sort((a, b) => a - b);
+          console.log("Available capacities:", sortedCapacities);
           setAvailableCapacities(sortedCapacities);
         }
       } catch (error) {
