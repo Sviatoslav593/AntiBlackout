@@ -73,18 +73,24 @@ export default function Filters({
   const filters = contextFilters || propFilters;
 
   // Stable callback for USB filters to prevent re-renders
-  const handleUSBFiltersChange = useCallback((usbFilters: any) => {
-    handleFiltersChange((prevFilters) => ({
-      ...prevFilters,
-      usbFilters: {
-        ...prevFilters.usbFilters,
-        ...usbFilters,
-      },
-    }));
-  }, [handleFiltersChange]);
+  const handleUSBFiltersChange = useCallback(
+    (usbFilters: any) => {
+      handleFiltersChange((prevFilters) => ({
+        ...prevFilters,
+        usbFilters: {
+          ...prevFilters.usbFilters,
+          ...usbFilters,
+        },
+      }));
+    },
+    [handleFiltersChange]
+  );
 
   // Memoize selectedCategoryId to prevent unnecessary re-renders
-  const memoizedSelectedCategoryId = useMemo(() => selectedCategoryId, [selectedCategoryId]);
+  const memoizedSelectedCategoryId = useMemo(
+    () => selectedCategoryId,
+    [selectedCategoryId]
+  );
 
   // Handle filter changes through context or props
   const handleFiltersChange = (newFilters: FilterState) => {

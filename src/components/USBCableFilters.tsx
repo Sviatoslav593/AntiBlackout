@@ -19,14 +19,22 @@ interface FilterOption {
 }
 
 // Global cache for loaded options to prevent re-loading
-const optionsCache = new Map<
+let optionsCache: Map<
   number,
   {
     inputOptions: FilterOption[];
     outputOptions: FilterOption[];
     lengthOptions: FilterOption[];
   }
->();
+> | null = null;
+
+// Initialize cache if not exists
+const getOptionsCache = () => {
+  if (!optionsCache) {
+    optionsCache = new Map();
+  }
+  return optionsCache;
+};
 
 export default function USBCableFilters({
   onFiltersChange,
@@ -67,12 +75,13 @@ export default function USBCableFilters({
     console.log("USBCableFilters: Initializing for categoryId:", categoryId);
 
     // Check if options are already cached
-    if (optionsCache.has(categoryId)) {
+    const cache = getOptionsCache();
+    if (cache.has(categoryId)) {
       console.log(
         "USBCableFilters: Using cached options for categoryId:",
         categoryId
       );
-      const cached = optionsCache.get(categoryId)!;
+      const cached = cache.get(categoryId)!;
       setInputOptions(cached.inputOptions);
       setOutputOptions(cached.outputOptions);
       setLengthOptions(cached.lengthOptions);
@@ -120,7 +129,8 @@ export default function USBCableFilters({
           }));
 
           // Cache the options
-          optionsCache.set(categoryId, {
+          const cache = getOptionsCache();
+          cache.set(categoryId, {
             inputOptions,
             outputOptions,
             lengthOptions,
