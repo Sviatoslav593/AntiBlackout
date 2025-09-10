@@ -23,6 +23,7 @@ import {
   Filter,
   X,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 const features = [
   {
@@ -122,7 +123,8 @@ function HomePageClient() {
 
   // Context hooks
   const { restoreScrollPosition } = useScrollPosition();
-  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } = useUrlFilters();
+  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
+    useUrlFilters();
   const { filteredProducts } = useProductStore();
 
   // Load products on mount
@@ -130,16 +132,16 @@ function HomePageClient() {
     const loadProducts = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/products?categoryId=1001&limit=20');
+        const response = await fetch("/api/products?categoryId=1001&limit=20");
         const data = await response.json();
-        
+
         if (data.success && data.products) {
           setAllProducts(data.products);
           // Also load into store
-          useProductStore.getState().setAllProducts(data.products);
+          useProductStore.getState().setProducts(data.products);
         }
       } catch (error) {
-        console.error('Error loading products:', error);
+        console.error("Error loading products:", error);
       } finally {
         setLoading(false);
       }
@@ -191,7 +193,34 @@ function HomePageClient() {
 
   // Clear all filters
   const handleClearFilters = () => {
-    handleClearFilters();
+    clearFilters();
+  };
+
+  // Handle load more products
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMoreProducts) return;
+    
+    try {
+      setLoadingMore(true);
+      const nextPage = currentPage + 1;
+      const response = await fetch(`/api/products?categoryId=1001&limit=20&page=${nextPage}`);
+      const data = await response.json();
+      
+      if (data.success && data.products) {
+        const newProducts = [...allProducts, ...data.products];
+        setAllProducts(newProducts);
+        useProductStore.getState().setProducts(newProducts);
+        setCurrentPage(nextPage);
+        
+        if (data.products.length < 20) {
+          setHasMoreProducts(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading more products:', error);
+    } finally {
+      setLoadingMore(false);
+    }
   };
 
   return (
@@ -340,13 +369,24 @@ function HomePageClient() {
             </div>
 
             {/* Mobile Filters Overlay */}
-            {isMobileFiltersOpen && (
-              <div className="fixed inset-0 z-50 lg:hidden">
-                <div
-                  className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
-                  onClick={() => setIsMobileFiltersOpen(false)}
-                />
-                <div className="fixed left-0 top-0 h-full w-4/5 max-w-sm bg-white shadow-xl overflow-y-auto transform transition-transform duration-300 ease-in-out animate-in slide-in-from-left">
+            <AnimatePresence>
+              {isMobileFiltersOpen && (
+                <div className="fixed inset-0 z-50 lg:hidden">
+                  <motion.div
+                    className="fixed inset-0 bg-black bg-opacity-50"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    onClick={() => setIsMobileFiltersOpen(false)}
+                  />
+                  <motion.div
+                    className="fixed left-0 top-0 h-full w-4/5 max-w-sm bg-white shadow-xl overflow-y-auto"
+                    initial={{ x: "-100%" }}
+                    animate={{ x: 0 }}
+                    exit={{ x: "-100%" }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                  >
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b">
                       <h3 className="text-xl font-semibold">Фільтри товарів</h3>
@@ -361,7 +401,7 @@ function HomePageClient() {
                         </Button>
                       </div>
                     </div>
-                    
+
                     {/* Close button in top-right corner */}
                     <Button
                       variant="ghost"
@@ -379,9 +419,10 @@ function HomePageClient() {
                       isMobile={true}
                     />
                   </div>
+                  </motion.div>
                 </div>
-              </div>
-            )}
+              )}
+            </AnimatePresence>
 
             {/* Products Grid */}
             <div className="lg:w-3/4">
