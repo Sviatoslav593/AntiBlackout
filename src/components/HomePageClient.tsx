@@ -124,14 +124,14 @@ function HomePageClient() {
   // Block background scrolling when mobile filters are open
   useEffect(() => {
     if (isMobileFiltersOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
-    
+
     // Cleanup on unmount
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isMobileFiltersOpen]);
 
@@ -146,11 +146,13 @@ function HomePageClient() {
     const loadData = async () => {
       try {
         setLoading(true);
-        
+
         // Load products
-        const productsResponse = await fetch("/api/products?categoryId=1001&limit=20");
+        const productsResponse = await fetch(
+          "/api/products?categoryId=1001&limit=20"
+        );
         const productsData = await productsResponse.json();
-        
+
         if (productsData.success && productsData.products) {
           setAllProducts(productsData.products);
           useProductStore.getState().setProducts(productsData.products);
@@ -159,16 +161,18 @@ function HomePageClient() {
         // Load categories
         const categoriesResponse = await fetch("/api/categories");
         const categoriesData = await categoriesResponse.json();
-        
+
         if (categoriesData.success && categoriesData.categories) {
-          const categoryNames = categoriesData.categories.map((cat: any) => cat.name);
+          const categoryNames = categoriesData.categories.map(
+            (cat: any) => cat.name
+          );
           setAllCategories(categoryNames);
         }
 
         // Load brands
         const brandsResponse = await fetch("/api/brands");
         const brandsData = await brandsResponse.json();
-        
+
         if (brandsData.success && brandsData.brands) {
           setAllBrands(brandsData.brands);
         }
@@ -190,13 +194,13 @@ function HomePageClient() {
   // Sort products
   const sortedProducts = useMemo(() => {
     const products = [...(filteredProducts || allProducts)];
-    
+
     // Debug logging
-    console.log('HomePageClient sortedProducts:', {
+    console.log("HomePageClient sortedProducts:", {
       filteredProducts: filteredProducts?.length,
       allProducts: allProducts.length,
       usingFiltered: !!filteredProducts,
-      activeFilters
+      activeFilters,
     });
 
     switch (sortBy) {
@@ -415,21 +419,13 @@ function HomePageClient() {
               {isMobileFiltersOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
                   <motion.div
-                    className="fixed inset-0 bg-black bg-opacity-50"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    onClick={() => setIsMobileFiltersOpen(false)}
-                  />
-                  <motion.div
                     className="fixed left-0 top-0 h-full w-4/5 max-w-sm bg-white shadow-xl overflow-y-auto"
                     initial={{ x: "-100%" }}
                     animate={{ x: 0 }}
                     exit={{ x: "-100%" }}
                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
                   >
-                    <div className="p-6 pt-16">
+                    <div className="p-6 pt-20">
                       <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b z-10">
                         <h3 className="text-xl font-semibold">
                           Фільтри товарів
@@ -451,7 +447,7 @@ function HomePageClient() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setIsMobileFiltersOpen(false)}
-                        className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full z-20"
+                        className="absolute top-16 right-4 p-2 hover:bg-gray-100 rounded-full z-20"
                       >
                         <X className="w-5 h-5" />
                       </Button>
@@ -462,7 +458,7 @@ function HomePageClient() {
                         capacityRange={{ min: 0, max: 50000 }}
                         isMobile={true}
                       />
-                      
+
                       {/* Apply button at bottom */}
                       <div className="sticky bottom-0 bg-white pt-4 border-t mt-6">
                         <Button
