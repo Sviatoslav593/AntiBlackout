@@ -92,7 +92,7 @@ const sortProducts = (products: Product[], sortBy: SortOption): Product[] => {
   }
 };
 
-export default function Home() {
+function HomeContent() {
   console.log("Home component rendering, typeof window:", typeof window);
 
   // State for products
@@ -590,8 +590,7 @@ export default function Home() {
   };
 
   return (
-    <FilterProvider>
-      <Layout>
+    <Layout>
         <div className="min-h-screen">
           {/* Hero Section - previous good design */}
           <section className="relative hero-gradient text-white overflow-hidden">
@@ -857,6 +856,13 @@ export default function Home() {
           <ScrollToProductsButton />
         </div>
       </Layout>
+  );
+}
+
+export default function Home() {
+  return (
+    <FilterProvider>
+      <HomeContent />
     </FilterProvider>
   );
 }
