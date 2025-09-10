@@ -78,8 +78,16 @@ export default function CapacitySelectFilter({
     onCapacityChange(null);
   };
 
+  // Always show capacity filter, but only load data for power banks
   if (categoryId !== 1001) {
-    return null;
+    return (
+      <div className="space-y-4">
+        <h4 className="font-medium">Ємність акумулятора</h4>
+        <div className="text-sm text-muted-foreground">
+          Оберіть категорію павербанків для фільтрації по ємності
+        </div>
+      </div>
+    );
   }
 
   return (

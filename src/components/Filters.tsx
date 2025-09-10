@@ -367,7 +367,7 @@ export default function Filters({
         </>
       )}
 
-      {/* Capacity Select - only for power banks */}
+      {/* Capacity Select - always visible */}
       {(() => {
         const isPowerBankCategory =
           memoizedSelectedCategoryId === 1001 ||
@@ -381,8 +381,10 @@ export default function Filters({
           memoizedSelectedCategoryId,
           categories: filters.categories,
           isPowerBankCategory,
+          alwaysVisible: true,
         });
-        return isPowerBankCategory;
+        // Always show capacity filter
+        return true;
       })() && (
         <>
           <CapacitySelectFilter
@@ -393,7 +395,7 @@ export default function Filters({
         </>
       )}
 
-      {/* USB Cable Filters - only for cables category */}
+      {/* USB Cable Filters - always visible */}
       {(() => {
         const isCableCategory =
           memoizedSelectedCategoryId === 1002 ||
@@ -408,8 +410,10 @@ export default function Filters({
           categories: filters.categories,
           isCableCategory,
           filtersObject: filters,
+          alwaysVisible: true,
         });
-        return isCableCategory;
+        // Always show cable filters
+        return true;
       })() && (
         <>
           <USBCableFilters

@@ -97,9 +97,11 @@ function HomeContent() {
   const [hasMoreProducts, setHasMoreProducts] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  
+
   // Cache for products to avoid unnecessary API calls
-  const [productsCache, setProductsCache] = useState<Map<string, Product[]>>(new Map());
+  const [productsCache, setProductsCache] = useState<Map<string, Product[]>>(
+    new Map()
+  );
   const [lastFilterState, setLastFilterState] = useState<string>("");
   const [isMounted, setIsMounted] = useState(false);
   const prevFilterState = useRef<string>("");
@@ -180,7 +182,7 @@ function HomeContent() {
       append: boolean = false
     ) => {
       console.log("fetchProducts called with:", { filterParams, page, append });
-      
+
       // Check cache first (only for page 1 and not append)
       if (page === 1 && !append && filterParams) {
         const cacheKey = createCacheKey(filterParams);
@@ -195,7 +197,7 @@ function HomeContent() {
           return;
         }
       }
-      
+
       try {
         if (append) {
           setLoadingMore(true);
@@ -246,11 +248,11 @@ function HomeContent() {
           } else {
             setAllProducts(data.products);
             console.log("Set products directly:", data.products.length);
-            
+
             // Cache the products for future use
             if (filterParams && page === 1) {
               const cacheKey = createCacheKey(filterParams);
-              setProductsCache(prev => {
+              setProductsCache((prev) => {
                 const newCache = new Map(prev);
                 newCache.set(cacheKey, data.products);
                 console.log("Cached products for key:", cacheKey);

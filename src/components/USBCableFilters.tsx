@@ -145,10 +145,17 @@ export default function USBCableFilters({
   const hasActiveFilters = inputConnector || outputConnector || cableLength;
 
   console.log("USBCableFilters render:", { categoryId, loading, options });
-
+  
+  // Always show cable filters, but only load data for cables
   if (categoryId !== 1002) {
-    console.log("USBCableFilters: Not a cable category, returning null");
-    return null;
+    return (
+      <div className="space-y-4">
+        <h4 className="font-medium">Фільтри для кабелів</h4>
+        <div className="text-sm text-muted-foreground">
+          Оберіть категорію кабелів для фільтрації по типу коннекторів та довжині
+        </div>
+      </div>
+    );
   }
 
   return (
