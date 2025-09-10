@@ -92,7 +92,7 @@ export default function Filters({
   };
 
   // Handle capacity filter changes
-  const handleCapacityChange = (capacityRange: {
+  const handleCapacityChange = async (capacityRange: {
     min: number;
     max: number;
   }) => {
@@ -100,6 +100,21 @@ export default function Filters({
       ...filters,
       capacityRange,
     });
+
+    // Apply capacity filter via API
+    if (onApplyFilters) {
+      console.log("Capacity filter changed:", capacityRange);
+      const filterParams: any = {};
+      
+      if (capacityRange.min > 0) {
+        filterParams.minCapacity = capacityRange.min;
+      }
+      if (capacityRange.max < 50000) {
+        filterParams.maxCapacity = capacityRange.max;
+      }
+      
+      await onApplyFilters(filterParams);
+    }
   };
 
   const handleCategoryToggle = async (
@@ -323,15 +338,18 @@ export default function Filters({
         </>
       )}
 
-      {/* Capacity Range */}
-      <CapacityFilter
-        value={filters.capacityRange}
-        onChange={handleCapacityChange}
-        min={capacityRange.min}
-        max={capacityRange.max}
-      />
-
-      <Separator />
+      {/* Capacity Range - only for power banks */}
+      {memoizedSelectedCategoryId === 1001 && (
+        <>
+          <CapacityFilter
+            value={filters.capacityRange}
+            onChange={handleCapacityChange}
+            min={capacityRange.min}
+            max={capacityRange.max}
+          />
+          <Separator />
+        </>
+      )}
 
       {/* In Stock Only */}
       <div className="space-y-3">
