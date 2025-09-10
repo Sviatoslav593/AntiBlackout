@@ -68,7 +68,7 @@ export default function Filters({
   // Use FilterContext when available, fallback to props
   const { filters: contextFilters, setFilters } = useFilters();
   const filters = contextFilters || propFilters;
-  
+
   console.log("Filters component render:", {
     selectedCategoryId,
     categories: filters.categories,
@@ -119,9 +119,12 @@ export default function Filters({
 
   // Handle capacity filter changes
   const handleCapacityChange = async (capacity: number | null) => {
+    console.log("Filters: handleCapacityChange called with:", capacity);
     const newCapacityRange = capacity
       ? { min: capacity, max: capacity }
       : { min: 0, max: 50000 };
+
+    console.log("Filters: newCapacityRange:", newCapacityRange);
 
     handleFiltersChange({
       ...filters,
@@ -130,7 +133,7 @@ export default function Filters({
 
     // Apply capacity filter via API
     if (onApplyFilters) {
-      console.log("Capacity filter changed:", capacity);
+      console.log("Filters: calling onApplyFilters with capacity:", capacity);
       const filterParams: any = {};
 
       if (capacity) {
@@ -138,6 +141,7 @@ export default function Filters({
         filterParams.maxCapacity = capacity;
       }
 
+      console.log("Filters: filterParams:", filterParams);
       await onApplyFilters(filterParams);
     }
   };

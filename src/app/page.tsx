@@ -251,7 +251,9 @@ function HomeContent() {
       try {
         setLoading(true);
         // Load power banks by default (categoryId = 1001)
-        const response = await fetch("/api/products?categoryId=1001&limit=50&offset=0");
+        const response = await fetch(
+          "/api/products?categoryId=1001&limit=50&offset=0"
+        );
         const data = await response.json();
         console.log("Initial API response:", data);
 
@@ -260,7 +262,7 @@ function HomeContent() {
           setHasMoreProducts(data.products.length === 50);
           setCurrentPage(1);
           console.log("Set initial power banks:", data.products.length);
-          
+
           // Set power bank category as active
           setFilters((prev) => ({
             ...prev,
@@ -775,7 +777,7 @@ function HomeContent() {
                   priceRange={priceRange}
                   capacityRange={capacityRange}
                   onApplyFilters={async (filterParams) => {
-                    console.log("Apply filters:", filterParams);
+                    console.log("Page: Apply filters called with:", filterParams);
                     setCurrentPage(1);
                     setHasMoreProducts(true);
 
@@ -804,6 +806,7 @@ function HomeContent() {
                       }),
                     };
 
+                    console.log("Page: convertedParams:", convertedParams);
                     await fetchProducts(convertedParams, 1, false);
                   }}
                   selectedCategoryId={(() => {

@@ -1,13 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
 interface CapacitySelectFilterProps {
@@ -65,8 +58,10 @@ export default function CapacitySelectFilter({
   // Handle capacity selection
   const handleCapacitySelect = useCallback(
     (value: string) => {
+      console.log("CapacitySelectFilter: handleCapacitySelect called with:", value);
       setSelectedCapacity(value);
-      const capacity = value === "all" ? null : parseInt(value);
+      const capacity = value === "all" || value === "" ? null : parseInt(value);
+      console.log("CapacitySelectFilter: calling onCapacityChange with:", capacity);
       onCapacityChange(capacity);
     },
     [onCapacityChange]
@@ -90,19 +85,19 @@ export default function CapacitySelectFilter({
         </div>
       ) : (
         <div className="space-y-3">
-          <Select value={selectedCapacity} onValueChange={handleCapacitySelect}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Оберіть ємність" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Всі ємності</SelectItem>
-              {availableCapacities.map((capacity) => (
-                <SelectItem key={capacity} value={capacity.toString()}>
-                  {capacity} мАг
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select 
+            value={selectedCapacity} 
+            onChange={(e) => handleCapacitySelect(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Оберіть ємність</option>
+            <option value="all">Всі ємності</option>
+            {availableCapacities.map((capacity) => (
+              <option key={capacity} value={capacity.toString()}>
+                {capacity} мАг
+              </option>
+            ))}
+          </select>
 
           {selectedCapacity && selectedCapacity !== "all" && (
             <Button
