@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -70,6 +71,20 @@ export default function Filters({
   // Use FilterContext when available, fallback to props
   const { filters: contextFilters, setFilters } = useFilters();
   const filters = contextFilters || propFilters;
+
+  // Stable callback for USB filters to prevent re-renders
+  const handleUSBFiltersChange = useCallback((usbFilters: any) => {
+    handleFiltersChange((prevFilters) => ({
+      ...prevFilters,
+      usbFilters: {
+        ...prevFilters.usbFilters,
+        ...usbFilters,
+      },
+    }));
+  }, [handleFiltersChange]);
+
+  // Memoize selectedCategoryId to prevent unnecessary re-renders
+  const memoizedSelectedCategoryId = useMemo(() => selectedCategoryId, [selectedCategoryId]);
 
   // Handle filter changes through context or props
   const handleFiltersChange = (newFilters: FilterState) => {
@@ -301,20 +316,11 @@ export default function Filters({
       )}
 
       {/* USB Cable Filters - only for "Зарядки та кабелі" category */}
-      {selectedCategoryId === 1002 && (
+      {memoizedSelectedCategoryId === 1002 && (
         <>
           <USBCableFilters
-            onFiltersChange={(usbFilters) => {
-              // Update USB filters in the main filter state
-              handleFiltersChange((prevFilters) => ({
-                ...prevFilters,
-                usbFilters: {
-                  ...prevFilters.usbFilters,
-                  ...usbFilters,
-                },
-              }));
-            }}
-            categoryId={selectedCategoryId}
+            onFiltersChange={handleUSBFiltersChange}
+            categoryId={memoizedSelectedCategoryId}
           />
           <Separator />
         </>

@@ -19,18 +19,24 @@ interface FilterOption {
 }
 
 // Global cache for loaded options to prevent re-loading
-const optionsCache = new Map<number, {
-  inputOptions: FilterOption[];
-  outputOptions: FilterOption[];
-  lengthOptions: FilterOption[];
-}>();
+const optionsCache = new Map<
+  number,
+  {
+    inputOptions: FilterOption[];
+    outputOptions: FilterOption[];
+    lengthOptions: FilterOption[];
+  }
+>();
 
 export default function USBCableFilters({
   onFiltersChange,
   categoryId,
 }: USBCableFiltersProps) {
-  console.log("USBCableFilters: Component rendered with categoryId:", categoryId);
-  
+  console.log(
+    "USBCableFilters: Component rendered with categoryId:",
+    categoryId
+  );
+
   const [inputConnector, setInputConnector] = useState<string>("");
   const [outputConnector, setOutputConnector] = useState<string>("");
   const [cableLength, setCableLength] = useState<string>("");
@@ -62,7 +68,10 @@ export default function USBCableFilters({
 
     // Check if options are already cached
     if (optionsCache.has(categoryId)) {
-      console.log("USBCableFilters: Using cached options for categoryId:", categoryId);
+      console.log(
+        "USBCableFilters: Using cached options for categoryId:",
+        categoryId
+      );
       const cached = optionsCache.get(categoryId)!;
       setInputOptions(cached.inputOptions);
       setOutputOptions(cached.outputOptions);
@@ -74,16 +83,22 @@ export default function USBCableFilters({
 
     // Load options from API
     const loadOptions = async () => {
-      console.log("USBCableFilters: Loading options for categoryId:", categoryId);
+      console.log(
+        "USBCableFilters: Loading options for categoryId:",
+        categoryId
+      );
       setLoading(true);
-      
+
       try {
-        const response = await fetch(`/api/filter-options?categoryId=${categoryId}`);
+        const response = await fetch(
+          `/api/filter-options?categoryId=${categoryId}`
+        );
         const data = await response.json();
         console.log("USBCableFilters: Filter options API response:", data);
 
         if (data.success && data.options) {
-          const { inputConnectors, outputConnectors, cableLengths } = data.options;
+          const { inputConnectors, outputConnectors, cableLengths } =
+            data.options;
 
           // Create options arrays
           const inputOptions = inputConnectors.map((value: string) => ({
@@ -116,11 +131,14 @@ export default function USBCableFilters({
           setOutputOptions(outputOptions);
           setLengthOptions(lengthOptions);
 
-          console.log("USBCableFilters: Successfully loaded and cached options:", {
-            input: inputConnectors.length,
-            output: outputConnectors.length,
-            length: cableLengths.length,
-          });
+          console.log(
+            "USBCableFilters: Successfully loaded and cached options:",
+            {
+              input: inputConnectors.length,
+              output: outputConnectors.length,
+              length: cableLengths.length,
+            }
+          );
 
           isLoadedRef.current = true;
           hasInitializedRef.current = true;
@@ -145,7 +163,9 @@ export default function USBCableFilters({
   useEffect(() => {
     // Don't call onFiltersChange until options are loaded
     if (!isLoadedRef.current) {
-      console.log("USBCableFilters: Skipping onFiltersChange - options not loaded yet");
+      console.log(
+        "USBCableFilters: Skipping onFiltersChange - options not loaded yet"
+      );
       return;
     }
 
@@ -191,27 +211,35 @@ export default function USBCableFilters({
   return (
     <div className="space-y-4">
       <h4 className="font-medium">Фільтри для кабелів</h4>
-      
+
       {loading ? (
-        <div className="text-sm text-muted-foreground">Завантаження опцій...</div>
+        <div className="text-sm text-muted-foreground">
+          Завантаження опцій...
+        </div>
       ) : (
         <div className="space-y-3">
           {/* Input Connector */}
           {inputOptions.length > 0 && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Вхід (Тип коннектора)</label>
+              <label className="text-sm font-medium">
+                Вхід (Тип коннектора)
+              </label>
               <div className="relative">
                 <button
                   type="button"
                   className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   onClick={() => setIsInputOpen(!isInputOpen)}
                 >
-                  <span className={inputConnector ? "text-gray-900" : "text-gray-500"}>
+                  <span
+                    className={
+                      inputConnector ? "text-gray-900" : "text-gray-500"
+                    }
+                  >
                     {inputConnector || "Оберіть вхід"}
                   </span>
                   <ChevronDown className="h-4 w-4 text-gray-400" />
                 </button>
-                
+
                 {isInputOpen && (
                   <div className="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                     {inputOptions.map((option) => (
@@ -236,19 +264,25 @@ export default function USBCableFilters({
           {/* Output Connector */}
           {outputOptions.length > 0 && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Вихід (Тип коннектора)</label>
+              <label className="text-sm font-medium">
+                Вихід (Тип коннектора)
+              </label>
               <div className="relative">
                 <button
                   type="button"
                   className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   onClick={() => setIsOutputOpen(!isOutputOpen)}
                 >
-                  <span className={outputConnector ? "text-gray-900" : "text-gray-500"}>
+                  <span
+                    className={
+                      outputConnector ? "text-gray-900" : "text-gray-500"
+                    }
+                  >
                     {outputConnector || "Оберіть вихід"}
                   </span>
                   <ChevronDown className="h-4 w-4 text-gray-400" />
                 </button>
-                
+
                 {isOutputOpen && (
                   <div className="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                     {outputOptions.map((option) => (
@@ -280,12 +314,14 @@ export default function USBCableFilters({
                   className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   onClick={() => setIsLengthOpen(!isLengthOpen)}
                 >
-                  <span className={cableLength ? "text-gray-900" : "text-gray-500"}>
+                  <span
+                    className={cableLength ? "text-gray-900" : "text-gray-500"}
+                  >
                     {cableLength || "Оберіть довжину"}
                   </span>
                   <ChevronDown className="h-4 w-4 text-gray-400" />
                 </button>
-                
+
                 {isLengthOpen && (
                   <div className="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                     {lengthOptions.map((option) => (
