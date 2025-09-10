@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface Product {
   id: string;
@@ -45,24 +45,24 @@ export interface ProductState {
   filteredProducts: Product[];
   categories: string[];
   brands: string[];
-  
+
   // Loading states
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMoreProducts: boolean;
-  
+
   // Pagination
   currentPage: number;
   totalProducts: number;
-  
+
   // Filter state
   activeFilters: FilterParams;
   sortBy: string;
-  
+
   // UI state
   scrollPosition: number;
   lastFilterKey: string;
-  
+
   // Actions
   setProducts: (products: Product[]) => void;
   setFilteredProducts: (products: Product[]) => void;
@@ -78,7 +78,7 @@ export interface ProductState {
   setSortBy: (sort: string) => void;
   setScrollPosition: (position: number) => void;
   setLastFilterKey: (key: string) => void;
-  
+
   // Complex actions
   applyFilters: (filters: FilterParams) => void;
   clearFilters: () => void;
@@ -87,17 +87,17 @@ export interface ProductState {
 }
 
 const defaultFilters: FilterParams = {
-  categoryIds: ['1001'], // Default to power banks
+  categoryIds: ["1001"], // Default to power banks
   brandIds: [],
-  search: '',
+  search: "",
   inStockOnly: false,
   minPrice: 0,
   maxPrice: 10000,
   minCapacity: 0,
   maxCapacity: 50000,
-  inputConnector: '',
-  outputConnector: '',
-  cableLength: '',
+  inputConnector: "",
+  outputConnector: "",
+  cableLength: "",
 };
 
 export const useProductStore = create<ProductState>()(
@@ -114,17 +114,18 @@ export const useProductStore = create<ProductState>()(
       currentPage: 1,
       totalProducts: 0,
       activeFilters: defaultFilters,
-      sortBy: 'popularity-desc',
+      sortBy: "popularity-desc",
       scrollPosition: 0,
-      lastFilterKey: '',
+      lastFilterKey: "",
 
       // Basic setters
       setProducts: (products) => set({ allProducts: products }),
       setFilteredProducts: (products) => set({ filteredProducts: products }),
-      appendProducts: (products) => set((state) => ({
-        allProducts: [...state.allProducts, ...products],
-        filteredProducts: [...state.filteredProducts, ...products],
-      })),
+      appendProducts: (products) =>
+        set((state) => ({
+          allProducts: [...state.allProducts, ...products],
+          filteredProducts: [...state.filteredProducts, ...products],
+        })),
       setCategories: (categories) => set({ categories }),
       setBrands: (brands) => set({ brands }),
       setLoading: (isLoading) => set({ isLoading }),
@@ -141,7 +142,7 @@ export const useProductStore = create<ProductState>()(
       applyFilters: (filters) => {
         const state = get();
         const newFilterKey = JSON.stringify(filters);
-        
+
         // If same filters, don't refetch
         if (newFilterKey === state.lastFilterKey) {
           return;
@@ -173,9 +174,11 @@ export const useProductStore = create<ProductState>()(
           // Search filter
           if (filters.search) {
             const searchLower = filters.search.toLowerCase();
-            if (!product.name.toLowerCase().includes(searchLower) &&
-                !product.description.toLowerCase().includes(searchLower) &&
-                !product.brand.toLowerCase().includes(searchLower)) {
+            if (
+              !product.name.toLowerCase().includes(searchLower) &&
+              !product.description.toLowerCase().includes(searchLower) &&
+              !product.brand.toLowerCase().includes(searchLower)
+            ) {
               return false;
             }
           }
@@ -195,7 +198,8 @@ export const useProductStore = create<ProductState>()(
 
           // Capacity filter (for power banks)
           if (filters.minCapacity || filters.maxCapacity) {
-            const capacity = product.characteristics?.['Ємність акумулятора, mah'];
+            const capacity =
+              product.characteristics?.["Ємність акумулятора, mah"];
             if (capacity) {
               const capacityNum = parseFloat(capacity.toString());
               if (filters.minCapacity && capacityNum < filters.minCapacity) {
@@ -209,21 +213,23 @@ export const useProductStore = create<ProductState>()(
 
           // USB filters (for cables)
           if (filters.inputConnector) {
-            const inputConnector = product.characteristics?.['Вхід (Тип коннектора)'];
+            const inputConnector =
+              product.characteristics?.["Вхід (Тип коннектора)"];
             if (inputConnector !== filters.inputConnector) {
               return false;
             }
           }
 
           if (filters.outputConnector) {
-            const outputConnector = product.characteristics?.['Вихід (Тип коннектора)'];
+            const outputConnector =
+              product.characteristics?.["Вихід (Тип коннектора)"];
             if (outputConnector !== filters.outputConnector) {
               return false;
             }
           }
 
           if (filters.cableLength) {
-            const cableLength = product.characteristics?.['Довжина кабелю, м'];
+            const cableLength = product.characteristics?.["Довжина кабелю, м"];
             if (cableLength !== filters.cableLength) {
               return false;
             }
@@ -238,7 +244,7 @@ export const useProductStore = create<ProductState>()(
       clearFilters: () => {
         set({
           activeFilters: defaultFilters,
-          lastFilterKey: '',
+          lastFilterKey: "",
           currentPage: 1,
           hasMoreProducts: true,
         });
@@ -254,22 +260,24 @@ export const useProductStore = create<ProductState>()(
         try {
           const nextPage = state.currentPage + 1;
           const queryParams = new URLSearchParams();
-          
+
           // Add filter parameters to query
           Object.entries(state.activeFilters).forEach(([key, value]) => {
-            if (value !== undefined && value !== '' && value !== null) {
+            if (value !== undefined && value !== "" && value !== null) {
               if (Array.isArray(value)) {
-                queryParams.append(key, value.join(','));
+                queryParams.append(key, value.join(","));
               } else {
                 queryParams.append(key, value.toString());
               }
             }
           });
-          
-          queryParams.append('page', nextPage.toString());
-          queryParams.append('limit', '50');
 
-          const response = await fetch(`/api/products?${queryParams.toString()}`);
+          queryParams.append("page", nextPage.toString());
+          queryParams.append("limit", "50");
+
+          const response = await fetch(
+            `/api/products?${queryParams.toString()}`
+          );
           const data = await response.json();
 
           if (data.success && data.products) {
@@ -280,7 +288,7 @@ export const useProductStore = create<ProductState>()(
             });
           }
         } catch (error) {
-          console.error('Error loading more products:', error);
+          console.error("Error loading more products:", error);
         } finally {
           set({ isLoadingMore: false });
         }
@@ -298,14 +306,14 @@ export const useProductStore = create<ProductState>()(
           currentPage: 1,
           totalProducts: 0,
           activeFilters: defaultFilters,
-          sortBy: 'popularity-desc',
+          sortBy: "popularity-desc",
           scrollPosition: 0,
-          lastFilterKey: '',
+          lastFilterKey: "",
         });
       },
     }),
     {
-      name: 'product-store',
+      name: "product-store",
       partialize: (state) => ({
         allProducts: state.allProducts,
         categories: state.categories,

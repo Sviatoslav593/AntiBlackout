@@ -86,7 +86,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation(); // Prevent card click (though it does the same thing)
     // Save scroll position before navigating
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       sessionStorage.setItem("scrollPosition", window.scrollY.toString());
     }
     router.push(`/product/${product.id}`);
@@ -115,7 +115,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         reviewCount: product.reviewCount,
         inStock: product.inStock,
         badge: product.badge,
-        capacity: product.characteristics?.['Ємність акумулятора, mah'] || 0,
+        capacity: product.characteristics?.["Ємність акумулятора, mah"] || 0,
         brand: product.brand,
         popularity: product.popularity || 0,
         createdAt: product.created_at || new Date().toISOString(),
@@ -140,7 +140,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     if (!isButton) {
       e.preventDefault();
       // Save scroll position before navigating
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         sessionStorage.setItem("scrollPosition", window.scrollY.toString());
       }
       router.push(`/product/${product.id}`);
@@ -232,7 +232,9 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
               {(product.originalPrice || product.discount) && (
                 <span className="text-xs sm:text-sm text-muted-foreground line-through">
-                  {product.originalPrice || (product.price + (product.discount || 0))} ₴
+                  {product.originalPrice ||
+                    product.price + (product.discount || 0)}{" "}
+                  ₴
                 </span>
               )}
               {product.discount && (

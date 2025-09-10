@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { useProductStore } from '@/store/productStore';
+import { useEffect, useRef } from "react";
+import { useProductStore } from "@/store/productStore";
 
 export function useScrollPosition() {
   const { scrollPosition, setScrollPosition } = useProductStore();
@@ -7,17 +7,17 @@ export function useScrollPosition() {
 
   // Save scroll position
   const saveScrollPosition = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       setScrollPosition(window.scrollY);
     }
   };
 
   // Restore scroll position
   const restoreScrollPosition = () => {
-    if (typeof window !== 'undefined' && scrollPosition > 0) {
+    if (typeof window !== "undefined" && scrollPosition > 0) {
       isRestoring.current = true;
       window.scrollTo(0, scrollPosition);
-      
+
       // Reset flag after scroll
       setTimeout(() => {
         isRestoring.current = false;
@@ -32,17 +32,17 @@ export function useScrollPosition() {
     };
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
+      if (document.visibilityState === "hidden") {
         saveScrollPosition();
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [setScrollPosition]);
 
@@ -69,10 +69,10 @@ export function useScrollPosition() {
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
       clearTimeout(timeoutId);
     };
   }, [setScrollPosition]);

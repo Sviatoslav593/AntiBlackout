@@ -238,11 +238,11 @@ export default function ProductPage() {
             <p className="text-gray-600 mb-6">
               Запитаний товар не існує або був видалений.
             </p>
-            <Button 
+            <Button
               onClick={() => {
                 restoreScrollPosition();
                 router.push("/");
-              }} 
+              }}
               variant="outline"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />

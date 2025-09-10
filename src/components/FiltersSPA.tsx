@@ -24,7 +24,8 @@ export default function FiltersSPA({
   priceRange,
   capacityRange,
 }: FiltersSPAProps) {
-  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } = useUrlFilters();
+  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
+    useUrlFilters();
   const { setSortBy } = useProductStore();
   const [localFilters, setLocalFilters] = useState<FilterParams>(activeFilters);
 
@@ -34,88 +35,103 @@ export default function FiltersSPA({
   }, [activeFilters]);
 
   // Handle category toggle
-  const handleCategoryToggle = useCallback((category: string) => {
-    const newCategories = localFilters.categoryIds || [];
-    const updatedCategories = newCategories.includes(category)
-      ? newCategories.filter(c => c !== category)
-      : [...newCategories, category];
-    
-    const newFilters = {
-      ...localFilters,
-      categoryIds: updatedCategories,
-    };
-    
-    setLocalFilters(newFilters);
-    applyFiltersAndUpdateUrl(newFilters);
-  }, [localFilters, applyFiltersAndUpdateUrl]);
+  const handleCategoryToggle = useCallback(
+    (category: string) => {
+      const newCategories = localFilters.categoryIds || [];
+      const updatedCategories = newCategories.includes(category)
+        ? newCategories.filter((c) => c !== category)
+        : [...newCategories, category];
+
+      const newFilters = {
+        ...localFilters,
+        categoryIds: updatedCategories,
+      };
+
+      setLocalFilters(newFilters);
+      applyFiltersAndUpdateUrl(newFilters);
+    },
+    [localFilters, applyFiltersAndUpdateUrl]
+  );
 
   // Handle brand toggle
-  const handleBrandToggle = useCallback((brand: string) => {
-    const newBrands = localFilters.brandIds || [];
-    const updatedBrands = newBrands.includes(brand)
-      ? newBrands.filter(b => b !== brand)
-      : [...newBrands, brand];
-    
-    const newFilters = {
-      ...localFilters,
-      brandIds: updatedBrands,
-    };
-    
-    setLocalFilters(newFilters);
-    applyFiltersAndUpdateUrl(newFilters);
-  }, [localFilters, applyFiltersAndUpdateUrl]);
+  const handleBrandToggle = useCallback(
+    (brand: string) => {
+      const newBrands = localFilters.brandIds || [];
+      const updatedBrands = newBrands.includes(brand)
+        ? newBrands.filter((b) => b !== brand)
+        : [...newBrands, brand];
+
+      const newFilters = {
+        ...localFilters,
+        brandIds: updatedBrands,
+      };
+
+      setLocalFilters(newFilters);
+      applyFiltersAndUpdateUrl(newFilters);
+    },
+    [localFilters, applyFiltersAndUpdateUrl]
+  );
 
   // Handle price change
-  const handlePriceChange = useCallback((priceRange: { min: number; max: number }) => {
-    const newFilters = {
-      ...localFilters,
-      minPrice: priceRange.min,
-      maxPrice: priceRange.max,
-    };
-    
-    setLocalFilters(newFilters);
-    applyFiltersAndUpdateUrl(newFilters);
-  }, [localFilters, applyFiltersAndUpdateUrl]);
+  const handlePriceChange = useCallback(
+    (priceRange: { min: number; max: number }) => {
+      const newFilters = {
+        ...localFilters,
+        minPrice: priceRange.min,
+        maxPrice: priceRange.max,
+      };
+
+      setLocalFilters(newFilters);
+      applyFiltersAndUpdateUrl(newFilters);
+    },
+    [localFilters, applyFiltersAndUpdateUrl]
+  );
 
   // Handle capacity change
-  const handleCapacityChange = useCallback((capacity: string) => {
-    let newFilters = { ...localFilters };
-    
-    if (capacity === 'all' || capacity === '') {
-      newFilters = {
-        ...newFilters,
-        minCapacity: undefined,
-        maxCapacity: undefined,
-      };
-    } else {
-      const capacityNum = parseFloat(capacity);
-      newFilters = {
-        ...newFilters,
-        minCapacity: capacityNum,
-        maxCapacity: capacityNum,
-      };
-    }
-    
-    setLocalFilters(newFilters);
-    applyFiltersAndUpdateUrl(newFilters);
-  }, [localFilters, applyFiltersAndUpdateUrl]);
+  const handleCapacityChange = useCallback(
+    (capacity: string) => {
+      let newFilters = { ...localFilters };
+
+      if (capacity === "all" || capacity === "") {
+        newFilters = {
+          ...newFilters,
+          minCapacity: undefined,
+          maxCapacity: undefined,
+        };
+      } else {
+        const capacityNum = parseFloat(capacity);
+        newFilters = {
+          ...newFilters,
+          minCapacity: capacityNum,
+          maxCapacity: capacityNum,
+        };
+      }
+
+      setLocalFilters(newFilters);
+      applyFiltersAndUpdateUrl(newFilters);
+    },
+    [localFilters, applyFiltersAndUpdateUrl]
+  );
 
   // Handle USB filter changes
-  const handleUSBFiltersChange = useCallback((usbFilters: {
-    inputConnector?: string;
-    outputConnector?: string;
-    cableLength?: string;
-  }) => {
-    const newFilters = {
-      ...localFilters,
-      inputConnector: usbFilters.inputConnector || '',
-      outputConnector: usbFilters.outputConnector || '',
-      cableLength: usbFilters.cableLength || '',
-    };
-    
-    setLocalFilters(newFilters);
-    applyFiltersAndUpdateUrl(newFilters);
-  }, [localFilters, applyFiltersAndUpdateUrl]);
+  const handleUSBFiltersChange = useCallback(
+    (usbFilters: {
+      inputConnector?: string;
+      outputConnector?: string;
+      cableLength?: string;
+    }) => {
+      const newFilters = {
+        ...localFilters,
+        inputConnector: usbFilters.inputConnector || "",
+        outputConnector: usbFilters.outputConnector || "",
+        cableLength: usbFilters.cableLength || "",
+      };
+
+      setLocalFilters(newFilters);
+      applyFiltersAndUpdateUrl(newFilters);
+    },
+    [localFilters, applyFiltersAndUpdateUrl]
+  );
 
   // Handle stock filter
   const handleStockToggle = useCallback(() => {
@@ -123,7 +139,7 @@ export default function FiltersSPA({
       ...localFilters,
       inStockOnly: !localFilters.inStockOnly,
     };
-    
+
     setLocalFilters(newFilters);
     applyFiltersAndUpdateUrl(newFilters);
   }, [localFilters, applyFiltersAndUpdateUrl]);
@@ -136,8 +152,9 @@ export default function FiltersSPA({
   // Get active filter count
   const activeFilterCount = useMemo(() => {
     let count = 0;
-    
-    if (localFilters.categoryIds && localFilters.categoryIds.length > 0) count++;
+
+    if (localFilters.categoryIds && localFilters.categoryIds.length > 0)
+      count++;
     if (localFilters.brandIds && localFilters.brandIds.length > 0) count++;
     if (localFilters.minPrice && localFilters.minPrice > 0) count++;
     if (localFilters.maxPrice && localFilters.maxPrice < 10000) count++;
@@ -146,7 +163,7 @@ export default function FiltersSPA({
     if (localFilters.outputConnector) count++;
     if (localFilters.cableLength) count++;
     if (localFilters.inStockOnly) count++;
-    
+
     return count;
   }, [localFilters]);
 
@@ -189,7 +206,9 @@ export default function FiltersSPA({
                 >
                   <input
                     type="checkbox"
-                    checked={localFilters.categoryIds?.includes(category) || false}
+                    checked={
+                      localFilters.categoryIds?.includes(category) || false
+                    }
                     onChange={() => handleCategoryToggle(category)}
                     className="rounded border-gray-300"
                   />
