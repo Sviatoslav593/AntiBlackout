@@ -15,7 +15,7 @@ import {
   FilterState,
   FilterProvider,
 } from "@/context/FilterContext";
-import BasicOriginalFilters from "@/components/BasicOriginalFilters";
+import Filters from "@/components/Filters";
 import {
   Battery,
   Shield,
@@ -103,7 +103,7 @@ function HomeContent() {
   // Context hooks
   const { searchQuery } = useSearch();
   const { filters: contextFilters, setFilters } = useFilters();
-  
+
   // Ensure filters has default values
   const filters = contextFilters || {
     priceRange: { min: 0, max: 10000 },
@@ -730,11 +730,17 @@ function HomeContent() {
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
               {/* Filters Sidebar */}
               <div className="xl:col-span-1">
-                <BasicOriginalFilters
+                <Filters
                   filters={filters}
                   onFiltersChange={setFilters}
                   availableCategories={availableCategories}
                   availableBrands={availableBrands}
+                  priceRange={{ min: 0, max: 10000 }}
+                  capacityRange={{ min: 0, max: 50000 }}
+                  onApplyFilters={async (filterParams) => {
+                    // This will be handled by the existing filter logic
+                    console.log("Apply filters:", filterParams);
+                  }}
                   selectedCategoryId={
                     availableCategories.includes("Зарядки та кабелі") &&
                     (filters.categories.length === 0 ||

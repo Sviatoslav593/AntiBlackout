@@ -34,14 +34,15 @@ export default function OriginalFilters({
 }: OriginalFiltersProps) {
   // Use FilterContext when available, fallback to props
   const { filters: contextFilters, setFilters } = useFilters();
-  const filters = contextFilters || propFilters || {
-    priceRange: { min: 0, max: 10000 },
-    inStockOnly: false,
-    categories: [],
-    brands: [],
-    capacityRange: { min: 0, max: 50000 },
-    usbFilters: {},
-  };
+  const filters = contextFilters ||
+    propFilters || {
+      priceRange: { min: 0, max: 10000 },
+      inStockOnly: false,
+      categories: [],
+      brands: [],
+      capacityRange: { min: 0, max: 50000 },
+      usbFilters: {},
+    };
 
   // Memoize selectedCategoryId to prevent unnecessary re-renders
   const memoizedSelectedCategoryId = useMemo(

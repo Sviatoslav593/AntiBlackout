@@ -7,17 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import PriceFilter from "@/components/PriceFilter";
 import CapacityFilter from "@/components/CapacityFilter";
-import dynamic from "next/dynamic";
-
-const USBCableFilters = dynamic(() => import("@/components/USBCableFilters"), {
-  ssr: false,
-  loading: () => (
-    <div className="text-sm text-muted-foreground">
-      Завантаження фільтрів кабелів...
-    </div>
-  ),
-});
-import { useFilters, FilterState } from "@/context/FilterContext";
+import { useFilters } from "@/context/FilterContext";
 import {
   Sheet,
   SheetContent,
@@ -26,6 +16,25 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Filter } from "lucide-react";
+
+export interface FilterState {
+  priceRange: {
+    min: number;
+    max: number;
+  };
+  categories: string[];
+  brands: string[];
+  capacityRange: {
+    min: number;
+    max: number;
+  };
+  inStockOnly: boolean;
+  usbFilters: {
+    inputConnector?: string;
+    outputConnector?: string;
+    cableLength?: string;
+  };
+}
 
 interface FiltersProps {
   filters: FilterState;
@@ -41,9 +50,6 @@ interface FiltersProps {
     inStockOnly?: boolean;
     minPrice?: number;
     maxPrice?: number;
-    inputConnector?: string;
-    outputConnector?: string;
-    cableLength?: string;
   }) => Promise<void>;
   selectedCategoryId?: number;
 }
@@ -62,25 +68,8 @@ export default function Filters({
   const { filters: contextFilters, setFilters } = useFilters();
   const filters = contextFilters || propFilters;
 
-  // Stable callback for USB filters to prevent re-renders
-  const handleUSBFiltersChange = useCallback(
-    (usbFilters: any) => {
-      handleFiltersChange((prevFilters) => ({
-        ...prevFilters,
-        usbFilters: {
-          ...prevFilters.usbFilters,
-          ...usbFilters,
-        },
-      }));
-    },
-    [handleFiltersChange]
-  );
-
   // Memoize selectedCategoryId to prevent unnecessary re-renders
-  const memoizedSelectedCategoryId = useMemo(
-    () => selectedCategoryId,
-    [selectedCategoryId]
-  );
+  const memoizedSelectedCategoryId = useMemo(() => selectedCategoryId, [selectedCategoryId]);
 
   // Handle filter changes through context or props
   const handleFiltersChange = (newFilters: FilterState) => {
@@ -246,12 +235,6 @@ export default function Filters({
     )
       count++;
     if (filters.inStockOnly) count++;
-    if (
-      filters.usbFilters?.inputConnector ||
-      filters.usbFilters?.outputConnector ||
-      filters.usbFilters?.cableLength
-    )
-      count++;
     return count;
   };
 
@@ -311,23 +294,12 @@ export default function Filters({
         </>
       )}
 
-      {/* USB Cable Filters - only for "Зарядки та кабелі" category */}
-      {memoizedSelectedCategoryId === 1002 && (
-        <>
-          <USBCableFilters
-            onFiltersChange={handleUSBFiltersChange}
-            categoryId={memoizedSelectedCategoryId}
-          />
-          <Separator />
-        </>
-      )}
-
       {/* Brands */}
       {availableBrands.length > 0 && (
         <>
           <div className="space-y-3">
             <h4 className="font-medium">Бренди</h4>
-            <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">                                                                                       
               {availableBrands.map((brand) => (
                 <label
                   key={brand}
