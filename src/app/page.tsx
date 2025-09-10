@@ -779,25 +779,36 @@ function HomeContent() {
                       inStockOnly: filterParams.inStockOnly,
                       minPrice: filterParams.minPrice,
                       maxPrice: filterParams.maxPrice,
-                      minCapacity: filterParams.minCapacity,
-                      maxCapacity: filterParams.maxCapacity,
-                      inputConnector: filterParams.inputConnector,
-                      outputConnector: filterParams.outputConnector,
-                      cableLength: filterParams.cableLength,
+                      ...(filterParams.minCapacity && { minCapacity: filterParams.minCapacity }),
+                      ...(filterParams.maxCapacity && { maxCapacity: filterParams.maxCapacity }),
+                      ...(filterParams.inputConnector && { inputConnector: filterParams.inputConnector }),
+                      ...(filterParams.outputConnector && { outputConnector: filterParams.outputConnector }),
+                      ...(filterParams.cableLength && { cableLength: filterParams.cableLength }),
                     };
 
                     await fetchProducts(convertedParams, 1, false);
                   }}
                   selectedCategoryId={(() => {
-                    const categoryId = filters.categories.includes(
-                      "Портативні батареї"
-                    )
-                      ? 1001
-                      : filters.categories.includes("Зарядки та кабелі")
-                      ? 1002
-                      : undefined;
+                    // Check if any power bank category is selected
+                    const isPowerBankCategory = filters.categories.some(cat => 
+                      cat.includes("Портативні батареї") || 
+                      cat.includes("павербанк") || 
+                      cat.includes("батареї")
+                    );
+                    
+                    // Check if any cable category is selected
+                    const isCableCategory = filters.categories.some(cat => 
+                      cat.includes("Зарядки та кабелі") || 
+                      cat.includes("кабелі") || 
+                      cat.includes("зарядки")
+                    );
+                    
+                    const categoryId = isPowerBankCategory ? 1001 : isCableCategory ? 1002 : undefined;
+                    
                     console.log("Selected category ID:", {
                       categories: filters.categories,
+                      isPowerBankCategory,
+                      isCableCategory,
                       categoryId,
                     });
                     return categoryId;

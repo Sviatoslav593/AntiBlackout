@@ -84,32 +84,41 @@ export default function USBCableFilters({
   }, [categoryId]);
 
   // Handle individual filter changes
-  const handleInputConnectorChange = useCallback((value: string) => {
-    setInputConnector(value);
-    onFiltersChange({
-      inputConnector: value || undefined,
-      outputConnector: outputConnector || undefined,
-      cableLength: cableLength || undefined,
-    });
-  }, [outputConnector, cableLength, onFiltersChange]);
+  const handleInputConnectorChange = useCallback(
+    (value: string) => {
+      setInputConnector(value);
+      onFiltersChange({
+        inputConnector: value || undefined,
+        outputConnector: outputConnector || undefined,
+        cableLength: cableLength || undefined,
+      });
+    },
+    [outputConnector, cableLength, onFiltersChange]
+  );
 
-  const handleOutputConnectorChange = useCallback((value: string) => {
-    setOutputConnector(value);
-    onFiltersChange({
-      inputConnector: inputConnector || undefined,
-      outputConnector: value || undefined,
-      cableLength: cableLength || undefined,
-    });
-  }, [inputConnector, cableLength, onFiltersChange]);
+  const handleOutputConnectorChange = useCallback(
+    (value: string) => {
+      setOutputConnector(value);
+      onFiltersChange({
+        inputConnector: inputConnector || undefined,
+        outputConnector: value || undefined,
+        cableLength: cableLength || undefined,
+      });
+    },
+    [inputConnector, cableLength, onFiltersChange]
+  );
 
-  const handleCableLengthChange = useCallback((value: string) => {
-    setCableLength(value);
-    onFiltersChange({
-      inputConnector: inputConnector || undefined,
-      outputConnector: outputConnector || undefined,
-      cableLength: value || undefined,
-    });
-  }, [inputConnector, outputConnector, onFiltersChange]);
+  const handleCableLengthChange = useCallback(
+    (value: string) => {
+      setCableLength(value);
+      onFiltersChange({
+        inputConnector: inputConnector || undefined,
+        outputConnector: outputConnector || undefined,
+        cableLength: value || undefined,
+      });
+    },
+    [inputConnector, outputConnector, onFiltersChange]
+  );
 
   const clearFilters = () => {
     setInputConnector("");
@@ -134,7 +143,10 @@ export default function USBCableFilters({
         <div className="space-y-3">
           {/* Input Connector */}
           {options.inputConnectors.length > 0 && (
-            <Select value={inputConnector} onValueChange={handleInputConnectorChange}>
+            <Select
+              value={inputConnector}
+              onValueChange={handleInputConnectorChange}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Вхід (Тип коннектора)" />
               </SelectTrigger>
@@ -150,7 +162,10 @@ export default function USBCableFilters({
 
           {/* Output Connector */}
           {options.outputConnectors.length > 0 && (
-            <Select value={outputConnector} onValueChange={handleOutputConnectorChange}>
+            <Select
+              value={outputConnector}
+              onValueChange={handleOutputConnectorChange}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Вихід (Тип коннектора)" />
               </SelectTrigger>

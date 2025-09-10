@@ -35,7 +35,7 @@ export default function CapacitySelectFilter({
 
         if (data.success && data.products) {
           const capacities = new Set<number>();
-          
+
           data.products.forEach((product: any) => {
             if (product.capacity && product.capacity > 0) {
               capacities.add(product.capacity);
@@ -56,11 +56,14 @@ export default function CapacitySelectFilter({
   }, [categoryId]);
 
   // Handle capacity selection
-  const handleCapacitySelect = useCallback((value: string) => {
-    setSelectedCapacity(value);
-    const capacity = value === "all" ? null : parseInt(value);
-    onCapacityChange(capacity);
-  }, [onCapacityChange]);
+  const handleCapacitySelect = useCallback(
+    (value: string) => {
+      setSelectedCapacity(value);
+      const capacity = value === "all" ? null : parseInt(value);
+      onCapacityChange(capacity);
+    },
+    [onCapacityChange]
+  );
 
   const clearFilter = () => {
     setSelectedCapacity("");
@@ -93,7 +96,7 @@ export default function CapacitySelectFilter({
               ))}
             </SelectContent>
           </Select>
-          
+
           {selectedCapacity && selectedCapacity !== "all" && (
             <Button
               variant="ghost"

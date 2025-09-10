@@ -85,17 +85,34 @@ export default function Filters({
   };
 
   // Handle price filter changes
-  const handlePriceChange = (priceRange: { min: number; max: number }) => {
+  const handlePriceChange = async (priceRange: { min: number; max: number }) => {
     handleFiltersChange({
       ...filters,
       priceRange,
     });
+
+    // Apply price filter via API
+    if (onApplyFilters) {
+      console.log("Price filter changed:", priceRange);
+      const filterParams: any = {};
+
+      if (priceRange.min > 0) {
+        filterParams.minPrice = priceRange.min;
+      }
+      if (priceRange.max < 10000) {
+        filterParams.maxPrice = priceRange.max;
+      }
+
+      await onApplyFilters(filterParams);
+    }
   };
 
   // Handle capacity filter changes
   const handleCapacityChange = async (capacity: number | null) => {
-    const newCapacityRange = capacity ? { min: capacity, max: capacity } : { min: 0, max: 50000 };
-    
+    const newCapacityRange = capacity
+      ? { min: capacity, max: capacity }
+      : { min: 0, max: 50000 };
+
     handleFiltersChange({
       ...filters,
       capacityRange: newCapacityRange,
@@ -338,10 +355,18 @@ export default function Filters({
 
       {/* Capacity Select - only for power banks */}
       {(() => {
-        const shouldShowCapacity =
-          memoizedSelectedCategoryId === 1001 ||
-          filters.categories.includes("Портативні батареї");
-        return shouldShowCapacity;
+        const isPowerBankCategory = memoizedSelectedCategoryId === 1001 ||
+          filters.categories.some(cat => 
+            cat.includes("Портативні батареї") || 
+            cat.includes("павербанк") || 
+            cat.includes("батареї")
+          );
+        console.log("Capacity filter visibility:", {
+          memoizedSelectedCategoryId,
+          categories: filters.categories,
+          isPowerBankCategory,
+        });
+        return isPowerBankCategory;
       })() && (
         <>
           <CapacitySelectFilter
@@ -354,10 +379,18 @@ export default function Filters({
 
       {/* USB Cable Filters - only for cables category */}
       {(() => {
-        const shouldShowUSB =
-          memoizedSelectedCategoryId === 1002 ||
-          filters.categories.includes("Зарядки та кабелі");
-        return shouldShowUSB;
+        const isCableCategory = memoizedSelectedCategoryId === 1002 ||
+          filters.categories.some(cat => 
+            cat.includes("Зарядки та кабелі") || 
+            cat.includes("кабелі") || 
+            cat.includes("зарядки")
+          );
+        console.log("USB filter visibility:", {
+          memoizedSelectedCategoryId,
+          categories: filters.categories,
+          isCableCategory,
+        });
+        return isCableCategory;
       })() && (
         <>
           <USBCableFilters
