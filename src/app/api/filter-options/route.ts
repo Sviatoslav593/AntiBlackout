@@ -50,17 +50,20 @@ export async function GET(request: NextRequest) {
       if (product.characteristics) {
         const input = product.characteristics["Вхід (Тип коннектора)"];
         if (input) {
-          inputConnectors.add(input);
+          const v = Array.isArray(input) ? input[0] : input;
+          inputConnectors.add(String(v));
         }
 
         const output = product.characteristics["Вихід (Тип коннектора)"];
         if (output) {
-          outputConnectors.add(output);
+          const v = Array.isArray(output) ? output[0] : output;
+          outputConnectors.add(String(v));
         }
 
         const length = product.characteristics["Довжина кабелю, м"];
         if (length) {
-          cableLengths.add(String(length));
+          const v = Array.isArray(length) ? length[0] : length;
+          cableLengths.add(String(v));
         }
       }
     });

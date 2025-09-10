@@ -87,8 +87,10 @@ export async function GET(request: NextRequest) {
         });
       }
       if (cableLength) {
+        const lengthNum = parseFloat(cableLength);
+        const lengthValue = Number.isNaN(lengthNum) ? cableLength : lengthNum;
         query = query.contains("characteristics", {
-          "Довжина кабелю, м": cableLength,
+          "Довжина кабелю, м": lengthValue,
         });
       }
 
@@ -119,22 +121,30 @@ export async function GET(request: NextRequest) {
       // Конвертуємо товари в потрібний формат
       let convertedProducts =
         products?.map((product) => {
-          // Extract capacity from characteristics
+          // Extract capacity from characteristics with tolerant key search
           let capacity = 0;
-          if (
-            product.characteristics &&
-            product.characteristics["Ємність акумулятора, mah"]
-          ) {
-            const capacityValue =
-              product.characteristics["Ємність акумулятора, mah"];
-            if (typeof capacityValue === "string") {
-              // Extract number from string like "10000 mAh" or "10000"
-              const match = capacityValue.match(/(\d+)/);
-              if (match) {
-                capacity = parseInt(match[1]);
-              }
-            } else if (typeof capacityValue === "number") {
-              capacity = capacityValue;
+          const ch = product.characteristics || {};
+          const capacityKeys = [
+            "Ємність акумулятора, mah",
+            "Ємність акумулятора",
+            "Ємність, mAh",
+            "Ємність (mAh)",
+            "Ємність",
+          ];
+          let rawCap: any = undefined;
+          for (const k of capacityKeys) {
+            if (ch[k] !== undefined) {
+              rawCap = ch[k];
+              break;
+            }
+          }
+          if (rawCap !== undefined) {
+            const value = Array.isArray(rawCap) ? rawCap[0] : rawCap;
+            if (typeof value === "string") {
+              const match = value.replace(/\s+/g, "").match(/(\d+)/);
+              if (match) capacity = parseInt(match[1]);
+            } else if (typeof value === "number") {
+              capacity = value;
             }
           }
 
@@ -164,35 +174,15 @@ export async function GET(request: NextRequest) {
           };
         }) || [];
 
-      // Apply capacity filters after conversion
+      // Apply capacity filters after conversion (post-filter to avoid SQL casting issues)
       if (minCapacity || maxCapacity) {
-        console.log("Applying capacity filters:", {
-          minCapacity,
-          maxCapacity,
-          totalProducts: convertedProducts.length
-        });
-        
-        const beforeFilter = convertedProducts.length;
         convertedProducts = convertedProducts.filter((product) => {
-          if (product.capacity === 0) {
-            return false; // Skip products without capacity
-          }
-
-          if (minCapacity && product.capacity < parseInt(minCapacity)) {
+          if (product.capacity === 0) return false;
+          if (minCapacity && product.capacity < parseInt(minCapacity))
             return false;
-          }
-
-          if (maxCapacity && product.capacity > parseInt(maxCapacity)) {
+          if (maxCapacity && product.capacity > parseInt(maxCapacity))
             return false;
-          }
-
           return true;
-        });
-        
-        console.log("Capacity filter result:", {
-          before: beforeFilter,
-          after: convertedProducts.length,
-          filtered: beforeFilter - convertedProducts.length
         });
       }
 
@@ -273,8 +263,10 @@ export async function GET(request: NextRequest) {
         });
       }
       if (cableLength) {
+        const lengthNum = parseFloat(cableLength);
+        const lengthValue = Number.isNaN(lengthNum) ? cableLength : lengthNum;
         query = query.contains("characteristics", {
-          "Довжина кабелю, м": cableLength,
+          "Довжина кабелю, м": lengthValue,
         });
       }
 

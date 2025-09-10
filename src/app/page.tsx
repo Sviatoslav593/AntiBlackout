@@ -461,7 +461,7 @@ function HomeContent() {
         filterParams.maxCapacity = filters.capacityRange.max;
         console.log("Added maxCapacity filter:", filters.capacityRange.max);
       }
-      
+
       console.log("Current capacity range:", filters.capacityRange);
 
       if (debouncedSearchQuery) {

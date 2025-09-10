@@ -105,24 +105,105 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Parse characteristics from params
+        // Parse and normalize characteristics from params
         const characteristics: Record<string, any> = {};
+        const normalizeConnector = (raw: string): string => {
+          const v = raw.trim().toLowerCase().replace(/\s+/g, " ");
+          // Canonicalize common connector names
+          if (/(type\s*-?\s*c|usb-c|usb c)/i.test(raw)) return "Type-C";
+          if (/(usb\s*-?\s*a|usb a)/i.test(raw)) return "USB-A";
+          if (/(micro\s*-?\s*usb|usb\s*micro)/i.test(raw)) return "Micro-USB";
+          if (/lightning/i.test(raw)) return "Lightning";
+          if (/mini\s*-?\s*usb/i.test(raw)) return "Mini-USB";
+          // Fallback: Title Case
+          return v
+            .split(" ")
+            .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+            .join(" ");
+        };
+
+        const normalizeCapacity = (raw: string): number | null => {
+          const match = String(raw).match(/(\d+[\d\s\.,]*)/);
+          if (!match) return null;
+          const num = match[1].replace(/\s+/g, "").replace(/,/g, ".");
+          const parsed = parseFloat(num);
+          if (Number.isNaN(parsed)) return null;
+          return Math.round(parsed); // store as integer mAh
+        };
+
+        const normalizeLengthMeters = (raw: string): number | null => {
+          const match = String(raw).match(/(\d+(?:[\.,]\d+)?)/);
+          if (!match) return null;
+          const num = match[1].replace(/,/g, ".");
+          const parsed = parseFloat(num);
+          return Number.isNaN(parsed) ? null : parsed;
+        };
+
+        const setCharacteristic = (key: string, value: any) => {
+          if (characteristics[key] !== undefined) {
+            if (Array.isArray(characteristics[key])) {
+              characteristics[key].push(value);
+            } else {
+              characteristics[key] = [characteristics[key], value];
+            }
+          } else {
+            characteristics[key] = value;
+          }
+        };
+
         if (offer.param) {
           offer.param.forEach((param) => {
             if (param.$ && param.$.name && param._) {
-              const name = param.$.name;
-              const value = param._;
+              const originalName = param.$.name.trim();
+              const rawValue = param._.trim();
+              const nameLower = originalName.toLowerCase();
 
-              // Handle multiple values for the same characteristic
-              if (characteristics[name]) {
-                if (Array.isArray(characteristics[name])) {
-                  characteristics[name].push(value);
-                } else {
-                  characteristics[name] = [characteristics[name], value];
+              // Normalize capacity (store numeric mAh under canonical key)
+              if (nameLower.includes("ємн") && nameLower.includes("mah")) {
+                const cap = normalizeCapacity(rawValue);
+                if (cap !== null) {
+                  setCharacteristic("Ємність акумулятора, mah", cap);
                 }
-              } else {
-                characteristics[name] = value;
+                return;
               }
+
+              // Normalize cable length (meters as number)
+              if (
+                nameLower.includes("довж") &&
+                nameLower.includes("каб") &&
+                nameLower.includes("м")
+              ) {
+                const meters = normalizeLengthMeters(rawValue);
+                if (meters !== null) {
+                  setCharacteristic("Довжина кабелю, м", meters);
+                }
+                return;
+              }
+
+              // Normalize connectors
+              if (
+                nameLower.includes("вхід") &&
+                nameLower.includes("коннектор")
+              ) {
+                setCharacteristic(
+                  "Вхід (Тип коннектора)",
+                  normalizeConnector(rawValue)
+                );
+                return;
+              }
+              if (
+                nameLower.includes("вихід") &&
+                nameLower.includes("коннектор")
+              ) {
+                setCharacteristic(
+                  "Вихід (Тип коннектора)",
+                  normalizeConnector(rawValue)
+                );
+                return;
+              }
+
+              // Default: store as-is
+              setCharacteristic(originalName, rawValue);
             }
           });
         }

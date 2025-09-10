@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import PriceFilter from "@/components/PriceFilter";
 import CapacityFilter from "@/components/CapacityFilter";
 import { useFilters } from "@/context/FilterContext";
+import USBCableFilters from "@/components/USBCableFilters";
 import {
   Sheet,
   SheetContent,
@@ -356,6 +357,34 @@ export default function Filters({
             onChange={handleCapacityChange}
             min={capacityRange.min}
             max={capacityRange.max}
+          />
+          <Separator />
+        </>
+      )}
+
+      {/* USB Cable Filters - only for cables category */}
+      {(() => {
+        const shouldShowUSB =
+          memoizedSelectedCategoryId === 1002 ||
+          filters.categories.includes("Зарядки та кабелі");
+        return shouldShowUSB;
+      })() && (
+        <>
+          <USBCableFilters
+            onFiltersChange={(usb) => {
+              // update context
+              handleFiltersChange({
+                ...filters,
+                usbFilters: usb,
+              });
+              // apply to API
+              onApplyFilters?.({
+                inputConnector: usb.inputConnector,
+                outputConnector: usb.outputConnector,
+                cableLength: usb.cableLength,
+              });
+            }}
+            categoryId={memoizedSelectedCategoryId}
           />
           <Separator />
         </>
