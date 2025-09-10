@@ -19,11 +19,14 @@ interface FilterOption {
 }
 
 // Global cache for loaded options to prevent re-loading
-const optionsCache = new Map<number, {
-  inputOptions: FilterOption[];
-  outputOptions: FilterOption[];
-  lengthOptions: FilterOption[];
-}>();
+const optionsCache = new Map<
+  number,
+  {
+    inputOptions: FilterOption[];
+    outputOptions: FilterOption[];
+    lengthOptions: FilterOption[];
+  }
+>();
 
 export default function USBCableFilters({
   onFiltersChange,
@@ -46,7 +49,6 @@ export default function USBCableFilters({
   const [isLengthOpen, setIsLengthOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
 
   // Memoize onFiltersChange to prevent unnecessary re-renders
   const stableOnFiltersChange = useMemo(() => onFiltersChange, []);
@@ -56,8 +58,8 @@ export default function USBCableFilters({
     console.log(
       "USBCableFilters: useEffect triggered - categoryId:",
       categoryId,
-      "hasLoaded:",
-      hasLoaded
+      "loading:",
+      loading
     );
 
     if (!categoryId) {
@@ -67,23 +69,21 @@ export default function USBCableFilters({
 
     // Check if options are already cached
     if (optionsCache.has(categoryId)) {
-      console.log("USBCableFilters: Using cached options for categoryId:", categoryId);
+      console.log(
+        "USBCableFilters: Using cached options for categoryId:",
+        categoryId
+      );
       const cached = optionsCache.get(categoryId)!;
       setInputOptions(cached.inputOptions);
       setOutputOptions(cached.outputOptions);
       setLengthOptions(cached.lengthOptions);
-      setHasLoaded(true);
       setIsLoaded(true);
       return;
     }
 
-    if (hasLoaded) {
-      console.log(
-        "USBCableFilters: Skipping load - categoryId:",
-        categoryId,
-        "hasLoaded:",
-        hasLoaded
-      );
+    // Skip if already loading
+    if (loading) {
+      console.log("USBCableFilters: Already loading, skipping");
       return;
     }
 
@@ -136,20 +136,20 @@ export default function USBCableFilters({
           setOutputOptions(outputOptions);
           setLengthOptions(lengthOptions);
 
-          console.log("USBCableFilters: Successfully loaded and cached options:", {
-            input: inputConnectors.length,
-            output: outputConnectors.length,
-            length: cableLengths.length,
-          });
-
-          setHasLoaded(true);
-          setIsLoaded(true);
           console.log(
-            "USBCableFilters: Set hasLoaded = true and isLoaded = true"
+            "USBCableFilters: Successfully loaded and cached options:",
+            {
+              input: inputConnectors.length,
+              output: outputConnectors.length,
+              length: cableLengths.length,
+            }
           );
+
+          setIsLoaded(true);
+          console.log("USBCableFilters: Set isLoaded = true");
         } else {
           console.error("USBCableFilters: API returned error:", data.error);
-          setHasLoaded(true); // Mark as loaded even on error to prevent retries
+          setIsLoaded(true); // Mark as loaded even on error to prevent retries
         }
       } catch (error) {
         console.error("Error loading filter options:", error);
@@ -159,7 +159,7 @@ export default function USBCableFilters({
     };
 
     loadOptions();
-  }, [categoryId, hasLoaded]); // Include hasLoaded to prevent infinite loop
+  }, [categoryId, loading]); // Depend on categoryId and loading state
 
   // Debounced filter change - only when values change
   useEffect(() => {
