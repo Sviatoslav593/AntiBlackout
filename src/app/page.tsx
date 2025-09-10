@@ -441,6 +441,15 @@ function HomeContent() {
         filterParams.maxPrice = filters.priceRange.max;
       }
 
+      // Add capacity filters
+      if (filters.capacityRange.min > 0) {
+        filterParams.minCapacity = filters.capacityRange.min;
+      }
+
+      if (filters.capacityRange.max < 50000) {
+        filterParams.maxCapacity = filters.capacityRange.max;
+      }
+
       if (debouncedSearchQuery) {
         filterParams.search = debouncedSearchQuery;
       }
@@ -736,7 +745,7 @@ function HomeContent() {
                   availableCategories={availableCategories}
                   availableBrands={availableBrands}
                   priceRange={{ min: 0, max: 10000 }}
-                  capacityRange={{ min: 0, max: 50000 }}
+                  capacityRange={capacityRange}
                   onApplyFilters={async (filterParams) => {
                     // This will be handled by the existing filter logic
                     console.log("Apply filters:", filterParams);

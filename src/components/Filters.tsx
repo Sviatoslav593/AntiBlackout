@@ -69,7 +69,10 @@ export default function Filters({
   const filters = contextFilters || propFilters;
 
   // Memoize selectedCategoryId to prevent unnecessary re-renders
-  const memoizedSelectedCategoryId = useMemo(() => selectedCategoryId, [selectedCategoryId]);
+  const memoizedSelectedCategoryId = useMemo(
+    () => selectedCategoryId,
+    [selectedCategoryId]
+  );
 
   // Handle filter changes through context or props
   const handleFiltersChange = (newFilters: FilterState) => {
@@ -299,7 +302,7 @@ export default function Filters({
         <>
           <div className="space-y-3">
             <h4 className="font-medium">Бренди</h4>
-            <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">                                                                                       
+            <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
               {availableBrands.map((brand) => (
                 <label
                   key={brand}

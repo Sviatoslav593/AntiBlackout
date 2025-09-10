@@ -15,6 +15,8 @@ export async function GET(request: NextRequest) {
     const brands = searchParams.get("brands");
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
+    const minCapacity = searchParams.get("minCapacity");
+    const maxCapacity = searchParams.get("maxCapacity");
     const inStockOnly = searchParams.get("inStockOnly") === "true";
     const searchQuery = searchParams.get("search");
 
@@ -115,31 +117,65 @@ export async function GET(request: NextRequest) {
       const categories = Array.from(categoryMap.values());
 
       // Конвертуємо товари в потрібний формат
-      const convertedProducts =
-        products?.map((product) => ({
-          id: product.id,
-          external_id: product.external_id,
-          name: product.name || "",
-          description: product.description || "",
-          price: product.price || 0,
-          originalPrice: undefined,
-          image: product.image_url || "",
-          images: product.images || [product.image_url || ""],
-          rating: 4.5,
-          reviewCount: Math.floor(Math.random() * 100) + 10,
-          category: product.categories?.name || "Uncategorized",
-          category_id: product.category_id,
-          categories: product.categories,
-          brand: product.brand || "Unknown",
-          capacity: 0,
-          popularity: Math.floor(Math.random() * 100),
-          badge: undefined,
-          inStock: (product.quantity || 0) > 0,
-          createdAt: product.created_at || new Date().toISOString(),
-          vendor_code: product.vendor_code,
-          quantity: product.quantity,
-          characteristics: product.characteristics,
-        })) || [];
+      let convertedProducts =
+        products?.map((product) => {
+          // Extract capacity from characteristics
+          let capacity = 0;
+          if (product.characteristics && product.characteristics["Ємність акумулятора, mah"]) {
+            const capacityValue = product.characteristics["Ємність акумулятора, mah"];
+            if (typeof capacityValue === 'string') {
+              // Extract number from string like "10000 mAh" or "10000"
+              const match = capacityValue.match(/(\d+)/);
+              if (match) {
+                capacity = parseInt(match[1]);
+              }
+            } else if (typeof capacityValue === 'number') {
+              capacity = capacityValue;
+            }
+          }
+
+          return {
+            id: product.id,
+            external_id: product.external_id,
+            name: product.name || "",
+            description: product.description || "",
+            price: product.price || 0,
+            originalPrice: undefined,
+            image: product.image_url || "",
+            images: product.images || [product.image_url || ""],
+            rating: 4.5,
+            reviewCount: Math.floor(Math.random() * 100) + 10,
+            category: product.categories?.name || "Uncategorized",
+            category_id: product.category_id,
+            categories: product.categories,
+            brand: product.brand || "Unknown",
+            capacity: capacity,
+            popularity: Math.floor(Math.random() * 100),
+            badge: undefined,
+            inStock: (product.quantity || 0) > 0,
+            createdAt: product.created_at || new Date().toISOString(),
+            vendor_code: product.vendor_code,
+            quantity: product.quantity,
+            characteristics: product.characteristics,
+          };
+        }) || [];
+
+      // Apply capacity filters after conversion
+      if (minCapacity || maxCapacity) {
+        convertedProducts = convertedProducts.filter((product) => {
+          if (product.capacity === 0) return false; // Skip products without capacity
+          
+          if (minCapacity && product.capacity < parseInt(minCapacity)) {
+            return false;
+          }
+          
+          if (maxCapacity && product.capacity > parseInt(maxCapacity)) {
+            return false;
+          }
+          
+          return true;
+        });
+      }
 
       return NextResponse.json({
         success: true,
@@ -258,31 +294,65 @@ export async function GET(request: NextRequest) {
     const categories = Array.from(categoryMap.values());
 
     // Конвертуємо товари в потрібний формат
-    const convertedProducts =
-      products?.map((product) => ({
-        id: product.id,
-        external_id: product.external_id,
-        name: product.name || "",
-        description: product.description || "",
-        price: product.price || 0,
-        originalPrice: undefined,
-        image: product.image_url || "",
-        images: product.images || [product.image_url || ""],
-        rating: 4.5,
-        reviewCount: Math.floor(Math.random() * 100) + 10,
-        category: product.categories?.name || "Uncategorized",
-        category_id: product.category_id,
-        categories: product.categories,
-        brand: product.brand || "Unknown",
-        capacity: 0,
-        popularity: Math.floor(Math.random() * 100),
-        badge: undefined,
-        inStock: (product.quantity || 0) > 0,
-        createdAt: product.created_at || new Date().toISOString(),
-        vendor_code: product.vendor_code,
-        quantity: product.quantity,
-        characteristics: product.characteristics,
-      })) || [];
+    let convertedProducts =
+      products?.map((product) => {
+        // Extract capacity from characteristics
+        let capacity = 0;
+        if (product.characteristics && product.characteristics["Ємність акумулятора, mah"]) {
+          const capacityValue = product.characteristics["Ємність акумулятора, mah"];
+          if (typeof capacityValue === 'string') {
+            // Extract number from string like "10000 mAh" or "10000"
+            const match = capacityValue.match(/(\d+)/);
+            if (match) {
+              capacity = parseInt(match[1]);
+            }
+          } else if (typeof capacityValue === 'number') {
+            capacity = capacityValue;
+          }
+        }
+
+        return {
+          id: product.id,
+          external_id: product.external_id,
+          name: product.name || "",
+          description: product.description || "",
+          price: product.price || 0,
+          originalPrice: undefined,
+          image: product.image_url || "",
+          images: product.images || [product.image_url || ""],
+          rating: 4.5,
+          reviewCount: Math.floor(Math.random() * 100) + 10,
+          category: product.categories?.name || "Uncategorized",
+          category_id: product.category_id,
+          categories: product.categories,
+          brand: product.brand || "Unknown",
+          capacity: capacity,
+          popularity: Math.floor(Math.random() * 100),
+          badge: undefined,
+          inStock: (product.quantity || 0) > 0,
+          createdAt: product.created_at || new Date().toISOString(),
+          vendor_code: product.vendor_code,
+          quantity: product.quantity,
+          characteristics: product.characteristics,
+        };
+      }) || [];
+
+    // Apply capacity filters after conversion
+    if (minCapacity || maxCapacity) {
+      convertedProducts = convertedProducts.filter((product) => {
+        if (product.capacity === 0) return false; // Skip products without capacity
+        
+        if (minCapacity && product.capacity < parseInt(minCapacity)) {
+          return false;
+        }
+        
+        if (maxCapacity && product.capacity > parseInt(maxCapacity)) {
+          return false;
+        }
+        
+        return true;
+      });
+    }
 
     return NextResponse.json({
       success: true,
