@@ -21,9 +21,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Extract unique brands
-    const brands = [...new Set(products.map((product) => product.brand))].filter(
-      (brand) => brand && brand.trim() !== ""
-    );
+    const brands = [
+      ...new Set(products.map((product) => product.brand)),
+    ].filter((brand) => brand && brand.trim() !== "");
 
     // Sort brands alphabetically
     brands.sort();

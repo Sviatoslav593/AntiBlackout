@@ -172,6 +172,28 @@ export function useUrlFilters() {
     applyFilters,
   ]);
 
+  // Apply default filters on mount if no URL parameters
+  useEffect(() => {
+    const hasUrlParams = searchParams.toString().length > 0;
+    if (!hasUrlParams) {
+      const defaultFilters: FilterParams = {
+        categoryIds: ["1001"], // Default to power banks
+        brandIds: [],
+        search: "",
+        inStockOnly: false,
+        minPrice: 0,
+        maxPrice: 10000,
+        minCapacity: 0,
+        maxCapacity: 50000,
+        inputConnector: "",
+        outputConnector: "",
+        cableLength: "",
+      };
+      setActiveFilters(defaultFilters);
+      applyFilters(defaultFilters);
+    }
+  }, [searchParams, setActiveFilters, applyFilters]);
+
   return {
     activeFilters,
     applyFiltersAndUpdateUrl,

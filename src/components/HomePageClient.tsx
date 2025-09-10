@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import SortDropdown from "@/components/SortDropdown";
@@ -21,6 +21,8 @@ import {
   ShoppingBag,
   Headphones,
   Smartphone,
+  Filter,
+  X,
 } from "lucide-react";
 
 const features = [
@@ -62,6 +64,7 @@ export default function HomePageClient() {
   } = useProducts();
   const { restoreScrollPosition } = useScrollPosition();
   const { sortBy, setSortBy } = useProductStore();
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   // Restore scroll position on mount
   useEffect(() => {
@@ -96,6 +99,14 @@ export default function HomePageClient() {
     setSortBy(newSort);
   };
 
+  // Handle scroll to products
+  const handleScrollToProducts = () => {
+    const productsSection = document.getElementById('products');
+    if (productsSection) {
+      productsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <>
       {/* Hero Section */}
@@ -113,8 +124,19 @@ export default function HomePageClient() {
               Швидка доставка по всій Україні.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <ScrollToProductsButton />
-              <Button variant="outline" size="lg" className="bg-transparent border-white text-white hover:bg-white hover:text-gray-900" asChild>
+              <Button 
+                size="lg" 
+                onClick={handleScrollToProducts}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Переглянути товари <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="bg-transparent border-white text-white hover:bg-white hover:text-gray-900"
+                asChild
+              >
                 <Link href="#features">
                   Дізнатися більше <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -204,9 +226,21 @@ export default function HomePageClient() {
             </div>
           </div>
 
+          {/* Mobile Filters Button */}
+          <div className="lg:hidden mb-4">
+            <Button
+              onClick={() => setIsMobileFiltersOpen(true)}
+              className="w-full"
+              variant="outline"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Фільтри
+            </Button>
+          </div>
+
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Filters Sidebar */}
-            <div className="lg:w-1/4">
+            {/* Desktop Filters Sidebar */}
+            <div className="hidden lg:block lg:w-1/4">
               <div className="bg-white rounded-lg shadow-lg p-6 sticky top-4">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold">Фільтри</h3>
@@ -227,6 +261,43 @@ export default function HomePageClient() {
                 />
               </div>
             </div>
+
+            {/* Mobile Filters Overlay */}
+            {isMobileFiltersOpen && (
+              <div className="fixed inset-0 z-50 lg:hidden">
+                <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileFiltersOpen(false)} />
+                <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-xl overflow-y-auto">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-semibold">Фільтри</h3>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={clearFilters}
+                          className="text-sm"
+                        >
+                          Очистити
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsMobileFiltersOpen(false)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <FiltersSPA
+                      availableCategories={categories || []}
+                      availableBrands={brands || []}
+                      priceRange={{ min: 0, max: 10000 }}
+                      capacityRange={{ min: 0, max: 50000 }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Products Grid */}
             <div className="lg:w-3/4">
