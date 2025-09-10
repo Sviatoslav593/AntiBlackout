@@ -143,11 +143,17 @@ export const useProductStore = create<ProductState>()(
         const state = get();
         const newFilterKey = JSON.stringify(filters);
 
+        console.log("applyFilters called with:", filters);
+        console.log("Current lastFilterKey:", state.lastFilterKey);
+        console.log("New filterKey:", newFilterKey);
+
         // If same filters, don't refetch
         if (newFilterKey === state.lastFilterKey) {
+          console.log("Same filters, skipping");
           return;
         }
 
+        console.log("Applying new filters");
         set({
           activeFilters: filters,
           lastFilterKey: newFilterKey,

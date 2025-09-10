@@ -40,6 +40,7 @@ export default function FiltersSPA({
   // Handle category toggle
   const handleCategoryToggle = useCallback(
     (category: string) => {
+      console.log("Category toggle clicked:", category);
       const newCategories = localFilters.categoryIds || [];
       const updatedCategories = newCategories.includes(category)
         ? newCategories.filter((c) => c !== category)
@@ -50,6 +51,7 @@ export default function FiltersSPA({
         categoryIds: updatedCategories,
       };
 
+      console.log("New category filters:", newFilters);
       setLocalFilters(newFilters);
       applyFiltersAndUpdateUrl(newFilters);
     },
@@ -59,6 +61,7 @@ export default function FiltersSPA({
   // Handle brand toggle
   const handleBrandToggle = useCallback(
     (brand: string) => {
+      console.log("Brand toggle clicked:", brand);
       const newBrands = localFilters.brandIds || [];
       const updatedBrands = newBrands.includes(brand)
         ? newBrands.filter((b) => b !== brand)
@@ -69,6 +72,7 @@ export default function FiltersSPA({
         brandIds: updatedBrands,
       };
 
+      console.log("New brand filters:", newFilters);
       setLocalFilters(newFilters);
       applyFiltersAndUpdateUrl(newFilters);
     },

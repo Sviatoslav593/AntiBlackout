@@ -442,73 +442,44 @@ function HomePageClient() {
             </div>
 
             {/* Mobile Filters Overlay */}
-            <AnimatePresence>
-              {isMobileFiltersOpen && (
-                <div className="fixed inset-0 z-50 lg:hidden">
-                  <motion.div
-                    className="fixed inset-0 bg-black bg-opacity-50"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    onClick={() => setIsMobileFiltersOpen(false)}
-                  />
-                  <motion.div
-                    className="fixed left-0 top-0 h-full w-4/5 max-w-sm bg-white shadow-xl overflow-y-auto"
-                    initial={{ x: "-100%" }}
-                    animate={{ x: 0 }}
-                    exit={{ x: "-100%" }}
-                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                  >
-                    <div className="p-6 pt-16">
-                      <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b z-10">
-                        <h3 className="text-xl font-semibold">
-                          Фільтри товарів
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleClearFilters}
-                            className="text-sm"
-                          >
-                            Очистити
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Close button in top-right corner */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsMobileFiltersOpen(false)}
-                        className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full z-20"
-                      >
-                        <X className="w-5 h-5" />
-                      </Button>
-                      <FiltersSPA
-                        availableCategories={allCategories || []}
-                        availableBrands={allBrands || []}
-                        priceRange={{ min: 0, max: 10000 }}
-                        capacityRange={{ min: 0, max: 50000 }}
-                        isMobile={true}
-                      />
-
-                      {/* Apply button at bottom */}
-                      <div className="sticky bottom-0 bg-white pt-4 border-t mt-6">
+            {isMobileFiltersOpen && (
+              <div className="fixed inset-0 z-50 lg:hidden">
+                <div
+                  className="fixed inset-0 bg-black bg-opacity-50"
+                  onClick={() => setIsMobileFiltersOpen(false)}
+                />
+                <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-xl overflow-y-auto">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-semibold">Фільтри</h3>
+                      <div className="flex items-center gap-2">
                         <Button
-                          onClick={() => setIsMobileFiltersOpen(false)}
-                          className="w-full"
-                          size="lg"
+                          variant="outline"
+                          size="sm"
+                          onClick={clearFilters}
+                          className="text-sm"
                         >
-                          Застосувати фільтри
+                          Очистити
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsMobileFiltersOpen(false)}
+                        >
+                          <X className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
-                  </motion.div>
+                    <FiltersSPA
+                      availableCategories={allCategories || []}
+                      availableBrands={allBrands || []}
+                      priceRange={{ min: 0, max: 10000 }}
+                      capacityRange={{ min: 0, max: 50000 }}
+                    />
+                  </div>
                 </div>
-              )}
-            </AnimatePresence>
+              </div>
+            )}
 
             {/* Products Grid */}
             <div className="lg:w-3/4">
