@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import PriceFilter from "@/components/PriceFilter";
-import CapacityFilter from "@/components/CapacityFilter";
+import CapacitySelectFilter from "@/components/CapacitySelectFilter";
 import { useFilters } from "@/context/FilterContext";
 import USBCableFilters from "@/components/USBCableFilters";
 import {
@@ -93,25 +93,22 @@ export default function Filters({
   };
 
   // Handle capacity filter changes
-  const handleCapacityChange = async (capacityRange: {
-    min: number;
-    max: number;
-  }) => {
+  const handleCapacityChange = async (capacity: number | null) => {
+    const newCapacityRange = capacity ? { min: capacity, max: capacity } : { min: 0, max: 50000 };
+    
     handleFiltersChange({
       ...filters,
-      capacityRange,
+      capacityRange: newCapacityRange,
     });
 
     // Apply capacity filter via API
     if (onApplyFilters) {
-      console.log("Capacity filter changed:", capacityRange);
+      console.log("Capacity filter changed:", capacity);
       const filterParams: any = {};
 
-      if (capacityRange.min > 0) {
-        filterParams.minCapacity = capacityRange.min;
-      }
-      if (capacityRange.max < 50000) {
-        filterParams.maxCapacity = capacityRange.max;
+      if (capacity) {
+        filterParams.minCapacity = capacity;
+        filterParams.maxCapacity = capacity;
       }
 
       await onApplyFilters(filterParams);
@@ -339,24 +336,17 @@ export default function Filters({
         </>
       )}
 
-      {/* Capacity Range - only for power banks */}
+      {/* Capacity Select - only for power banks */}
       {(() => {
         const shouldShowCapacity =
           memoizedSelectedCategoryId === 1001 ||
           filters.categories.includes("Портативні батареї");
-        console.log("Capacity filter visibility:", {
-          memoizedSelectedCategoryId,
-          categories: filters.categories,
-          shouldShowCapacity,
-        });
         return shouldShowCapacity;
       })() && (
         <>
-          <CapacityFilter
-            value={filters.capacityRange}
-            onChange={handleCapacityChange}
-            min={capacityRange.min}
-            max={capacityRange.max}
+          <CapacitySelectFilter
+            onCapacityChange={handleCapacityChange}
+            categoryId={memoizedSelectedCategoryId}
           />
           <Separator />
         </>
