@@ -109,6 +109,7 @@ export default function USBCableFilters({
 
           hasLoadedRef.current = true;
           setIsLoaded(true);
+          console.log("USBCableFilters: Set hasLoadedRef.current = true and isLoaded = true");
         } else {
           console.error("USBCableFilters: API returned error:", data.error);
           hasLoadedRef.current = true; // Mark as loaded even on error to prevent retries
@@ -125,6 +126,12 @@ export default function USBCableFilters({
 
   // Debounced filter change - only when values change
   useEffect(() => {
+    // Don't call onFiltersChange until options are loaded
+    if (!isLoaded) {
+      console.log("USBCableFilters: Skipping onFiltersChange - options not loaded yet");
+      return;
+    }
+
     console.log("USBCableFilters: Filter values changed:", {
       inputConnector,
       outputConnector,
@@ -141,7 +148,7 @@ export default function USBCableFilters({
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [inputConnector, outputConnector, cableLength]);
+  }, [inputConnector, outputConnector, cableLength, isLoaded]);
 
   const clearFilters = () => {
     setInputConnector("");
