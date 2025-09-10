@@ -101,9 +101,9 @@ export default function HomePageClient() {
 
   // Handle scroll to products
   const handleScrollToProducts = () => {
-    const productsSection = document.getElementById('products');
+    const productsSection = document.getElementById("products");
     if (productsSection) {
-      productsSection.scrollIntoView({ behavior: 'smooth' });
+      productsSection.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -123,23 +123,13 @@ export default function HomePageClient() {
               Потужні павербанки та якісні кабелі для захисту від блекаутів.
               Швидка доставка по всій Україні.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
+            <div className="flex justify-center">
+              <Button
+                size="lg"
                 onClick={handleScrollToProducts}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Переглянути товари <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="bg-transparent border-white text-white hover:bg-white hover:text-gray-900"
-                asChild
-              >
-                <Link href="#features">
-                  Дізнатися більше <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
               </Button>
             </div>
           </div>
@@ -265,7 +255,10 @@ export default function HomePageClient() {
             {/* Mobile Filters Overlay */}
             {isMobileFiltersOpen && (
               <div className="fixed inset-0 z-50 lg:hidden">
-                <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileFiltersOpen(false)} />
+                <div
+                  className="fixed inset-0 bg-black bg-opacity-50"
+                  onClick={() => setIsMobileFiltersOpen(false)}
+                />
                 <div className="fixed right-0 top-0 h-full w-80 bg-white shadow-xl overflow-y-auto">
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
@@ -302,7 +295,7 @@ export default function HomePageClient() {
             {/* Products Grid */}
             <div className="lg:w-3/4">
               {isLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {Array.from({ length: 6 }).map((_, index) => (
                     <div
                       key={index}
@@ -317,7 +310,7 @@ export default function HomePageClient() {
                 </div>
               ) : sortedProducts.length > 0 ? (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {sortedProducts.map((product) => (
                       <ProductCard key={product.id} product={product} />
                     ))}

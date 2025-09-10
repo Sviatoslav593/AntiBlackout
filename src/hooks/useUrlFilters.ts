@@ -191,8 +191,9 @@ export function useUrlFilters() {
       };
       setActiveFilters(defaultFilters);
       applyFilters(defaultFilters);
+      updateUrl(defaultFilters);
     }
-  }, [searchParams, setActiveFilters, applyFilters]);
+  }, [searchParams, setActiveFilters, applyFilters, updateUrl]);
 
   return {
     activeFilters,
