@@ -712,10 +712,12 @@ export default function Home() {
                     priceRange={priceRange}
                     capacityRange={capacityRange}
                     onApplyFilters={fetchProducts}
-                    selectedCategoryId={filters.categories.length === 1 ? 
-                      allProducts.find(p => p.categories?.name === filters.categories[0])?.category_id : 
-                      undefined
-                    }
+                    selectedCategoryId={(() => {
+                      const shouldShowUSB = availableCategories.includes("Зарядки та кабелі") && 
+                        (filters.categories.length === 0 || filters.categories.includes("Зарядки та кабелі"));
+                      console.log("Home: shouldShowUSB =", shouldShowUSB, "availableCategories =", availableCategories, "filters.categories =", filters.categories);
+                      return shouldShowUSB ? 1002 : undefined;
+                    })()}
                   />
                 </div>
 

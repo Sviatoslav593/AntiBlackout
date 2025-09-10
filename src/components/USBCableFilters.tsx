@@ -25,11 +25,11 @@ export default function USBCableFilters({
   const [inputConnector, setInputConnector] = useState<string>("");
   const [outputConnector, setOutputConnector] = useState<string>("");
   const [cableLength, setCableLength] = useState<string>("");
-  
+
   const [inputOptions, setInputOptions] = useState<FilterOption[]>([]);
   const [outputOptions, setOutputOptions] = useState<FilterOption[]>([]);
   const [lengthOptions, setLengthOptions] = useState<FilterOption[]>([]);
-  
+
   const [isInputOpen, setIsInputOpen] = useState(false);
   const [isOutputOpen, setIsOutputOpen] = useState(false);
   const [isLengthOpen, setIsLengthOpen] = useState(false);
@@ -37,21 +37,25 @@ export default function USBCableFilters({
 
   // Load filter options from products
   const loadFilterOptions = useCallback(async () => {
-    if (!categoryId) return;
+    if (!categoryId) {
+      console.log("USBCableFilters: No categoryId provided");
+      return;
+    }
     
+    console.log("USBCableFilters: Loading options for categoryId:", categoryId);
     setLoading(true);
     try {
       const response = await fetch(`/api/products?categoryId=${categoryId}`);
       const data = await response.json();
-      
+
       if (data.success && data.products) {
         const products = data.products;
-        
+
         // Extract input connector options
         const inputMap = new Map<string, number>();
         const outputMap = new Map<string, number>();
         const lengthMap = new Map<string, number>();
-        
+
         products.forEach((product: any) => {
           if (product.characteristics) {
             // Input connector
@@ -59,13 +63,13 @@ export default function USBCableFilters({
             if (input) {
               inputMap.set(input, (inputMap.get(input) || 0) + 1);
             }
-            
+
             // Output connector
             const output = product.characteristics["Вихід (Тип коннектора)"];
             if (output) {
               outputMap.set(output, (outputMap.get(output) || 0) + 1);
             }
-            
+
             // Cable length
             const length = product.characteristics["Довжина кабелю, м"];
             if (length) {
@@ -73,20 +77,20 @@ export default function USBCableFilters({
             }
           }
         });
-        
+
         // Convert to options arrays
         setInputOptions(
           Array.from(inputMap.entries())
             .map(([value, count]) => ({ value, label: value, count }))
             .sort((a, b) => a.label.localeCompare(b.label))
         );
-        
+
         setOutputOptions(
           Array.from(outputMap.entries())
             .map(([value, count]) => ({ value, label: value, count }))
             .sort((a, b) => a.label.localeCompare(b.label))
         );
-        
+
         setLengthOptions(
           Array.from(lengthMap.entries())
             .map(([value, count]) => ({ value, label: value, count }))
@@ -167,27 +171,39 @@ export default function USBCableFilters({
             onClick={() => setIsInputOpen(!isInputOpen)}
             className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <span className={inputConnector ? "text-gray-900" : "text-gray-500"}>
+            <span
+              className={inputConnector ? "text-gray-900" : "text-gray-500"}
+            >
               {inputConnector || "Вхід (Тип коннектора)"}
             </span>
-            <ChevronDown className={`h-4 w-4 transition-transform ${isInputOpen ? "rotate-180" : ""}`} />
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${
+                isInputOpen ? "rotate-180" : ""
+              }`}
+            />
           </button>
-          
+
           {isInputOpen && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
               {inputOptions.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => {
-                    setInputConnector(option.value === inputConnector ? "" : option.value);
+                    setInputConnector(
+                      option.value === inputConnector ? "" : option.value
+                    );
                     setIsInputOpen(false);
                   }}
                   className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex justify-between items-center ${
-                    inputConnector === option.value ? "bg-blue-50 text-blue-900" : "text-gray-900"
+                    inputConnector === option.value
+                      ? "bg-blue-50 text-blue-900"
+                      : "text-gray-900"
                   }`}
                 >
                   <span>{option.label}</span>
-                  <span className="text-gray-500 text-xs">({option.count})</span>
+                  <span className="text-gray-500 text-xs">
+                    ({option.count})
+                  </span>
                 </button>
               ))}
             </div>
@@ -200,27 +216,39 @@ export default function USBCableFilters({
             onClick={() => setIsOutputOpen(!isOutputOpen)}
             className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <span className={outputConnector ? "text-gray-900" : "text-gray-500"}>
+            <span
+              className={outputConnector ? "text-gray-900" : "text-gray-500"}
+            >
               {outputConnector || "Вихід (Тип коннектора)"}
             </span>
-            <ChevronDown className={`h-4 w-4 transition-transform ${isOutputOpen ? "rotate-180" : ""}`} />
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${
+                isOutputOpen ? "rotate-180" : ""
+              }`}
+            />
           </button>
-          
+
           {isOutputOpen && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
               {outputOptions.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => {
-                    setOutputConnector(option.value === outputConnector ? "" : option.value);
+                    setOutputConnector(
+                      option.value === outputConnector ? "" : option.value
+                    );
                     setIsOutputOpen(false);
                   }}
                   className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex justify-between items-center ${
-                    outputConnector === option.value ? "bg-blue-50 text-blue-900" : "text-gray-900"
+                    outputConnector === option.value
+                      ? "bg-blue-50 text-blue-900"
+                      : "text-gray-900"
                   }`}
                 >
                   <span>{option.label}</span>
-                  <span className="text-gray-500 text-xs">({option.count})</span>
+                  <span className="text-gray-500 text-xs">
+                    ({option.count})
+                  </span>
                 </button>
               ))}
             </div>
@@ -236,24 +264,34 @@ export default function USBCableFilters({
             <span className={cableLength ? "text-gray-900" : "text-gray-500"}>
               {cableLength || "Довжина кабелю, м"}
             </span>
-            <ChevronDown className={`h-4 w-4 transition-transform ${isLengthOpen ? "rotate-180" : ""}`} />
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${
+                isLengthOpen ? "rotate-180" : ""
+              }`}
+            />
           </button>
-          
+
           {isLengthOpen && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
               {lengthOptions.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => {
-                    setCableLength(option.value === cableLength ? "" : option.value);
+                    setCableLength(
+                      option.value === cableLength ? "" : option.value
+                    );
                     setIsLengthOpen(false);
                   }}
                   className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex justify-between items-center ${
-                    cableLength === option.value ? "bg-blue-50 text-blue-900" : "text-gray-900"
+                    cableLength === option.value
+                      ? "bg-blue-50 text-blue-900"
+                      : "text-gray-900"
                   }`}
                 >
                   <span>{option.label}</span>
-                  <span className="text-gray-500 text-xs">({option.count})</span>
+                  <span className="text-gray-500 text-xs">
+                    ({option.count})
+                  </span>
                 </button>
               ))}
             </div>
