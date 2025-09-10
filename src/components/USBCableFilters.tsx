@@ -49,6 +49,7 @@ export default function USBCableFilters({
   const [isLengthOpen, setIsLengthOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const isLoadedRef = useRef(false);
 
   // Memoize onFiltersChange to prevent unnecessary re-renders
   const stableOnFiltersChange = useMemo(() => onFiltersChange, []);
@@ -78,6 +79,7 @@ export default function USBCableFilters({
       setOutputOptions(cached.outputOptions);
       setLengthOptions(cached.lengthOptions);
       setIsLoaded(true);
+      isLoadedRef.current = true;
       return;
     }
 
@@ -146,10 +148,12 @@ export default function USBCableFilters({
           );
 
           setIsLoaded(true);
+          isLoadedRef.current = true;
           console.log("USBCableFilters: Set isLoaded = true");
         } else {
           console.error("USBCableFilters: API returned error:", data.error);
           setIsLoaded(true); // Mark as loaded even on error to prevent retries
+          isLoadedRef.current = true;
         }
       } catch (error) {
         console.error("Error loading filter options:", error);
@@ -164,7 +168,7 @@ export default function USBCableFilters({
   // Debounced filter change - only when values change
   useEffect(() => {
     // Don't call onFiltersChange until options are loaded
-    if (!isLoaded) {
+    if (!isLoadedRef.current) {
       console.log(
         "USBCableFilters: Skipping onFiltersChange - options not loaded yet"
       );
@@ -191,7 +195,6 @@ export default function USBCableFilters({
     inputConnector,
     outputConnector,
     cableLength,
-    isLoaded,
     stableOnFiltersChange,
   ]);
 
