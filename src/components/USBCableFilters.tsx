@@ -1,13 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
 interface USBCableFiltersProps {
@@ -91,36 +84,45 @@ export default function USBCableFilters({
   // Handle individual filter changes
   const handleInputConnectorChange = useCallback(
     (value: string) => {
+      console.log("USBCableFilters: handleInputConnectorChange called with:", value);
       setInputConnector(value);
-      onFiltersChange({
+      const filters = {
         inputConnector: value || undefined,
         outputConnector: outputConnector || undefined,
         cableLength: cableLength || undefined,
-      });
+      };
+      console.log("USBCableFilters: calling onFiltersChange with:", filters);
+      onFiltersChange(filters);
     },
     [outputConnector, cableLength, onFiltersChange]
   );
 
   const handleOutputConnectorChange = useCallback(
     (value: string) => {
+      console.log("USBCableFilters: handleOutputConnectorChange called with:", value);
       setOutputConnector(value);
-      onFiltersChange({
+      const filters = {
         inputConnector: inputConnector || undefined,
         outputConnector: value || undefined,
         cableLength: cableLength || undefined,
-      });
+      };
+      console.log("USBCableFilters: calling onFiltersChange with:", filters);
+      onFiltersChange(filters);
     },
     [inputConnector, cableLength, onFiltersChange]
   );
 
   const handleCableLengthChange = useCallback(
     (value: string) => {
+      console.log("USBCableFilters: handleCableLengthChange called with:", value);
       setCableLength(value);
-      onFiltersChange({
+      const filters = {
         inputConnector: inputConnector || undefined,
         outputConnector: outputConnector || undefined,
         cableLength: value || undefined,
-      });
+      };
+      console.log("USBCableFilters: calling onFiltersChange with:", filters);
+      onFiltersChange(filters);
     },
     [inputConnector, outputConnector, onFiltersChange]
   );
@@ -148,56 +150,50 @@ export default function USBCableFilters({
         <div className="space-y-3">
           {/* Input Connector */}
           {options.inputConnectors.length > 0 && (
-            <Select
+            <select
               value={inputConnector}
-              onValueChange={handleInputConnectorChange}
+              onChange={(e) => handleInputConnectorChange(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Вхід (Тип коннектора)" />
-              </SelectTrigger>
-              <SelectContent>
-                {options.inputConnectors.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <option value="">Вхід (Тип коннектора)</option>
+              {options.inputConnectors.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           )}
 
           {/* Output Connector */}
           {options.outputConnectors.length > 0 && (
-            <Select
+            <select
               value={outputConnector}
-              onValueChange={handleOutputConnectorChange}
+              onChange={(e) => handleOutputConnectorChange(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Вихід (Тип коннектора)" />
-              </SelectTrigger>
-              <SelectContent>
-                {options.outputConnectors.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <option value="">Вихід (Тип коннектора)</option>
+              {options.outputConnectors.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           )}
 
           {/* Cable Length */}
           {options.cableLengths.length > 0 && (
-            <Select value={cableLength} onValueChange={handleCableLengthChange}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Довжина кабелю" />
-              </SelectTrigger>
-              <SelectContent>
-                {options.cableLengths.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <select
+              value={cableLength}
+              onChange={(e) => handleCableLengthChange(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Довжина кабелю</option>
+              {options.cableLengths.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           )}
         </div>
       )}

@@ -808,7 +808,7 @@ function HomeContent() {
                         ? ["1002"]
                         : ["1001"]; // Default to power banks
                     }
-                    
+
                     const convertedParams: any = {
                       categoryIds: categoryIds,
                       brandIds: filterParams.brandIds,
