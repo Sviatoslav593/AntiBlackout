@@ -383,7 +383,7 @@ export default function Filters({
         <>
           <CapacitySelectFilter
             onCapacityChange={handleCapacityChange}
-            categoryId={memoizedSelectedCategoryId}
+            categoryId={memoizedSelectedCategoryId || 1001}
           />
           <Separator />
         </>
@@ -421,7 +421,7 @@ export default function Filters({
                 cableLength: usb.cableLength,
               });
             }}
-            categoryId={memoizedSelectedCategoryId}
+            categoryId={memoizedSelectedCategoryId || 1002}
           />
           <Separator />
         </>

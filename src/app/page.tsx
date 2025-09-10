@@ -827,7 +827,7 @@ function HomeContent() {
                       ? 1001
                       : isCableCategory
                       ? 1002
-                      : undefined;
+                      : 1001; // Default to power banks
 
                     console.log("Selected category ID calculation:", {
                       categories: filters.categories,
