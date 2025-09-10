@@ -9,13 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ScrollToProductsButton from "@/components/ScrollToProductsButton";
 import { useScrollPosition } from "@/hooks/useScrollPosition";
-import {
-  useFilters,
-  FilterState,
-  FilterProvider,
-} from "@/context/FilterContext";
-import Filters from "@/components/Filters";
 import FiltersSPA from "@/components/FiltersSPA";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
+import { useProductStore } from "@/store/productStore";
 import {
   Battery,
   Shield,
@@ -125,18 +121,9 @@ function HomePageClient() {
   const prevFilterState = useRef<string>("");
 
   // Context hooks
-  const { filters: contextFilters, setFilters } = useFilters();
   const { restoreScrollPosition } = useScrollPosition();
-
-  // Ensure filters has default values
-  const filters = contextFilters || {
-    priceRange: { min: 0, max: 10000 },
-    inStockOnly: false,
-    allCategories: [],
-    allBrands: [],
-    capacityRange: { min: 0, max: 50000 },
-    usbFilters: {},
-  };
+  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } = useUrlFilters();
+  const { filteredProducts } = useProductStore();
 
   // Load products on mount
   useEffect(() => {
@@ -148,6 +135,8 @@ function HomePageClient() {
         
         if (data.success && data.products) {
           setAllProducts(data.products);
+          // Also load into store
+          useProductStore.getState().setAllProducts(data.products);
         }
       } catch (error) {
         console.error('Error loading products:', error);
@@ -166,7 +155,7 @@ function HomePageClient() {
 
   // Sort products
   const sortedProducts = useMemo(() => {
-    const products = [...allProducts];
+    const products = [...(filteredProducts || allProducts)];
 
     switch (sortBy) {
       case "price-asc":
@@ -185,7 +174,7 @@ function HomePageClient() {
           (a, b) => (b.popularity || 0) - (a.popularity || 0)
         );
     }
-  }, [allProducts, sortBy]);
+  }, [filteredProducts, allProducts, sortBy]);
 
   // Handle sort change
   const handleSortChange = (newSort: string) => {
@@ -201,15 +190,8 @@ function HomePageClient() {
   };
 
   // Clear all filters
-  const clearFilters = () => {
-    setFilters({
-      priceRange: { min: 0, max: 10000 },
-      inStockOnly: false,
-      allCategories: [],
-      allBrands: [],
-      capacityRange: { min: 0, max: 50000 },
-      usbFilters: {},
-    });
+  const handleClearFilters = () => {
+    handleClearFilters();
   };
 
   return (
@@ -342,7 +324,7 @@ function HomePageClient() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={clearFilters}
+                    onClick={handleClearFilters}
                     className="text-sm"
                   >
                     Очистити
@@ -372,7 +354,7 @@ function HomePageClient() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={clearFilters}
+                          onClick={handleClearFilters}
                           className="text-sm"
                         >
                           Очистити
@@ -455,7 +437,7 @@ function HomePageClient() {
                   <p className="text-gray-600 mb-6">
                     Спробуйте змінити фільтри або очистити їх
                   </p>
-                  <Button onClick={clearFilters} variant="outline">
+                  <Button onClick={handleClearFilters} variant="outline">
                     Очистити фільтри
                   </Button>
                 </div>
