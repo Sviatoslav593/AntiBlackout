@@ -99,22 +99,22 @@ export default function HomePageClient() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
         <div className="container relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
               Ніколи не залишайтеся без{" "}
-              <span className="text-blue-600">енергії</span>
+              <span className="text-blue-400">енергії</span>
             </h1>
-            <p className="text-xl lg:text-2xl text-gray-600 mb-8 leading-relaxed">
+            <p className="text-xl lg:text-2xl text-gray-300 mb-8 leading-relaxed">
               Потужні павербанки та якісні кабелі для захисту від блекаутів.
               Швидка доставка по всій Україні.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <ScrollToProductsButton />
-              <Button variant="outline" size="lg" asChild>
+              <Button variant="outline" size="lg" className="bg-transparent border-white text-white hover:bg-white hover:text-gray-900" asChild>
                 <Link href="#features">
                   Дізнатися більше <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -125,13 +125,13 @@ export default function HomePageClient() {
 
         {/* Floating elements */}
         <div className="absolute top-20 left-10 animate-bounce">
-          <Battery className="h-8 w-8 text-blue-500" />
+          <Battery className="h-8 w-8 text-blue-400" />
         </div>
         <div className="absolute top-40 right-20 animate-bounce delay-1000">
-          <Zap className="h-6 w-6 text-yellow-500" />
+          <Zap className="h-6 w-6 text-yellow-400" />
         </div>
         <div className="absolute bottom-20 left-20 animate-bounce delay-2000">
-          <Shield className="h-7 w-7 text-green-500" />
+          <Shield className="h-7 w-7 text-green-400" />
         </div>
       </section>
 
@@ -314,7 +314,7 @@ export default function HomePageClient() {
                 className="bg-transparent border-white text-white hover:bg-white hover:text-blue-600"
                 asChild
               >
-                <Link href="/contact">Зв'язатися з нами</Link>
+                <Link href="/contacts">Зв'язатися з нами</Link>
               </Button>
             </div>
           </div>

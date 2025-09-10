@@ -168,7 +168,7 @@ export default function FiltersSPA({
   }, [localFilters]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Фільтри</h3>
@@ -190,8 +190,6 @@ export default function FiltersSPA({
           Очистити всі фільтри
         </Button>
       )}
-
-      <Separator />
 
       {/* Categories */}
       {availableCategories && availableCategories.length > 0 && (
