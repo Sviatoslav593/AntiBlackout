@@ -124,15 +124,19 @@ function HomePageClient() {
   // Block background scrolling when mobile filters are open
   useEffect(() => {
     if (isMobileFiltersOpen) {
+      // Store original overflow value
+      const originalOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+      
+      // Cleanup function
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        document.body.style.position = "";
+        document.body.style.width = "";
+      };
     }
-
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = "unset";
-    };
   }, [isMobileFiltersOpen]);
 
   // Context hooks
@@ -167,6 +171,9 @@ function HomePageClient() {
             (cat: any) => cat.name
           );
           setAllCategories(categoryNames);
+          
+          // Also load categories into store for filtering
+          useProductStore.getState().setCategories(categoryNames);
         }
 
         // Load brands
@@ -175,6 +182,9 @@ function HomePageClient() {
 
         if (brandsData.success && brandsData.brands) {
           setAllBrands(brandsData.brands);
+          
+          // Also load brands into store for filtering
+          useProductStore.getState().setBrands(brandsData.brands);
         }
       } catch (error) {
         console.error("Error loading data:", error);
@@ -447,7 +457,7 @@ function HomePageClient() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setIsMobileFiltersOpen(false)}
-                        className="absolute top-16 right-4 p-2 hover:bg-gray-100 rounded-full z-20"
+                        className="absolute top-6 right-4 p-2 hover:bg-gray-100 rounded-full z-20"
                       >
                         <X className="w-5 h-5" />
                       </Button>

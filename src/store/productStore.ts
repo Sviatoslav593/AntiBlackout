@@ -159,7 +159,7 @@ export const useProductStore = create<ProductState>()(
         const filtered = state.allProducts.filter((product) => {
           // Category filter
           if (filters.categoryIds && filters.categoryIds.length > 0) {
-            if (!filters.categoryIds.includes(product.categoryId)) {
+            if (!filters.categoryIds.includes(product.category)) {
               return false;
             }
           }
