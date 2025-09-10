@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
 interface USBCableFiltersProps {
@@ -35,23 +35,23 @@ export default function USBCableFilters({
   const [isLengthOpen, setIsLengthOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const hasLoadedRef = useRef(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   // Load filter options from products - only once when component mounts
   useEffect(() => {
     console.log(
       "USBCableFilters: useEffect triggered - categoryId:",
       categoryId,
-      "hasLoadedRef:",
-      hasLoadedRef.current
+      "hasLoaded:",
+      hasLoaded
     );
 
-    if (!categoryId || hasLoadedRef.current) {
+    if (!categoryId || hasLoaded) {
       console.log(
         "USBCableFilters: Skipping load - categoryId:",
         categoryId,
-        "hasLoadedRef:",
-        hasLoadedRef.current
+        "hasLoaded:",
+        hasLoaded
       );
       return;
     }
@@ -107,12 +107,14 @@ export default function USBCableFilters({
             length: cableLengths.length,
           });
 
-          hasLoadedRef.current = true;
+          setHasLoaded(true);
           setIsLoaded(true);
-          console.log("USBCableFilters: Set hasLoadedRef.current = true and isLoaded = true");
+          console.log(
+            "USBCableFilters: Set hasLoaded = true and isLoaded = true"
+          );
         } else {
           console.error("USBCableFilters: API returned error:", data.error);
-          hasLoadedRef.current = true; // Mark as loaded even on error to prevent retries
+          setHasLoaded(true); // Mark as loaded even on error to prevent retries
         }
       } catch (error) {
         console.error("Error loading filter options:", error);
@@ -122,13 +124,15 @@ export default function USBCableFilters({
     };
 
     loadOptions();
-  }, [categoryId]); // Removed isLoaded from dependencies to prevent infinite loop
+  }, [categoryId, hasLoaded]); // Include hasLoaded to prevent infinite loop
 
   // Debounced filter change - only when values change
   useEffect(() => {
     // Don't call onFiltersChange until options are loaded
     if (!isLoaded) {
-      console.log("USBCableFilters: Skipping onFiltersChange - options not loaded yet");
+      console.log(
+        "USBCableFilters: Skipping onFiltersChange - options not loaded yet"
+      );
       return;
     }
 
