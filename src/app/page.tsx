@@ -97,8 +97,29 @@ function HomeContent() {
   const [hasMoreProducts, setHasMoreProducts] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  
+  // Cache for products to avoid unnecessary API calls
+  const [productsCache, setProductsCache] = useState<Map<string, Product[]>>(new Map());
+  const [lastFilterState, setLastFilterState] = useState<string>("");
   const [isMounted, setIsMounted] = useState(false);
   const prevFilterState = useRef<string>("");
+
+  // Create cache key from filter parameters
+  const createCacheKey = (filterParams: any) => {
+    return JSON.stringify({
+      categoryIds: filterParams.categoryIds || [],
+      brandIds: filterParams.brandIds || [],
+      search: filterParams.search || "",
+      inStockOnly: filterParams.inStockOnly || false,
+      minPrice: filterParams.minPrice || 0,
+      maxPrice: filterParams.maxPrice || 10000,
+      minCapacity: filterParams.minCapacity || 0,
+      maxCapacity: filterParams.maxCapacity || 50000,
+      inputConnector: filterParams.inputConnector || "",
+      outputConnector: filterParams.outputConnector || "",
+      cableLength: filterParams.cableLength || "",
+    });
+  };
 
   // Context hooks
   const { searchQuery } = useSearch();
@@ -159,6 +180,22 @@ function HomeContent() {
       append: boolean = false
     ) => {
       console.log("fetchProducts called with:", { filterParams, page, append });
+      
+      // Check cache first (only for page 1 and not append)
+      if (page === 1 && !append && filterParams) {
+        const cacheKey = createCacheKey(filterParams);
+        if (productsCache.has(cacheKey)) {
+          console.log("Using cached products for key:", cacheKey);
+          const cachedProducts = productsCache.get(cacheKey)!;
+          setAllProducts(cachedProducts);
+          setHasMoreProducts(cachedProducts.length === 50);
+          setCurrentPage(1);
+          setLoading(false);
+          setLoadingMore(false);
+          return;
+        }
+      }
+      
       try {
         if (append) {
           setLoadingMore(true);
@@ -209,6 +246,17 @@ function HomeContent() {
           } else {
             setAllProducts(data.products);
             console.log("Set products directly:", data.products.length);
+            
+            // Cache the products for future use
+            if (filterParams && page === 1) {
+              const cacheKey = createCacheKey(filterParams);
+              setProductsCache(prev => {
+                const newCache = new Map(prev);
+                newCache.set(cacheKey, data.products);
+                console.log("Cached products for key:", cacheKey);
+                return newCache;
+              });
+            }
           }
 
           // Check if there are more products
@@ -374,11 +422,13 @@ function HomeContent() {
 
     // Skip if the filter state hasn't actually changed
     if (prevFilterState.current === currentFilterState) {
+      console.log("Filter state unchanged, skipping fetch");
       return;
     }
 
     // Update the previous filter state
     prevFilterState.current = currentFilterState;
+    console.log("Filter state changed, will fetch products");
 
     // Check if we have any active filters
     const hasActiveFilters =
@@ -853,10 +903,10 @@ function HomeContent() {
                         cat.includes("зарядки")
                     );
 
-                    const categoryId = isPowerBankCategory
-                      ? 1001
-                      : isCableCategory
+                    const categoryId = isCableCategory
                       ? 1002
+                      : isPowerBankCategory
+                      ? 1001
                       : 1001; // Default to power banks
 
                     console.log("Page: Selected category ID calculation:", {
