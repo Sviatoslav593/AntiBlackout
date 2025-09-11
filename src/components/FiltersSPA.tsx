@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PriceFilter from "@/components/PriceFilter";
 import CapacitySelectFilter from "@/components/CapacitySelectFilter";
 import USBCableFilters from "@/components/USBCableFilters";
+import { UrlFiltersProvider } from "@/components/UrlFiltersProvider";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { useProductStore } from "@/store/productStore";
 import { FilterParams } from "@/store/productStore";
@@ -22,7 +23,7 @@ interface FiltersSPAProps {
   onFiltersChange?: (filters: FilterParams) => void; // Callback to get current filters
 }
 
-const FiltersSPA = memo(function FiltersSPA({
+const FiltersSPAContent = memo(function FiltersSPAContent({
   availableCategories,
   availableBrands,
   priceRange,
@@ -31,8 +32,7 @@ const FiltersSPA = memo(function FiltersSPA({
   onMobileClose,
   onFiltersChange,
 }: FiltersSPAProps) {
-  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
-    useUrlFilters();
+  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } = useUrlFilters();
   const { setSortBy } = useProductStore();
   const [localFilters, setLocalFilters] = useState<FilterParams>(activeFilters);
 
@@ -401,4 +401,11 @@ const FiltersSPA = memo(function FiltersSPA({
   );
 });
 
-export default FiltersSPA;
+// Main component with Suspense wrapper
+export default function FiltersSPA(props: FiltersSPAProps) {
+  return (
+    <UrlFiltersProvider>
+      {(urlFilters) => <FiltersSPAContent {...props} />}
+    </UrlFiltersProvider>
+  );
+}

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import ScrollToProductsButton from "@/components/ScrollToProductsButton";
 import { useScrollPosition } from "@/hooks/useScrollPosition";
 import FiltersSPA from "@/components/FiltersSPA";
+import { UrlFiltersProvider } from "@/components/UrlFiltersProvider";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { useProductStore, FilterParams } from "@/store/productStore";
 import {
@@ -113,7 +114,7 @@ const sortProducts = (products: Product[], sortBy: SortOption): Product[] => {
   }
 };
 
-const HomePageClient = memo(function HomePageClient() {
+const HomePageClientContent = memo(function HomePageClientContent() {
   // State for products
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [allCategories, setAllCategories] = useState<string[]>([]);
@@ -150,8 +151,7 @@ const HomePageClient = memo(function HomePageClient() {
 
   // Context hooks
   const { restoreScrollPosition } = useScrollPosition();
-  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
-    useUrlFilters();
+  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } = useUrlFilters();
   const { filteredProducts } = useProductStore();
 
   // Load products, categories, and brands on mount
@@ -611,4 +611,11 @@ const HomePageClient = memo(function HomePageClient() {
   );
 });
 
-export default HomePageClient;
+// Main component with Suspense wrapper
+export default function HomePageClient() {
+  return (
+    <UrlFiltersProvider>
+      {(urlFilters) => <HomePageClientContent />}
+    </UrlFiltersProvider>
+  );
+}

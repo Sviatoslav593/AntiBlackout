@@ -88,7 +88,7 @@ export default function ProductPage() {
   const handleBackNavigation = () => {
     // Save current scroll position before navigating back
     saveScrollPosition();
-    
+
     // Check if there's a saved scroll position from when user clicked on product
     const savedScrollPosition = sessionStorage.getItem("scrollPosition");
     if (savedScrollPosition) {
@@ -265,10 +265,7 @@ export default function ProductPage() {
             <p className="text-gray-600 mb-6">
               Запитаний товар не існує або був видалений.
             </p>
-            <Button
-              onClick={handleBackNavigation}
-              variant="outline"
-            >
+            <Button onClick={handleBackNavigation} variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Повернутися до каталогу
             </Button>

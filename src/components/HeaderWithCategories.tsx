@@ -8,7 +8,7 @@ import { useState, useRef, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { useSearch } from "@/context/SearchContext";
 import { useFavorites } from "@/context/FavoritesContext";
-import { useUrlFilters } from "@/hooks/useUrlFilters";
+import { UrlFiltersProvider } from "@/components/UrlFiltersProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import { CartDrawer } from "@/components/CartDrawer";
 
@@ -20,7 +20,7 @@ export default function Header() {
   const { searchQuery, setSearchQuery, clearSearch, scrollToProducts } =
     useSearch();
   const { count: favoritesCount } = useFavorites();
-  const { updateSearch } = useUrlFilters();
+  // Remove direct useUrlFilters usage
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchRef = useRef<HTMLDivElement>(null);
@@ -41,9 +41,6 @@ export default function Header() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-    
-    // Update search in filters
-    updateSearch(query);
 
     // Always keep the field expanded when user is typing
     setIsSearchExpanded(true);
@@ -58,7 +55,6 @@ export default function Header() {
   // Handle search clear
   const handleSearchClear = () => {
     clearSearch();
-    updateSearch(""); // Clear search in filters
     // Keep the field expanded after clearing so user can continue typing
     setIsSearchExpanded(true);
     // Focus back to input after clearing

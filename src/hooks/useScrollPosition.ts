@@ -44,7 +44,7 @@ export function useScrollPosition() {
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    
+
     // Listen for navigation events (Next.js router events)
     window.addEventListener("beforeunload", handleBeforeNavigate);
 
