@@ -64,7 +64,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { saveScrollPosition } = useScrollPosition();
   const pathname = usePathname();
   const quantity = getItemQuantity(product.id);
-  
+
   // Only save scroll position if we're on homepage
   const isHomepage = pathname === "/";
 
@@ -101,11 +101,14 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleDetailsClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent card click (though it does the same thing)
-    
+
     // Save scroll position before navigating (only if on homepage)
     if (isHomepage && typeof window !== "undefined") {
       const scrollY = window.scrollY;
-      console.log("ProductCard: Saving scroll position from homepage:", scrollY);
+      console.log(
+        "ProductCard: Saving scroll position from homepage:",
+        scrollY
+      );
       sessionStorage.setItem("scrollPosition", scrollY.toString());
       sessionStorage.setItem("fromProductPage", "true");
       saveScrollPosition();
@@ -114,7 +117,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       sessionStorage.removeItem("scrollPosition");
       sessionStorage.removeItem("fromProductPage");
     }
-    
+
     router.push(`/product/${product.id}`);
   };
 
@@ -165,11 +168,14 @@ export default function ProductCard({ product }: ProductCardProps) {
 
     if (!isButton) {
       e.preventDefault();
-      
+
       // Save scroll position before navigating (only if on homepage)
       if (isHomepage && typeof window !== "undefined") {
         const scrollY = window.scrollY;
-        console.log("ProductCard: Saving scroll position from homepage:", scrollY);
+        console.log(
+          "ProductCard: Saving scroll position from homepage:",
+          scrollY
+        );
         sessionStorage.setItem("scrollPosition", scrollY.toString());
         sessionStorage.setItem("fromProductPage", "true");
         saveScrollPosition();
@@ -178,7 +184,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         sessionStorage.removeItem("scrollPosition");
         sessionStorage.removeItem("fromProductPage");
       }
-      
+
       router.push(`/product/${product.id}`);
     }
   };

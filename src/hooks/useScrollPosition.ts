@@ -7,7 +7,7 @@ export function useScrollPosition() {
   const isRestoring = useRef(false);
   const hasRestored = useRef(false);
   const pathname = usePathname();
-  
+
   // Only work on homepage
   const isHomepage = pathname === "/";
 
@@ -114,7 +114,7 @@ export function useScrollPosition() {
   // Save scroll position on scroll (with throttling) - only on homepage
   useEffect(() => {
     if (!isHomepage) return;
-    
+
     let timeoutId: NodeJS.Timeout;
 
     const handleScroll = () => {

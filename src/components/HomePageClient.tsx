@@ -131,22 +131,8 @@ const HomePageClient = memo(function HomePageClient() {
     useState<FilterParams | null>(null);
   const prevFilterState = useRef<string>("");
 
-  // Block background scrolling when mobile filters are open
-  useEffect(() => {
-    if (isMobileFiltersOpen) {
-      // Block scrolling on mobile devices
-      document.body.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.width = "100%";
-      document.body.style.height = "100%";
-    } else {
-      // Restore scrolling
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.width = "";
-      document.body.style.height = "";
-    }
-  }, [isMobileFiltersOpen]);
+  // Allow scrolling when mobile filters are open (simplified approach)
+  // No need to block scrolling - let users scroll naturally
 
   // Context hooks
   const { restoreScrollPosition, scrollPosition } = useScrollPosition();
@@ -362,8 +348,7 @@ const HomePageClient = memo(function HomePageClient() {
       (activeFilters.maxPrice || 10000) < 10000 ||
       (activeFilters.minCapacity || 0) > 0 ||
       (activeFilters.maxCapacity || 50000) < 50000 ||
-      activeFilters.inStockOnly ||
-      false;
+      (activeFilters.inStockOnly || false);
 
     const products = hasActiveFilters
       ? [...(filteredProducts || [])]
