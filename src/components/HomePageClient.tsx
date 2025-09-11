@@ -158,8 +158,9 @@ const HomePageClient = memo(function HomePageClient() {
         document.body.style.top = originalTop;
         document.body.style.width = originalWidth;
 
-        // Restore scroll position with a small delay to prevent jumping
-        requestAnimationFrame(() => {
+        // Restore scroll position using the stored value
+        // Use a microtask to ensure DOM is updated
+        Promise.resolve().then(() => {
           window.scrollTo(0, scrollY);
         });
       };

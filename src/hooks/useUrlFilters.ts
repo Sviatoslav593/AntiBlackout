@@ -180,9 +180,9 @@ export function useUrlFilters() {
       hasUrlParams,
       activeFilters,
       categoryIds: activeFilters.categoryIds,
-      brandIds: activeFilters.brandIds
+      brandIds: activeFilters.brandIds,
     });
-    
+
     if (
       !hasUrlParams &&
       (activeFilters.categoryIds === undefined ||

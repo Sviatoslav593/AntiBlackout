@@ -198,6 +198,13 @@ export const useProductStore = create<ProductState>()(
           brandIds: filters.brandIds,
         });
 
+        console.log("Filtering products:", {
+          totalProducts: state.allProducts.length,
+          filters,
+          categoryIds: filters.categoryIds,
+          brandIds: filters.brandIds
+        });
+
         const filtered = state.allProducts.filter((product) => {
           // Category filter - only apply if there are selected categories
           if (filters.categoryIds && filters.categoryIds.length > 0) {
@@ -374,6 +381,7 @@ export const useProductStore = create<ProductState>()(
         console.log(
           `Filtering complete: ${filtered.length} products out of ${state.allProducts.length}`
         );
+        console.log("Filtered products sample:", filtered.slice(0, 3).map(p => ({ name: p.name, category: p.category, brand: p.brand })));
         console.log(
           "Filtered products sample:",
           filtered.slice(0, 3).map((p) => ({
