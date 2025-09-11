@@ -67,7 +67,7 @@ export default function ProductPage() {
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
   const { currentCategory, setCurrentCategory, getCategorySlug } =
     useCategory();
-  const { restoreScrollPosition } = useScrollPosition();
+  const { restoreScrollPosition, saveScrollPosition } = useScrollPosition();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
@@ -83,6 +83,28 @@ export default function ProductPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Function to handle back navigation with scroll position restoration
+  const handleBackNavigation = () => {
+    // Save current scroll position before navigating back
+    saveScrollPosition();
+    
+    // Check if there's a saved scroll position from when user clicked on product
+    const savedScrollPosition = sessionStorage.getItem("scrollPosition");
+    if (savedScrollPosition) {
+      // Use the saved position from when user clicked on product
+      sessionStorage.removeItem("scrollPosition"); // Clean up
+      router.push("/");
+      // Restore the saved position after navigation
+      setTimeout(() => {
+        window.scrollTo(0, parseInt(savedScrollPosition));
+      }, 100);
+    } else {
+      // Fallback to normal scroll position restoration
+      restoreScrollPosition();
+      router.push("/");
+    }
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -244,10 +266,7 @@ export default function ProductPage() {
               Запитаний товар не існує або був видалений.
             </p>
             <Button
-              onClick={() => {
-                restoreScrollPosition();
-                router.push("/");
-              }}
+              onClick={handleBackNavigation}
               variant="outline"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -407,11 +426,7 @@ export default function ProductPage() {
           {/* Back Button */}
           <Button
             variant="outline"
-            onClick={() => {
-              // Restore scroll position when going back
-              restoreScrollPosition();
-              router.push("/");
-            }}
+            onClick={handleBackNavigation}
             className="mb-4 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -421,11 +436,7 @@ export default function ProductPage() {
           {/* Breadcrumb Navigation */}
           <nav className="flex items-center space-x-2 text-sm text-muted-foreground">
             <button
-              onClick={() => {
-                // Restore scroll position when going back
-                restoreScrollPosition();
-                router.push("/");
-              }}
+              onClick={handleBackNavigation}
               className="hover:text-foreground transition-colors"
             >
               Головна

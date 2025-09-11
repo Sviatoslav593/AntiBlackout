@@ -234,10 +234,25 @@ export function useUrlFilters() {
     activeFilters.categoryIds,
   ]);
 
+  // Update search query
+  const updateSearch = useCallback(
+    (searchQuery: string) => {
+      const newFilters = {
+        ...activeFilters,
+        search: searchQuery,
+      };
+      setActiveFilters(newFilters);
+      applyFilters(newFilters);
+      updateUrl(newFilters);
+    },
+    [activeFilters, setActiveFilters, applyFilters, updateUrl]
+  );
+
   return {
     activeFilters,
     applyFiltersAndUpdateUrl,
     clearFilters,
     updateUrl,
+    updateSearch,
   };
 }
