@@ -149,7 +149,7 @@ const HomePageClient = memo(function HomePageClient() {
   }, [isMobileFiltersOpen]);
 
   // Context hooks
-  const { restoreScrollPosition } = useScrollPosition();
+  const { restoreScrollPosition, scrollPosition } = useScrollPosition();
   const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
     useUrlFilters();
   const { filteredProducts } = useProductStore();
@@ -251,14 +251,19 @@ const HomePageClient = memo(function HomePageClient() {
     };
   }, [activeFilters, applyFiltersAndUpdateUrl]);
 
-  // Restore scroll position on mount
+  // Restore scroll position on mount (only once)
+  const hasRestoredScroll = useRef(false);
+  
   useEffect(() => {
+    if (hasRestoredScroll.current) return;
+    
     // Check if we're returning from a product page
     const fromProductPage =
       sessionStorage.getItem("fromProductPage") === "true";
     const savedScrollPosition = sessionStorage.getItem("scrollPosition");
 
     if (fromProductPage && savedScrollPosition) {
+      hasRestoredScroll.current = true;
       const scrollY = parseInt(savedScrollPosition);
       console.log(
         "HomePageClient: Restoring scroll position from sessionStorage:",
@@ -274,8 +279,9 @@ const HomePageClient = memo(function HomePageClient() {
       }, 200);
 
       return () => clearTimeout(timer);
-    } else {
-      // Use the existing restoreScrollPosition for other cases
+    } else if (!fromProductPage && scrollPosition > 0) {
+      // Use the existing restoreScrollPosition for other cases (only once)
+      hasRestoredScroll.current = true;
       const timer = setTimeout(() => {
         console.log(
           "HomePageClient: Attempting to restore scroll position from store"

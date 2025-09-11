@@ -275,14 +275,14 @@ export default function Header() {
 
   return (
     <>
-      <header 
+      <header
         className="fixed top-0 left-0 right-0 z-50 w-full border-b shadow-lg"
         style={{
-          background: 'rgba(255, 255, 255, 0.15)',
-          backdropFilter: 'blur(35px) saturate(180%) brightness(1.05)',
-          WebkitBackdropFilter: 'blur(35px) saturate(180%) brightness(1.05)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.25)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
+          background: "rgba(255, 255, 255, 0.15)",
+          backdropFilter: "blur(35px) saturate(180%) brightness(1.05)",
+          WebkitBackdropFilter: "blur(35px) saturate(180%) brightness(1.05)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.25)",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12)",
         }}
       >
         <div className="container flex h-16 items-center justify-between">

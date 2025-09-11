@@ -4,6 +4,7 @@ import { useProductStore } from "@/store/productStore";
 export function useScrollPosition() {
   const { scrollPosition, setScrollPosition } = useProductStore();
   const isRestoring = useRef(false);
+  const hasRestored = useRef(false);
 
   // Save scroll position
   const saveScrollPosition = () => {
@@ -16,7 +17,7 @@ export function useScrollPosition() {
 
   // Restore scroll position
   const restoreScrollPosition = () => {
-    if (typeof window !== "undefined" && scrollPosition > 0) {
+    if (typeof window !== "undefined" && scrollPosition > 0 && !isRestoring.current) {
       console.log("Restoring scroll position:", scrollPosition);
       isRestoring.current = true;
 
@@ -53,9 +54,10 @@ export function useScrollPosition() {
     };
   }, [setScrollPosition]);
 
-  // Restore scroll position on mount
+  // Restore scroll position on mount (only once)
   useEffect(() => {
-    if (scrollPosition > 0) {
+    if (scrollPosition > 0 && !hasRestored.current) {
+      hasRestored.current = true;
       // Use requestAnimationFrame to ensure DOM is ready
       requestAnimationFrame(() => {
         restoreScrollPosition();
