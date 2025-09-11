@@ -34,9 +34,15 @@ const USBCableFilters = memo(function USBCableFilters({
   categoryId,
   values,
 }: USBCableFiltersProps) {
-  const [inputConnector, setInputConnector] = useState<string>(values?.inputConnector || "");
-  const [outputConnector, setOutputConnector] = useState<string>(values?.outputConnector || "");
-  const [cableLength, setCableLength] = useState<string>(values?.cableLength || "");
+  const [inputConnector, setInputConnector] = useState<string>(
+    values?.inputConnector || "all"
+  );
+  const [outputConnector, setOutputConnector] = useState<string>(
+    values?.outputConnector || "all"
+  );
+  const [cableLength, setCableLength] = useState<string>(
+    values?.cableLength || "all"
+  );
   const [loading, setLoading] = useState(false);
   const [filtersLoaded, setFiltersLoaded] = useState(false);
   const [options, setOptions] = useState<{
@@ -109,50 +115,38 @@ const USBCableFilters = memo(function USBCableFilters({
   }, [filtersLoaded]); // Fixed: only depend on filtersLoaded
 
   // Handle individual filter changes
-  const handleInputConnectorChange = useCallback(
-    (value: string) => {
-      console.log(
-        "USBCableFilters: handleInputConnectorChange called with:",
-        value
-      );
-      setInputConnector(value);
-      // Don't call onFiltersChange immediately - wait for apply button
-    },
-    []
-  );
+  const handleInputConnectorChange = useCallback((value: string) => {
+    console.log(
+      "USBCableFilters: handleInputConnectorChange called with:",
+      value
+    );
+    setInputConnector(value);
+    // Don't call onFiltersChange immediately - wait for apply button
+  }, []);
 
-  const handleOutputConnectorChange = useCallback(
-    (value: string) => {
-      console.log(
-        "USBCableFilters: handleOutputConnectorChange called with:",
-        value
-      );
-      setOutputConnector(value);
-      // Don't call onFiltersChange immediately - wait for apply button
-    },
-    []
-  );
+  const handleOutputConnectorChange = useCallback((value: string) => {
+    console.log(
+      "USBCableFilters: handleOutputConnectorChange called with:",
+      value
+    );
+    setOutputConnector(value);
+    // Don't call onFiltersChange immediately - wait for apply button
+  }, []);
 
-  const handleCableLengthChange = useCallback(
-    (value: string) => {
-      console.log(
-        "USBCableFilters: handleCableLengthChange called with:",
-        value
-      );
-      setCableLength(value);
-      // Don't call onFiltersChange immediately - wait for apply button
-    },
-    []
-  );
+  const handleCableLengthChange = useCallback((value: string) => {
+    console.log("USBCableFilters: handleCableLengthChange called with:", value);
+    setCableLength(value);
+    // Don't call onFiltersChange immediately - wait for apply button
+  }, []);
 
   const clearFilters = () => {
-    setInputConnector("");
-    setOutputConnector("");
-    setCableLength("");
+    setInputConnector("all");
+    setOutputConnector("all");
+    setCableLength("all");
     // Don't call onFiltersChange immediately - wait for apply button
   };
 
-  const hasActiveFilters = inputConnector || outputConnector || cableLength;
+  const hasActiveFilters = (inputConnector && inputConnector !== "all") || (outputConnector && outputConnector !== "all") || (cableLength && cableLength !== "all");
 
   console.log("USBCableFilters render:", { categoryId, loading, options });
 
@@ -169,12 +163,15 @@ const USBCableFilters = memo(function USBCableFilters({
         <div className="space-y-2">
           {/* Input Connector */}
           {options.inputConnectors.length > 0 && (
-            <Select value={inputConnector} onValueChange={handleInputConnectorChange}>
+            <Select
+              value={inputConnector}
+              onValueChange={handleInputConnectorChange}
+            >
               <SelectTrigger className="w-full cursor-pointer">
                 <SelectValue placeholder="Вхід (Тип коннектора)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="" className="cursor-pointer">
+                <SelectItem value="all" className="cursor-pointer">
                   Всі типи входів
                 </SelectItem>
                 {options.inputConnectors.map((option) => (
@@ -192,12 +189,15 @@ const USBCableFilters = memo(function USBCableFilters({
 
           {/* Output Connector */}
           {options.outputConnectors.length > 0 && (
-            <Select value={outputConnector} onValueChange={handleOutputConnectorChange}>
+            <Select
+              value={outputConnector}
+              onValueChange={handleOutputConnectorChange}
+            >
               <SelectTrigger className="w-full cursor-pointer">
                 <SelectValue placeholder="Вихід (Тип коннектора)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="" className="cursor-pointer">
+                <SelectItem value="all" className="cursor-pointer">
                   Всі типи виходів
                 </SelectItem>
                 {options.outputConnectors.map((option) => (
@@ -220,7 +220,7 @@ const USBCableFilters = memo(function USBCableFilters({
                 <SelectValue placeholder="Довжина кабелю" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="" className="cursor-pointer">
+                <SelectItem value="all" className="cursor-pointer">
                   Всі довжини
                 </SelectItem>
                 {options.cableLengths.map((option) => (

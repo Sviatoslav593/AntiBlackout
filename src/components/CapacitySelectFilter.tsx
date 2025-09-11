@@ -23,14 +23,16 @@ const CapacitySelectFilter = memo(function CapacitySelectFilter({
   value,
   onGetCurrentValue,
 }: CapacitySelectFilterProps) {
-  const [selectedCapacity, setSelectedCapacity] = useState<string>(value?.toString() || "");
+  const [selectedCapacity, setSelectedCapacity] = useState<string>(
+    value?.toString() || "all"
+  );
   const [loading, setLoading] = useState(false);
   const [filtersLoaded, setFiltersLoaded] = useState(false);
   const [availableCapacities, setAvailableCapacities] = useState<number[]>([]);
 
   // Update selectedCapacity when value prop changes
   useEffect(() => {
-    setSelectedCapacity(value?.toString() || "");
+    setSelectedCapacity(value?.toString() || "all");
   }, [value]);
 
   // Load available capacities when component mounts
@@ -88,27 +90,25 @@ const CapacitySelectFilter = memo(function CapacitySelectFilter({
   }, [filtersLoaded]); // Fixed: only depend on filtersLoaded
 
   // Handle capacity selection - only update local state, don't call onCapacityChange immediately
-  const handleCapacitySelect = useCallback(
-    (value: string) => {
-      console.log(
-        "CapacitySelectFilter: handleCapacitySelect called with:",
-        value
-      );
-      setSelectedCapacity(value);
-      // Don't call onCapacityChange immediately - wait for apply button
-    },
-    []
-  );
+  const handleCapacitySelect = useCallback((value: string) => {
+    console.log(
+      "CapacitySelectFilter: handleCapacitySelect called with:",
+      value
+    );
+    setSelectedCapacity(value);
+    // Don't call onCapacityChange immediately - wait for apply button
+  }, []);
 
   const clearFilter = () => {
-    setSelectedCapacity("");
+    setSelectedCapacity("all");
     // Don't call onCapacityChange immediately - wait for apply button
   };
 
   // Expose current value to parent component
   useEffect(() => {
     if (onGetCurrentValue) {
-      const currentValue = selectedCapacity === "" ? null : parseInt(selectedCapacity);
+      const currentValue =
+        selectedCapacity === "all" || selectedCapacity === "" ? null : parseInt(selectedCapacity);
       onGetCurrentValue = () => currentValue;
     }
   }, [selectedCapacity, onGetCurrentValue]);
@@ -129,7 +129,7 @@ const CapacitySelectFilter = memo(function CapacitySelectFilter({
               <SelectValue placeholder="Оберіть ємність" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="" className="cursor-pointer">
+              <SelectItem value="all" className="cursor-pointer">
                 Всі ємності
               </SelectItem>
               {availableCapacities.map((capacity) => (
@@ -144,7 +144,7 @@ const CapacitySelectFilter = memo(function CapacitySelectFilter({
             </SelectContent>
           </Select>
 
-          {selectedCapacity && selectedCapacity !== "" && (
+          {selectedCapacity && selectedCapacity !== "all" && (
             <Button
               variant="ghost"
               size="sm"

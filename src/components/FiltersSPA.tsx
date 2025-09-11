@@ -149,9 +149,9 @@ const FiltersSPA = memo(function FiltersSPA({
     }) => {
       const newFilters = {
         ...localFilters,
-        inputConnector: usbFilters.inputConnector || "",
-        outputConnector: usbFilters.outputConnector || "",
-        cableLength: usbFilters.cableLength || "",
+        inputConnector: usbFilters.inputConnector === "all" ? "" : (usbFilters.inputConnector || ""),
+        outputConnector: usbFilters.outputConnector === "all" ? "" : (usbFilters.outputConnector || ""),
+        cableLength: usbFilters.cableLength === "all" ? "" : (usbFilters.cableLength || ""),
       };
 
       setLocalFilters(newFilters);
@@ -293,9 +293,9 @@ const FiltersSPA = memo(function FiltersSPA({
           onFiltersChange={handleUSBFiltersChange}
           categoryId={1002}
           values={{
-            inputConnector: localFilters.inputConnector || "",
-            outputConnector: localFilters.outputConnector || "",
-            cableLength: localFilters.cableLength || "",
+            inputConnector: localFilters.inputConnector || "all",
+            outputConnector: localFilters.outputConnector || "all",
+            cableLength: localFilters.cableLength || "all",
           }}
         />
       </div>

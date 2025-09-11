@@ -500,7 +500,10 @@ const HomePageClient = memo(function HomePageClient() {
                         <Button
                           onClick={() => {
                             // Apply filters and close modal
-                            console.log("Mobile: Applying filters:", activeFilters);
+                            console.log(
+                              "Mobile: Applying filters:",
+                              activeFilters
+                            );
                             applyFiltersAndUpdateUrl(activeFilters);
                             setIsMobileFiltersOpen(false);
                           }}
