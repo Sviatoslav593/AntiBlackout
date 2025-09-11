@@ -30,6 +30,11 @@ export function SearchProvider({ children }: SearchProviderProps) {
   }, []);
 
   const scrollToProducts = useCallback(() => {
+    // Don't auto-scroll on first page load
+    if (window.scrollY === 0 && !searchQuery) {
+      return;
+    }
+
     // Add a small delay to allow DOM to update after search
     setTimeout(() => {
       const productsSection = document.getElementById("products");

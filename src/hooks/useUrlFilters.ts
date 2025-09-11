@@ -176,7 +176,11 @@ export function useUrlFilters() {
   // Apply default filters on mount if no URL parameters
   useEffect(() => {
     const hasUrlParams = searchParams.toString().length > 0;
-    if (!hasUrlParams && activeFilters.categoryIds === undefined) {
+    if (
+      !hasUrlParams &&
+      (activeFilters.categoryIds === undefined ||
+        activeFilters.brandIds === undefined)
+    ) {
       const defaultFilters: FilterParams = {
         categoryIds: [], // No default categories
         brandIds: [],

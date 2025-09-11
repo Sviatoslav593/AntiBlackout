@@ -158,8 +158,10 @@ const HomePageClient = memo(function HomePageClient() {
         document.body.style.top = originalTop;
         document.body.style.width = originalWidth;
 
-        // Restore scroll position
-        window.scrollTo(0, scrollY);
+        // Restore scroll position with a small delay to prevent jumping
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+        }, 10);
       };
     }
   }, [isMobileFiltersOpen]);
