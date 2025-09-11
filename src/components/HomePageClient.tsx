@@ -152,13 +152,13 @@ const HomePageClient = memo(function HomePageClient() {
       "type:",
       typeof allBrands
     );
-    
+
     // Check if data is being passed to FiltersSPA
     console.log("HomePageClient - Passing to FiltersSPA:", {
       availableCategories: allCategories || [],
       availableBrands: allBrands || [],
       categoriesLength: (allCategories || []).length,
-      brandsLength: (allBrands || []).length
+      brandsLength: (allBrands || []).length,
     });
   }, [allCategories, allBrands]);
 
@@ -172,12 +172,14 @@ const HomePageClient = memo(function HomePageClient() {
 
   // Load products, categories, and brands on mount (only if not already loaded)
   useEffect(() => {
+    console.log("HomePageClient useEffect: Starting data loading");
     const loadData = async () => {
       try {
         setLoading(true);
 
         // Check if products are already loaded in store
         const storeProducts = useProductStore.getState().allProducts;
+        console.log("Store products check:", storeProducts?.length || 0);
         if (storeProducts && storeProducts.length > 0) {
           console.log(
             "Using cached products from store:",
@@ -229,6 +231,7 @@ const HomePageClient = memo(function HomePageClient() {
             console.log("Category names from flat:", categoryNames);
             setAllCategories(categoryNames);
             useProductStore.getState().setCategories(categoryNames);
+            console.log("Categories set in state:", categoryNames);
           } else if (
             categoriesData.categories &&
             categoriesData.categories.length > 0
@@ -244,6 +247,7 @@ const HomePageClient = memo(function HomePageClient() {
             console.log("Alternative category names:", categoryNames);
             setAllCategories(categoryNames);
             useProductStore.getState().setCategories(categoryNames);
+            console.log("Categories set in state (alternative):", categoryNames);
           } else {
             console.log("Categories API returned empty data");
             setAllCategories([]);
@@ -276,6 +280,7 @@ const HomePageClient = memo(function HomePageClient() {
             console.log("Brand names:", brandsData.brands);
             setAllBrands(brandsData.brands);
             useProductStore.getState().setBrands(brandsData.brands);
+            console.log("Brands set in state:", brandsData.brands);
           } else if (brandsData.brands && brandsData.brands.length > 0) {
             // Try alternative structure
             console.log(
@@ -306,6 +311,7 @@ const HomePageClient = memo(function HomePageClient() {
         useProductStore.getState().setBrands([]);
       } finally {
         setLoading(false);
+        console.log("HomePageClient useEffect: Data loading completed");
       }
     };
 
