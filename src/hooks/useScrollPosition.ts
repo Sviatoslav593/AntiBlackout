@@ -1,28 +1,34 @@
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { useProductStore } from "@/store/productStore";
 
 export function useScrollPosition() {
   const { scrollPosition, setScrollPosition } = useProductStore();
   const isRestoring = useRef(false);
   const hasRestored = useRef(false);
+  const pathname = usePathname();
+  
+  // Only work on homepage
+  const isHomepage = pathname === "/";
 
-  // Save scroll position
+  // Save scroll position (only on homepage)
   const saveScrollPosition = () => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && isHomepage) {
       const currentScrollY = window.scrollY;
-      console.log("Saving scroll position:", currentScrollY);
+      console.log("Saving scroll position on homepage:", currentScrollY);
       setScrollPosition(currentScrollY);
     }
   };
 
-  // Restore scroll position
+  // Restore scroll position (only on homepage)
   const restoreScrollPosition = () => {
     if (
       typeof window !== "undefined" &&
+      isHomepage &&
       scrollPosition > 0 &&
       !isRestoring.current
     ) {
-      console.log("Restoring scroll position:", scrollPosition);
+      console.log("Restoring scroll position on homepage:", scrollPosition);
       isRestoring.current = true;
 
       // Use requestAnimationFrame for better timing
@@ -58,16 +64,25 @@ export function useScrollPosition() {
     };
   }, [setScrollPosition]);
 
-  // Restore scroll position on mount (only once)
+  // Restore scroll position on mount (only once) or reset to top for other pages
   useEffect(() => {
-    if (scrollPosition > 0 && !hasRestored.current) {
-      hasRestored.current = true;
-      // Use requestAnimationFrame to ensure DOM is ready
-      requestAnimationFrame(() => {
-        restoreScrollPosition();
-      });
+    if (isHomepage) {
+      // On homepage, restore saved scroll position
+      if (scrollPosition > 0 && !hasRestored.current) {
+        hasRestored.current = true;
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(() => {
+          restoreScrollPosition();
+        });
+      }
+    } else {
+      // On other pages, scroll to top
+      if (typeof window !== "undefined") {
+        console.log("Non-homepage detected, scrolling to top");
+        window.scrollTo(0, 0);
+      }
     }
-  }, [scrollPosition]);
+  }, [scrollPosition, isHomepage]);
 
   // Listen for sessionStorage changes to restore scroll position
   useEffect(() => {
@@ -76,8 +91,11 @@ export function useScrollPosition() {
         const savedScrollPosition = sessionStorage.getItem("scrollPosition");
         if (savedScrollPosition) {
           const scrollY = parseInt(savedScrollPosition);
-          console.log("useScrollPosition: Storage change - restoring scroll position:", scrollY);
-          
+          console.log(
+            "useScrollPosition: Storage change - restoring scroll position:",
+            scrollY
+          );
+
           // Add delay to ensure DOM is fully loaded
           setTimeout(() => {
             window.scrollTo(0, scrollY);
@@ -93,8 +111,10 @@ export function useScrollPosition() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // Save scroll position on scroll (with throttling)
+  // Save scroll position on scroll (with throttling) - only on homepage
   useEffect(() => {
+    if (!isHomepage) return;
+    
     let timeoutId: NodeJS.Timeout;
 
     const handleScroll = () => {
@@ -112,7 +132,7 @@ export function useScrollPosition() {
       window.removeEventListener("scroll", handleScroll);
       clearTimeout(timeoutId);
     };
-  }, [setScrollPosition]);
+  }, [setScrollPosition, isHomepage]);
 
   return {
     scrollPosition,

@@ -15,6 +15,7 @@ import { useFavorites } from "@/context/FavoritesContext";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useScrollPosition } from "@/hooks/useScrollPosition";
+import { usePathname } from "next/navigation";
 
 export interface Product {
   id: string;
@@ -61,7 +62,11 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
   const router = useRouter();
   const { saveScrollPosition } = useScrollPosition();
+  const pathname = usePathname();
   const quantity = getItemQuantity(product.id);
+  
+  // Only save scroll position if we're on homepage
+  const isHomepage = pathname === "/";
 
   const handleAddToCart = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
@@ -96,14 +101,20 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleDetailsClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent card click (though it does the same thing)
-    // Save scroll position before navigating
-    if (typeof window !== "undefined") {
+    
+    // Save scroll position before navigating (only if on homepage)
+    if (isHomepage && typeof window !== "undefined") {
       const scrollY = window.scrollY;
-      console.log("ProductCard: Saving scroll position:", scrollY);
+      console.log("ProductCard: Saving scroll position from homepage:", scrollY);
       sessionStorage.setItem("scrollPosition", scrollY.toString());
       sessionStorage.setItem("fromProductPage", "true");
+      saveScrollPosition();
+    } else {
+      // Clear any existing scroll position for non-homepage navigation
+      sessionStorage.removeItem("scrollPosition");
+      sessionStorage.removeItem("fromProductPage");
     }
-    saveScrollPosition();
+    
     router.push(`/product/${product.id}`);
   };
 
@@ -154,14 +165,20 @@ export default function ProductCard({ product }: ProductCardProps) {
 
     if (!isButton) {
       e.preventDefault();
-      // Save scroll position before navigating
-      if (typeof window !== "undefined") {
+      
+      // Save scroll position before navigating (only if on homepage)
+      if (isHomepage && typeof window !== "undefined") {
         const scrollY = window.scrollY;
-        console.log("ProductCard: Saving scroll position:", scrollY);
+        console.log("ProductCard: Saving scroll position from homepage:", scrollY);
         sessionStorage.setItem("scrollPosition", scrollY.toString());
         sessionStorage.setItem("fromProductPage", "true");
+        saveScrollPosition();
+      } else {
+        // Clear any existing scroll position for non-homepage navigation
+        sessionStorage.removeItem("scrollPosition");
+        sessionStorage.removeItem("fromProductPage");
       }
-      saveScrollPosition();
+      
       router.push(`/product/${product.id}`);
     }
   };

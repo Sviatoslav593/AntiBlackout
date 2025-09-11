@@ -278,7 +278,11 @@ const HomePageClient = memo(function HomePageClient() {
       }, 200);
 
       return () => clearTimeout(timer);
-    } else if (!fromProductPage && scrollPosition > 0 && !hasRestoredScroll.current) {
+    } else if (
+      !fromProductPage &&
+      scrollPosition > 0 &&
+      !hasRestoredScroll.current
+    ) {
       // Use the existing restoreScrollPosition for other cases (only once)
       hasRestoredScroll.current = true;
       const timer = setTimeout(() => {
@@ -303,7 +307,7 @@ const HomePageClient = memo(function HomePageClient() {
             "HomePageClient: Storage change - restoring scroll position:",
             scrollY
           );
-          
+
           // Add delay to ensure DOM is fully loaded
           setTimeout(() => {
             window.scrollTo(0, scrollY);
@@ -317,16 +321,17 @@ const HomePageClient = memo(function HomePageClient() {
 
     const handlePopState = () => {
       // Check if we're returning from a product page
-      const fromProductPage = sessionStorage.getItem("fromProductPage") === "true";
+      const fromProductPage =
+        sessionStorage.getItem("fromProductPage") === "true";
       const savedScrollPosition = sessionStorage.getItem("scrollPosition");
-      
+
       if (fromProductPage && savedScrollPosition) {
         const scrollY = parseInt(savedScrollPosition);
         console.log(
           "HomePageClient: Popstate - restoring scroll position:",
           scrollY
         );
-        
+
         // Add delay to ensure DOM is fully loaded
         setTimeout(() => {
           window.scrollTo(0, scrollY);
@@ -339,7 +344,7 @@ const HomePageClient = memo(function HomePageClient() {
 
     window.addEventListener("storage", handleStorageChange);
     window.addEventListener("popstate", handlePopState);
-    
+
     return () => {
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("popstate", handlePopState);

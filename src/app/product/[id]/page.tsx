@@ -79,6 +79,14 @@ export default function ProductPage() {
   const [isCharacteristicsExpanded, setIsCharacteristicsExpanded] =
     useState(false);
 
+  // Scroll to top when product page loads
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      console.log("Product page: Scrolling to top");
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
