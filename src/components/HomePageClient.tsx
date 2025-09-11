@@ -134,11 +134,17 @@ const HomePageClient = memo(function HomePageClient() {
   // Block background scrolling when mobile filters are open
   useEffect(() => {
     if (isMobileFiltersOpen) {
-      // Simply block scrolling
+      // Block scrolling on mobile devices
       document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+      document.body.style.height = "100%";
     } else {
       // Restore scrolling
       document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      document.body.style.height = "";
     }
   }, [isMobileFiltersOpen]);
 
