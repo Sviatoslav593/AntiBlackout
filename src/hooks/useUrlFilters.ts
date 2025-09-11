@@ -176,11 +176,16 @@ export function useUrlFilters() {
   // Apply default filters on mount if no URL parameters
   useEffect(() => {
     const hasUrlParams = searchParams.toString().length > 0;
-    console.log("useUrlFilters: Checking default filters", 
-      "hasUrlParams:", hasUrlParams,
-      "activeFilters:", JSON.stringify(activeFilters, null, 2),
-      "categoryIds:", activeFilters.categoryIds,
-      "brandIds:", activeFilters.brandIds
+    console.log(
+      "useUrlFilters: Checking default filters",
+      "hasUrlParams:",
+      hasUrlParams,
+      "activeFilters:",
+      JSON.stringify(activeFilters, null, 2),
+      "categoryIds:",
+      activeFilters.categoryIds,
+      "brandIds:",
+      activeFilters.brandIds
     );
 
     if (
@@ -201,12 +206,12 @@ export function useUrlFilters() {
         outputConnector: "",
         cableLength: "",
       };
-      console.log("Setting default filters:", defaultFilters);
-      console.log("Calling setActiveFilters with:", defaultFilters);
+      console.log("Setting default filters:", JSON.stringify(defaultFilters, null, 2));
+      console.log("Calling setActiveFilters with:", JSON.stringify(defaultFilters, null, 2));
       setActiveFilters(defaultFilters);
-      console.log("Calling applyFilters with:", defaultFilters);
+      console.log("Calling applyFilters with:", JSON.stringify(defaultFilters, null, 2));
       applyFilters(defaultFilters);
-      console.log("Calling updateUrl with:", defaultFilters);
+      console.log("Calling updateUrl with:", JSON.stringify(defaultFilters, null, 2));
       updateUrl(defaultFilters);
     }
   }, [

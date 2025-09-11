@@ -145,7 +145,7 @@ const HomePageClient = memo(function HomePageClient() {
       const originalTop = document.body.style.top;
       const originalWidth = document.body.style.width;
 
-      // Apply scroll lock
+      // Apply scroll lock without changing scroll position
       document.body.style.overflow = "hidden";
       document.body.style.position = "fixed";
       document.body.style.top = `-${savedScrollPosition.current}px`;
@@ -153,14 +153,14 @@ const HomePageClient = memo(function HomePageClient() {
 
       // Cleanup function
       return () => {
-        console.log("Unlocking scroll, restoring position:", savedScrollPosition.current);
+        console.log("Unlocking scroll, keeping position");
         document.body.style.overflow = originalOverflow;
         document.body.style.position = originalPosition;
         document.body.style.top = originalTop;
         document.body.style.width = originalWidth;
 
-        // Restore scroll position immediately using the ref value
-        window.scrollTo(0, savedScrollPosition.current);
+        // Don't restore scroll position - let it stay where it is
+        // The page will naturally stay at the same position
       };
     }
   }, [isMobileFiltersOpen]);
@@ -458,11 +458,11 @@ const HomePageClient = memo(function HomePageClient() {
                     initial={{ x: "-100%" }}
                     animate={{ x: 0 }}
                     exit={{ x: "-100%" }}
-                    transition={{ 
-                      type: "spring", 
-                      damping: 30, 
+                    transition={{
+                      type: "spring",
+                      damping: 30,
                       stiffness: 300,
-                      duration: 0.3
+                      duration: 0.3,
                     }}
                   >
                     <div className="h-full flex flex-col">

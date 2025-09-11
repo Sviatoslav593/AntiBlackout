@@ -153,9 +153,14 @@ export const useProductStore = create<ProductState>()(
         const state = get();
         const newFilterKey = JSON.stringify(filters);
 
-        console.log("applyFilters called with:", filters);
+        console.log("applyFilters called with:", JSON.stringify(filters, null, 2));
         console.log("Current lastFilterKey:", state.lastFilterKey);
         console.log("New filterKey:", newFilterKey);
+        console.log("Current state:", {
+          allProducts: state.allProducts.length,
+          filteredProducts: state.filteredProducts.length,
+          activeFilters: state.activeFilters
+        });
 
         // If same filters, don't refetch
         if (newFilterKey === state.lastFilterKey) {
@@ -203,20 +208,30 @@ export const useProductStore = create<ProductState>()(
           brandIds: filters.brandIds,
         });
 
-        console.log("Filtering products:", 
-          "totalProducts:", state.allProducts.length,
-          "filters:", JSON.stringify(filters, null, 2),
-          "categoryIds:", filters.categoryIds,
-          "brandIds:", filters.brandIds
+        console.log(
+          "Filtering products:",
+          "totalProducts:",
+          state.allProducts.length,
+          "filters:",
+          JSON.stringify(filters, null, 2),
+          "categoryIds:",
+          filters.categoryIds,
+          "brandIds:",
+          filters.brandIds
         );
 
         const filtered = state.allProducts.filter((product) => {
-          console.log(`Filtering product: ${product.name}`, 
-          "categoryId:", product.category_id,
-          "category:", product.category,
-          "brand:", product.brand,
-          "price:", product.price
-        );
+          console.log(
+            `Filtering product: ${product.name}`,
+            "categoryId:",
+            product.category_id,
+            "category:",
+            product.category,
+            "brand:",
+            product.brand,
+            "price:",
+            product.price
+          );
 
           // Category filter - only apply if there are selected categories
           if (filters.categoryIds && filters.categoryIds.length > 0) {
