@@ -97,6 +97,12 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation(); // Prevent card click (though it does the same thing)
     // Save scroll position before navigating
+    if (typeof window !== "undefined") {
+      const scrollY = window.scrollY;
+      console.log("ProductCard: Saving scroll position:", scrollY);
+      sessionStorage.setItem("scrollPosition", scrollY.toString());
+      sessionStorage.setItem("fromProductPage", "true");
+    }
     saveScrollPosition();
     router.push(`/product/${product.id}`);
   };
@@ -149,6 +155,12 @@ export default function ProductCard({ product }: ProductCardProps) {
     if (!isButton) {
       e.preventDefault();
       // Save scroll position before navigating
+      if (typeof window !== "undefined") {
+        const scrollY = window.scrollY;
+        console.log("ProductCard: Saving scroll position:", scrollY);
+        sessionStorage.setItem("scrollPosition", scrollY.toString());
+        sessionStorage.setItem("fromProductPage", "true");
+      }
       saveScrollPosition();
       router.push(`/product/${product.id}`);
     }

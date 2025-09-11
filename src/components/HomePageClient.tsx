@@ -253,13 +253,32 @@ const HomePageClient = memo(function HomePageClient() {
 
   // Restore scroll position on mount
   useEffect(() => {
-    // Add delay to ensure DOM is fully loaded
-    const timer = setTimeout(() => {
-      console.log("HomePageClient: Attempting to restore scroll position");
-      restoreScrollPosition();
-    }, 100);
+    // Check if we're returning from a product page
+    const fromProductPage = sessionStorage.getItem("fromProductPage") === "true";
+    const savedScrollPosition = sessionStorage.getItem("scrollPosition");
+    
+    if (fromProductPage && savedScrollPosition) {
+      const scrollY = parseInt(savedScrollPosition);
+      console.log("HomePageClient: Restoring scroll position from sessionStorage:", scrollY);
+      
+      // Add delay to ensure DOM is fully loaded
+      const timer = setTimeout(() => {
+        window.scrollTo(0, scrollY);
+        // Clean up sessionStorage
+        sessionStorage.removeItem("scrollPosition");
+        sessionStorage.removeItem("fromProductPage");
+      }, 200);
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    } else {
+      // Use the existing restoreScrollPosition for other cases
+      const timer = setTimeout(() => {
+        console.log("HomePageClient: Attempting to restore scroll position from store");
+        restoreScrollPosition();
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
   }, [restoreScrollPosition]);
 
   // Sort products and apply local pagination

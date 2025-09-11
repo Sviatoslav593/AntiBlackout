@@ -19,11 +19,11 @@ export function useScrollPosition() {
     if (typeof window !== "undefined" && scrollPosition > 0) {
       console.log("Restoring scroll position:", scrollPosition);
       isRestoring.current = true;
-      
+
       // Use requestAnimationFrame for better timing
       requestAnimationFrame(() => {
         window.scrollTo(0, scrollPosition);
-        
+
         // Reset flag after scroll
         setTimeout(() => {
           isRestoring.current = false;

@@ -127,7 +127,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b header-blur-force shadow-lg">
+      <header className="sticky top-0 z-50 w-full border-b header-blur-ultra shadow-lg">
         <div className="container flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">

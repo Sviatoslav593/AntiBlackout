@@ -402,8 +402,14 @@ export default function ProductPage() {
           <Button
             variant="outline"
             onClick={() => {
-              // Restore scroll position when going back
-              restoreScrollPosition();
+              // Set flag that we're returning from product page
+              if (typeof window !== "undefined") {
+                sessionStorage.setItem("fromProductPage", "true");
+                const savedScrollPosition = sessionStorage.getItem("scrollPosition");
+                if (savedScrollPosition) {
+                  console.log("Product page: Returning to scroll position:", savedScrollPosition);
+                }
+              }
               router.push("/");
             }}
             className="flex items-center gap-2"
