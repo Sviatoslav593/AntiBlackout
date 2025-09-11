@@ -204,6 +204,28 @@ const HomePageClient = memo(function HomePageClient() {
     loadData();
   }, []);
 
+  // Handle category filter from header
+  useEffect(() => {
+    const handleCategoryFilterApplied = (event: CustomEvent) => {
+      const { categoryId, categoryName } = event.detail;
+      console.log("Category filter applied from header:", categoryId, categoryName);
+      
+      // Apply category filter
+      const newFilters = {
+        ...activeFilters,
+        categoryIds: [categoryId],
+      };
+      
+      applyFiltersAndUpdateUrl(newFilters);
+    };
+
+    window.addEventListener('categoryFilterApplied', handleCategoryFilterApplied as EventListener);
+    
+    return () => {
+      window.removeEventListener('categoryFilterApplied', handleCategoryFilterApplied as EventListener);
+    };
+  }, [activeFilters, applyFiltersAndUpdateUrl]);
+
   // Restore scroll position on mount
   useEffect(() => {
     restoreScrollPosition();
@@ -404,17 +426,6 @@ const HomePageClient = memo(function HomePageClient() {
             {/* Desktop Filters Sidebar */}
             <div className="hidden lg:block lg:w-1/4">
               <div className="bg-white rounded-lg shadow-lg p-6 sticky top-4">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold">Фільтри</h3>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleClearFilters}
-                    className="text-sm"
-                  >
-                    Очистити
-                  </Button>
-                </div>
                 <FiltersSPA
                   availableCategories={allCategories || []}
                   availableBrands={allBrands || []}

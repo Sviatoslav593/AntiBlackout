@@ -201,7 +201,7 @@ export default function Header() {
     return categoryName.toLowerCase().replace(/\s+/g, "-");
   };
 
-  const handleMobileCategoryClick = async (
+  const handleCategoryClick = async (
     categoryName: string,
     e?: React.MouseEvent | React.TouchEvent
   ) => {
@@ -220,17 +220,12 @@ export default function Header() {
       return;
     }
 
-    // Set category filter
-    setFilters((prev) => ({
-      ...prev,
-      categories: [categoryName],
-    }));
-
     // Close mobile menu and dropdown
     setIsMenuOpen(false);
     setIsMobileProductsDropdownOpen(false);
+    setIsProductsDropdownOpen(false);
 
-    // Apply category filter via API (similar to homepage category buttons)
+    // Apply category filter via URL parameters
     try {
       // First fetch all products to get category ID
       const response = await fetch("/api/products");
@@ -248,20 +243,18 @@ export default function Header() {
             "ID:",
             categoryId
           );
-          // Apply filter via API
-          const filterResponse = await fetch(
-            `/api/products?categoryId=${categoryId}`
-          );
-          const filterData = await filterResponse.json();
+          
+          // Update URL with category filter
+          const url = new URL(window.location.href);
+          url.searchParams.set('categoryId', categoryId.toString());
+          window.history.pushState({}, '', url.toString());
 
-          if (filterData.success && filterData.products) {
-            // Trigger a custom event to update products in parent component
-            window.dispatchEvent(
-              new CustomEvent("categoryFilterApplied", {
-                detail: { products: filterData.products, categoryName },
-              })
-            );
-          }
+          // Trigger a custom event to update products in parent component
+          window.dispatchEvent(
+            new CustomEvent("categoryFilterApplied", {
+              detail: { categoryId, categoryName },
+            })
+          );
         }
       }
     } catch (error) {
@@ -277,9 +270,12 @@ export default function Header() {
     }, 100);
   };
 
+  // Alias for backward compatibility
+  const handleMobileCategoryClick = handleCategoryClick;
+
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-white/80 backdrop-blur-md shadow-md">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-white/95 backdrop-blur-lg shadow-lg">
         <div className="container flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
@@ -331,8 +327,7 @@ export default function Header() {
                           <button
                             className="block w-full text-left px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 rounded-md"
                             onClick={(e) => {
-                              handleMobileCategoryClick(category.name, e);
-                              setIsProductsDropdownOpen(false);
+                              handleCategoryClick(category.name, e);
                             }}
                           >
                             {category.name}
@@ -341,19 +336,18 @@ export default function Header() {
                             category.children.length > 0 && (
                               <div className="ml-4 space-y-1">
                                 {category.children.map((subcategory) => (
-                                  <button
-                                    key={subcategory.id}
-                                    className="block w-full text-left px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md"
-                                    onClick={(e) => {
-                                      handleMobileCategoryClick(
-                                        subcategory.name,
-                                        e
-                                      );
-                                      setIsProductsDropdownOpen(false);
-                                    }}
-                                  >
-                                    {subcategory.name}
-                                  </button>
+                                    <button
+                                      key={subcategory.id}
+                                      className="block w-full text-left px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md"
+                                      onClick={(e) => {
+                                        handleCategoryClick(
+                                          subcategory.name,
+                                          e
+                                        );
+                                      }}
+                                    >
+                                      {subcategory.name}
+                                    </button>
                                 ))}
                               </div>
                             )}
@@ -587,7 +581,7 @@ export default function Header() {
                                 <button
                                   className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-primary"
                                   onClick={(e) =>
-                                    handleMobileCategoryClick(category.name, e)
+                                    handleCategoryClick(category.name, e)
                                   }
                                 >
                                   {category.name}
@@ -600,7 +594,7 @@ export default function Header() {
                                           key={subcategory.id}
                                           className="block w-full text-left py-1 text-xs text-muted-foreground hover:text-primary"
                                           onClick={(e) =>
-                                            handleMobileCategoryClick(
+                                            handleCategoryClick(
                                               subcategory.name,
                                               e
                                             )
