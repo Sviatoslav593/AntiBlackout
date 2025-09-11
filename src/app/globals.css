@@ -323,3 +323,10 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Custom backdrop blur for header */
+.header-blur {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background-color: rgba(255, 255, 255, 0.95);
+}

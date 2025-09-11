@@ -243,11 +243,11 @@ export default function Header() {
             "ID:",
             categoryId
           );
-          
+
           // Update URL with category filter
           const url = new URL(window.location.href);
-          url.searchParams.set('categoryId', categoryId.toString());
-          window.history.pushState({}, '', url.toString());
+          url.searchParams.set("categoryId", categoryId.toString());
+          window.history.pushState({}, "", url.toString());
 
           // Trigger a custom event to update products in parent component
           window.dispatchEvent(
@@ -275,7 +275,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-white/95 backdrop-blur-lg shadow-lg">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b header-blur shadow-lg">
         <div className="container flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
@@ -336,18 +336,15 @@ export default function Header() {
                             category.children.length > 0 && (
                               <div className="ml-4 space-y-1">
                                 {category.children.map((subcategory) => (
-                                    <button
-                                      key={subcategory.id}
-                                      className="block w-full text-left px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md"
-                                      onClick={(e) => {
-                                        handleCategoryClick(
-                                          subcategory.name,
-                                          e
-                                        );
-                                      }}
-                                    >
-                                      {subcategory.name}
-                                    </button>
+                                  <button
+                                    key={subcategory.id}
+                                    className="block w-full text-left px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-md"
+                                    onClick={(e) => {
+                                      handleCategoryClick(subcategory.name, e);
+                                    }}
+                                  >
+                                    {subcategory.name}
+                                  </button>
                                 ))}
                               </div>
                             )}

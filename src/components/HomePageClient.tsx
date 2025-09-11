@@ -154,18 +154,27 @@ const HomePageClient = memo(function HomePageClient() {
     useUrlFilters();
   const { filteredProducts } = useProductStore();
 
-  // Load products, categories, and brands on mount
+  // Load products, categories, and brands on mount (only if not already loaded)
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
+
+        // Check if products are already loaded in store
+        const storeProducts = useProductStore.getState().allProducts;
+        if (storeProducts && storeProducts.length > 0) {
+          console.log("Using cached products from store:", storeProducts.length);
+          setAllProducts(storeProducts as Product[]);
+          setLoading(false);
+          return;
+        }
 
         // Load products from all categories
         const productsResponse = await fetch("/api/products?limit=10000");
         const productsData = await productsResponse.json();
 
         if (productsData.success && productsData.products) {
-          console.log("Loaded products:", productsData.products.slice(0, 2));
+          console.log("Loaded products from API:", productsData.products.slice(0, 2));
           console.log("First product structure:", productsData.products[0]);
           setAllProducts(productsData.products);
           useProductStore.getState().setProducts(productsData.products);
@@ -208,21 +217,31 @@ const HomePageClient = memo(function HomePageClient() {
   useEffect(() => {
     const handleCategoryFilterApplied = (event: CustomEvent) => {
       const { categoryId, categoryName } = event.detail;
-      console.log("Category filter applied from header:", categoryId, categoryName);
-      
+      console.log(
+        "Category filter applied from header:",
+        categoryId,
+        categoryName
+      );
+
       // Apply category filter
       const newFilters = {
         ...activeFilters,
         categoryIds: [categoryId],
       };
-      
+
       applyFiltersAndUpdateUrl(newFilters);
     };
 
-    window.addEventListener('categoryFilterApplied', handleCategoryFilterApplied as EventListener);
-    
+    window.addEventListener(
+      "categoryFilterApplied",
+      handleCategoryFilterApplied as EventListener
+    );
+
     return () => {
-      window.removeEventListener('categoryFilterApplied', handleCategoryFilterApplied as EventListener);
+      window.removeEventListener(
+        "categoryFilterApplied",
+        handleCategoryFilterApplied as EventListener
+      );
     };
   }, [activeFilters, applyFiltersAndUpdateUrl]);
 

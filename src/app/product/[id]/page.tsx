@@ -397,6 +397,22 @@ export default function ProductPage() {
       )}
 
       <div className="container py-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Button
+            variant="outline"
+            onClick={() => {
+              // Restore scroll position when going back
+              restoreScrollPosition();
+              router.push("/");
+            }}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Назад до каталогу
+          </Button>
+        </div>
+
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
           <button
