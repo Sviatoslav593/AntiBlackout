@@ -253,7 +253,13 @@ const HomePageClient = memo(function HomePageClient() {
 
   // Restore scroll position on mount
   useEffect(() => {
-    restoreScrollPosition();
+    // Add delay to ensure DOM is fully loaded
+    const timer = setTimeout(() => {
+      console.log("HomePageClient: Attempting to restore scroll position");
+      restoreScrollPosition();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [restoreScrollPosition]);
 
   // Sort products and apply local pagination

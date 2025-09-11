@@ -8,20 +8,27 @@ export function useScrollPosition() {
   // Save scroll position
   const saveScrollPosition = () => {
     if (typeof window !== "undefined") {
-      setScrollPosition(window.scrollY);
+      const currentScrollY = window.scrollY;
+      console.log("Saving scroll position:", currentScrollY);
+      setScrollPosition(currentScrollY);
     }
   };
 
   // Restore scroll position
   const restoreScrollPosition = () => {
     if (typeof window !== "undefined" && scrollPosition > 0) {
+      console.log("Restoring scroll position:", scrollPosition);
       isRestoring.current = true;
-      window.scrollTo(0, scrollPosition);
-
-      // Reset flag after scroll
-      setTimeout(() => {
-        isRestoring.current = false;
-      }, 100);
+      
+      // Use requestAnimationFrame for better timing
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollPosition);
+        
+        // Reset flag after scroll
+        setTimeout(() => {
+          isRestoring.current = false;
+        }, 100);
+      });
     }
   };
 
