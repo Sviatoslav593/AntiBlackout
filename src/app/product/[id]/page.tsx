@@ -397,7 +397,6 @@ export default function ProductPage() {
       )}
 
       <div className="container py-8">
-
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
           <button

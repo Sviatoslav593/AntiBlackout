@@ -216,17 +216,10 @@ export function useUrlFilters() {
       );
       setActiveFilters(defaultFilters);
       // Don't call applyFilters for default empty filters - let the component handle it
-      console.log(
-        "Skipping applyFilters for default empty filters"
-      );
+      console.log("Skipping applyFilters for default empty filters");
       updateUrl(defaultFilters);
     }
-  }, [
-    searchParams,
-    setActiveFilters,
-    updateUrl,
-    activeFilters.categoryIds,
-  ]);
+  }, [searchParams, setActiveFilters, updateUrl, activeFilters.categoryIds]);
 
   return {
     activeFilters,

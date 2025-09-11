@@ -69,6 +69,30 @@ export function useScrollPosition() {
     }
   }, [scrollPosition]);
 
+  // Listen for sessionStorage changes to restore scroll position
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "fromProductPage" && e.newValue === "true") {
+        const savedScrollPosition = sessionStorage.getItem("scrollPosition");
+        if (savedScrollPosition) {
+          const scrollY = parseInt(savedScrollPosition);
+          console.log("useScrollPosition: Storage change - restoring scroll position:", scrollY);
+          
+          // Add delay to ensure DOM is fully loaded
+          setTimeout(() => {
+            window.scrollTo(0, scrollY);
+            // Clean up sessionStorage
+            sessionStorage.removeItem("scrollPosition");
+            sessionStorage.removeItem("fromProductPage");
+          }, 100);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   // Save scroll position on scroll (with throttling)
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;

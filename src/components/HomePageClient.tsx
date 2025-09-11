@@ -255,15 +255,13 @@ const HomePageClient = memo(function HomePageClient() {
   const hasRestoredScroll = useRef(false);
 
   useEffect(() => {
-    if (hasRestoredScroll.current) return;
-
     // Check if we're returning from a product page
     const fromProductPage =
       sessionStorage.getItem("fromProductPage") === "true";
     const savedScrollPosition = sessionStorage.getItem("scrollPosition");
 
     if (fromProductPage && savedScrollPosition) {
-      hasRestoredScroll.current = true;
+      // Always restore scroll position when returning from product page
       const scrollY = parseInt(savedScrollPosition);
       console.log(
         "HomePageClient: Restoring scroll position from sessionStorage:",
@@ -276,10 +274,11 @@ const HomePageClient = memo(function HomePageClient() {
         // Clean up sessionStorage
         sessionStorage.removeItem("scrollPosition");
         sessionStorage.removeItem("fromProductPage");
+        hasRestoredScroll.current = true;
       }, 200);
 
       return () => clearTimeout(timer);
-    } else if (!fromProductPage && scrollPosition > 0) {
+    } else if (!fromProductPage && scrollPosition > 0 && !hasRestoredScroll.current) {
       // Use the existing restoreScrollPosition for other cases (only once)
       hasRestoredScroll.current = true;
       const timer = setTimeout(() => {
@@ -291,21 +290,79 @@ const HomePageClient = memo(function HomePageClient() {
 
       return () => clearTimeout(timer);
     }
-  }, [restoreScrollPosition]);
+  }, [restoreScrollPosition, scrollPosition]);
+
+  // Listen for changes in sessionStorage to restore scroll position
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "fromProductPage" && e.newValue === "true") {
+        const savedScrollPosition = sessionStorage.getItem("scrollPosition");
+        if (savedScrollPosition) {
+          const scrollY = parseInt(savedScrollPosition);
+          console.log(
+            "HomePageClient: Storage change - restoring scroll position:",
+            scrollY
+          );
+          
+          // Add delay to ensure DOM is fully loaded
+          setTimeout(() => {
+            window.scrollTo(0, scrollY);
+            // Clean up sessionStorage
+            sessionStorage.removeItem("scrollPosition");
+            sessionStorage.removeItem("fromProductPage");
+          }, 100);
+        }
+      }
+    };
+
+    const handlePopState = () => {
+      // Check if we're returning from a product page
+      const fromProductPage = sessionStorage.getItem("fromProductPage") === "true";
+      const savedScrollPosition = sessionStorage.getItem("scrollPosition");
+      
+      if (fromProductPage && savedScrollPosition) {
+        const scrollY = parseInt(savedScrollPosition);
+        console.log(
+          "HomePageClient: Popstate - restoring scroll position:",
+          scrollY
+        );
+        
+        // Add delay to ensure DOM is fully loaded
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+          // Clean up sessionStorage
+          sessionStorage.removeItem("scrollPosition");
+          sessionStorage.removeItem("fromProductPage");
+        }, 100);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("popstate", handlePopState);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   // Sort products and apply local pagination
   const sortedProducts = useMemo(() => {
     // If no filters are applied, use allProducts; otherwise use filteredProducts
-    const hasActiveFilters = (activeFilters.categoryIds?.length || 0) > 0 || 
-                           (activeFilters.brandIds?.length || 0) > 0 || 
-                           (activeFilters.search?.trim() || "") !== "" ||
-                           (activeFilters.minPrice || 0) > 0 || 
-                           (activeFilters.maxPrice || 10000) < 10000 ||
-                           (activeFilters.minCapacity || 0) > 0 || 
-                           (activeFilters.maxCapacity || 50000) < 50000 ||
-                           activeFilters.inStockOnly || false;
-    
-    const products = hasActiveFilters ? [...(filteredProducts || [])] : [...allProducts];
+    const hasActiveFilters =
+      (activeFilters.categoryIds?.length || 0) > 0 ||
+      (activeFilters.brandIds?.length || 0) > 0 ||
+      (activeFilters.search?.trim() || "") !== "" ||
+      (activeFilters.minPrice || 0) > 0 ||
+      (activeFilters.maxPrice || 10000) < 10000 ||
+      (activeFilters.minCapacity || 0) > 0 ||
+      (activeFilters.maxCapacity || 50000) < 50000 ||
+      activeFilters.inStockOnly ||
+      false;
+
+    const products = hasActiveFilters
+      ? [...(filteredProducts || [])]
+      : [...allProducts];
 
     // Debug logging
     console.log("HomePageClient sortedProducts:", {
@@ -625,12 +682,12 @@ const HomePageClient = memo(function HomePageClient() {
                 <>
                   <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {sortedProducts.map((product) => (
-                      <ProductCard 
-                        key={product.id} 
+                      <ProductCard
+                        key={product.id}
                         product={{
                           ...product,
-                          category: product.category || "Інше"
-                        }} 
+                          category: product.category || "Інше",
+                        }}
                       />
                     ))}
                   </div>
