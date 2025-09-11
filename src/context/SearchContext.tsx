@@ -30,8 +30,8 @@ export function SearchProvider({ children }: SearchProviderProps) {
   }, []);
 
   const scrollToProducts = useCallback(() => {
-    // Don't auto-scroll on first page load
-    if (window.scrollY === 0 && !searchQuery) {
+    // Don't auto-scroll on first page load or if no search query
+    if (!searchQuery || searchQuery.trim() === "") {
       return;
     }
 

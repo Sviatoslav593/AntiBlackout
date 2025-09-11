@@ -159,9 +159,9 @@ const HomePageClient = memo(function HomePageClient() {
         document.body.style.width = originalWidth;
 
         // Restore scroll position with a small delay to prevent jumping
-        setTimeout(() => {
+        requestAnimationFrame(() => {
           window.scrollTo(0, scrollY);
-        }, 10);
+        });
       };
     }
   }, [isMobileFiltersOpen]);
@@ -465,7 +465,7 @@ const HomePageClient = memo(function HomePageClient() {
                       {/* Header with close button */}
                       <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10">
                         <h3 className="text-xl font-semibold text-gray-900">
-                          Фільтри товарів
+                          Фільтри
                         </h3>
                         <div className="flex items-center gap-2">
                           <Button

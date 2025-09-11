@@ -8,6 +8,7 @@ import {
   Search,
   Heart,
   ChevronDown,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -284,13 +285,7 @@ export default function Header() {
           <Link href="/" className="flex items-center space-x-2">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <svg
-                  className="w-5 h-5 text-white"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M7 2v11h3v9l7-12h-4l4-8z" />
-                </svg>
+                <Zap className="w-5 h-5 text-white" />
               </div>
               <span className="font-bold text-xl">AntiBlackout</span>
             </div>
