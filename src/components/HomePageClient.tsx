@@ -491,18 +491,8 @@ const HomePageClient = memo(function HomePageClient() {
                           priceRange={{ min: 0, max: 10000 }}
                           capacityRange={{ min: 0, max: 50000 }}
                           isMobile={true}
+                          onMobileClose={() => setIsMobileFiltersOpen(false)}
                         />
-                      </div>
-
-                      {/* Fixed bottom button */}
-                      <div className="p-4 border-t bg-white sticky bottom-0">
-                        <Button
-                          onClick={() => setIsMobileFiltersOpen(false)}
-                          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                          size="lg"
-                        >
-                          Застосувати фільтри
-                        </Button>
                       </div>
                     </div>
                   </motion.div>

@@ -18,6 +18,7 @@ interface FiltersSPAProps {
   priceRange: { min: number; max: number };
   capacityRange: { min: number; max: number };
   isMobile?: boolean;
+  onMobileClose?: () => void; // Callback to close mobile modal
 }
 
 const FiltersSPA = memo(function FiltersSPA({
@@ -26,6 +27,7 @@ const FiltersSPA = memo(function FiltersSPA({
   priceRange,
   capacityRange,
   isMobile = false,
+  onMobileClose,
 }: FiltersSPAProps) {
   const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
     useUrlFilters();
@@ -316,6 +318,10 @@ const FiltersSPA = memo(function FiltersSPA({
           onClick={() => {
             console.log("Applying filters:", localFilters);
             applyFiltersAndUpdateUrl(localFilters);
+            // Close mobile modal if on mobile
+            if (isMobile && onMobileClose) {
+              onMobileClose();
+            }
           }}
           className="w-full"
           size="lg"
