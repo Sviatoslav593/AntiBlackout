@@ -136,9 +136,48 @@ const HomePageClient = memo(function HomePageClient() {
 
   // Debug logging for categories and brands
   useEffect(() => {
-    console.log("HomePageClient - allCategories:", allCategories, "length:", allCategories?.length);
-    console.log("HomePageClient - allBrands:", allBrands, "length:", allBrands?.length);
+    console.log(
+      "HomePageClient - allCategories:",
+      allCategories,
+      "length:",
+      allCategories?.length
+    );
+    console.log(
+      "HomePageClient - allBrands:",
+      allBrands,
+      "length:",
+      allBrands?.length
+    );
   }, [allCategories, allBrands]);
+
+  // Ensure fallback data is always available
+  useEffect(() => {
+    if (!allCategories || allCategories.length === 0) {
+      console.log("Setting fallback categories on mount");
+      const fallbackCategories = [
+        "Повербанки",
+        "Кабелі USB",
+        "Зарядні пристрої",
+        "Аксесуари",
+      ];
+      setAllCategories(fallbackCategories);
+      useProductStore.getState().setCategories(fallbackCategories);
+    }
+    
+    if (!allBrands || allBrands.length === 0) {
+      console.log("Setting fallback brands on mount");
+      const fallbackBrands = [
+        "Samsung",
+        "Apple",
+        "Xiaomi",
+        "Huawei",
+        "Anker",
+        "Baseus",
+      ];
+      setAllBrands(fallbackBrands);
+      useProductStore.getState().setBrands(fallbackBrands);
+    }
+  }, []); // Run once on mount
 
   // Context hooks
   const { restoreScrollPosition, scrollPosition } = useScrollPosition();
@@ -179,62 +218,100 @@ const HomePageClient = memo(function HomePageClient() {
         }
 
         // Load categories
-        const categoriesResponse = await fetch("/api/categories");
-        const categoriesData = await categoriesResponse.json();
-        console.log("Categories API response:", categoriesData);
-        console.log("Categories API status:", categoriesResponse.status);
+        console.log("Loading categories...");
+        try {
+          const categoriesResponse = await fetch("/api/categories");
+          console.log("Categories response status:", categoriesResponse.status);
+          
+          if (!categoriesResponse.ok) {
+            throw new Error(`Categories API failed: ${categoriesResponse.status}`);
+          }
+          
+          const categoriesData = await categoriesResponse.json();
+          console.log("Categories API response:", categoriesData);
 
-        if (categoriesData.success && categoriesData.flat) {
-          // Use flat categories array which contains all categories
-          const categoryNames = categoriesData.flat.map((cat: any) => cat.name);
-          console.log("Category names:", categoryNames);
-          setAllCategories(categoryNames);
-
-          // Also load categories into store for filtering
-          useProductStore.getState().setCategories(categoryNames);
-        } else if (categoriesData.categories) {
-          // Try alternative structure
-          console.log("Trying alternative categories structure:", categoriesData.categories);
-          const categoryNames = categoriesData.categories.map((cat: any) => cat.name || cat);
-          console.log("Alternative category names:", categoryNames);
-          setAllCategories(categoryNames);
-          useProductStore.getState().setCategories(categoryNames);
-        } else {
-          console.log("Categories API failed or no flat data:", categoriesData);
-          // Fallback categories
+          if (categoriesData.success && categoriesData.flat && categoriesData.flat.length > 0) {
+            // Use flat categories array which contains all categories
+            const categoryNames = categoriesData.flat.map((cat: any) => cat.name);
+            console.log("Category names from flat:", categoryNames);
+            setAllCategories(categoryNames);
+            useProductStore.getState().setCategories(categoryNames);
+          } else if (categoriesData.categories && categoriesData.categories.length > 0) {
+            // Try alternative structure
+            console.log("Trying alternative categories structure:", categoriesData.categories);
+            const categoryNames = categoriesData.categories.map((cat: any) => cat.name || cat);
+            console.log("Alternative category names:", categoryNames);
+            setAllCategories(categoryNames);
+            useProductStore.getState().setCategories(categoryNames);
+          } else {
+            console.log("Categories API returned empty data, using fallback");
+            // Fallback categories
+            const fallbackCategories = [
+              "Повербанки",
+              "Кабелі USB",
+              "Зарядні пристрої",
+              "Аксесуари",
+            ];
+            console.log("Using fallback categories:", fallbackCategories);
+            setAllCategories(fallbackCategories);
+            useProductStore.getState().setCategories(fallbackCategories);
+          }
+        } catch (error) {
+          console.error("Error loading categories:", error);
+          // Fallback categories on error
           const fallbackCategories = [
             "Повербанки",
             "Кабелі USB",
             "Зарядні пристрої",
             "Аксесуари",
           ];
-          console.log("Using fallback categories:", fallbackCategories);
+          console.log("Using fallback categories due to error:", fallbackCategories);
           setAllCategories(fallbackCategories);
           useProductStore.getState().setCategories(fallbackCategories);
         }
 
         // Load brands
-        const brandsResponse = await fetch("/api/brands");
-        const brandsData = await brandsResponse.json();
-        console.log("Brands API response:", brandsData);
-        console.log("Brands API status:", brandsResponse.status);
+        console.log("Loading brands...");
+        try {
+          const brandsResponse = await fetch("/api/brands");
+          console.log("Brands response status:", brandsResponse.status);
+          
+          if (!brandsResponse.ok) {
+            throw new Error(`Brands API failed: ${brandsResponse.status}`);
+          }
+          
+          const brandsData = await brandsResponse.json();
+          console.log("Brands API response:", brandsData);
 
-        if (brandsData.success && brandsData.brands) {
-          console.log("Brand names:", brandsData.brands);
-          setAllBrands(brandsData.brands);
-
-          // Also load brands into store for filtering
-          useProductStore.getState().setBrands(brandsData.brands);
-        } else if (brandsData.brands) {
-          // Try alternative structure
-          console.log("Trying alternative brands structure:", brandsData.brands);
-          const brandNames = brandsData.brands.map((brand: any) => brand.name || brand);
-          console.log("Alternative brand names:", brandNames);
-          setAllBrands(brandNames);
-          useProductStore.getState().setBrands(brandNames);
-        } else {
-          console.log("Brands API failed or no brands data:", brandsData);
-          // Fallback brands
+          if (brandsData.success && brandsData.brands && brandsData.brands.length > 0) {
+            console.log("Brand names:", brandsData.brands);
+            setAllBrands(brandsData.brands);
+            useProductStore.getState().setBrands(brandsData.brands);
+          } else if (brandsData.brands && brandsData.brands.length > 0) {
+            // Try alternative structure
+            console.log("Trying alternative brands structure:", brandsData.brands);
+            const brandNames = brandsData.brands.map((brand: any) => brand.name || brand);
+            console.log("Alternative brand names:", brandNames);
+            setAllBrands(brandNames);
+            useProductStore.getState().setBrands(brandNames);
+          } else {
+            console.log("Brands API returned empty data, using fallback");
+            // Fallback brands
+            const fallbackBrands = [
+              "Samsung",
+              "Apple",
+              "Xiaomi",
+              "Huawei",
+              "Anker",
+              "Baseus",
+            ];
+            console.log("Using fallback brands:", fallbackBrands);
+            setAllBrands(fallbackBrands);
+            useProductStore.getState().setBrands(fallbackBrands);
+          }
+        } catch (error) {
+          console.error("Error loading brands:", error);
+          // Fallback brands on error
           const fallbackBrands = [
             "Samsung",
             "Apple",
@@ -243,7 +320,7 @@ const HomePageClient = memo(function HomePageClient() {
             "Anker",
             "Baseus",
           ];
-          console.log("Using fallback brands:", fallbackBrands);
+          console.log("Using fallback brands due to error:", fallbackBrands);
           setAllBrands(fallbackBrands);
           useProductStore.getState().setBrands(fallbackBrands);
         }
