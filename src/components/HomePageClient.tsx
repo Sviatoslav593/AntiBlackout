@@ -130,13 +130,14 @@ const HomePageClient = memo(function HomePageClient() {
   const [currentMobileFilters, setCurrentMobileFilters] =
     useState<FilterParams | null>(null);
   const prevFilterState = useRef<string>("");
+  const savedScrollPosition = useRef<number>(0);
 
   // Block background scrolling when mobile filters are open
   useEffect(() => {
     if (isMobileFiltersOpen) {
-      // Store current scroll position
-      const scrollY = window.scrollY;
-      console.log("Locking scroll at position:", scrollY);
+      // Store current scroll position in ref
+      savedScrollPosition.current = window.scrollY;
+      console.log("Locking scroll at position:", savedScrollPosition.current);
 
       // Store original styles
       const originalOverflow = document.body.style.overflow;
@@ -147,22 +148,19 @@ const HomePageClient = memo(function HomePageClient() {
       // Apply scroll lock
       document.body.style.overflow = "hidden";
       document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
+      document.body.style.top = `-${savedScrollPosition.current}px`;
       document.body.style.width = "100%";
 
       // Cleanup function
       return () => {
-        console.log("Unlocking scroll, restoring position:", scrollY);
+        console.log("Unlocking scroll, restoring position:", savedScrollPosition.current);
         document.body.style.overflow = originalOverflow;
         document.body.style.position = originalPosition;
         document.body.style.top = originalTop;
         document.body.style.width = originalWidth;
 
-        // Restore scroll position using the stored value
-        // Use a microtask to ensure DOM is updated
-        Promise.resolve().then(() => {
-          window.scrollTo(0, scrollY);
-        });
+        // Restore scroll position immediately using the ref value
+        window.scrollTo(0, savedScrollPosition.current);
       };
     }
   }, [isMobileFiltersOpen]);
@@ -460,7 +458,12 @@ const HomePageClient = memo(function HomePageClient() {
                     initial={{ x: "-100%" }}
                     animate={{ x: 0 }}
                     exit={{ x: "-100%" }}
-                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    transition={{ 
+                      type: "spring", 
+                      damping: 30, 
+                      stiffness: 300,
+                      duration: 0.3
+                    }}
                   >
                     <div className="h-full flex flex-col">
                       {/* Header with close button */}

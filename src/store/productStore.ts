@@ -163,7 +163,7 @@ export const useProductStore = create<ProductState>()(
             newFilterKey,
             lastFilterKey: state.lastFilterKey,
             allProducts: state.allProducts.length,
-            filteredProducts: state.filteredProducts.length
+            filteredProducts: state.filteredProducts.length,
           });
           return;
         }
@@ -203,20 +203,20 @@ export const useProductStore = create<ProductState>()(
           brandIds: filters.brandIds,
         });
 
-        console.log("Filtering products:", {
-          totalProducts: state.allProducts.length,
-          filters,
-          categoryIds: filters.categoryIds,
-          brandIds: filters.brandIds,
-        });
+        console.log("Filtering products:", 
+          "totalProducts:", state.allProducts.length,
+          "filters:", JSON.stringify(filters, null, 2),
+          "categoryIds:", filters.categoryIds,
+          "brandIds:", filters.brandIds
+        );
 
         const filtered = state.allProducts.filter((product) => {
-          console.log(`Filtering product: ${product.name}`, {
-            categoryId: product.category_id,
-            category: product.category,
-            brand: product.brand,
-            price: product.price
-          });
+          console.log(`Filtering product: ${product.name}`, 
+          "categoryId:", product.category_id,
+          "category:", product.category,
+          "brand:", product.brand,
+          "price:", product.price
+        );
 
           // Category filter - only apply if there are selected categories
           if (filters.categoryIds && filters.categoryIds.length > 0) {
@@ -396,13 +396,11 @@ export const useProductStore = create<ProductState>()(
         );
         console.log(
           "Filtered products sample:",
-          filtered
-            .slice(0, 3)
-            .map((p) => ({
-              name: p.name,
-              category: p.category,
-              brand: p.brand,
-            }))
+          filtered.slice(0, 3).map((p) => ({
+            name: p.name,
+            category: p.category,
+            brand: p.brand,
+          }))
         );
         console.log(
           "Filtered products sample:",
