@@ -155,6 +155,56 @@ const HomePageClientContent = memo(function HomePageClientContent() {
     useUrlFilters();
   const { filteredProducts } = useProductStore();
 
+  // Count active filters
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    
+    // Count category filters
+    if (activeFilters.categoryIds && activeFilters.categoryIds.length > 0) {
+      count += activeFilters.categoryIds.length;
+    }
+    
+    // Count brand filters
+    if (activeFilters.brandIds && activeFilters.brandIds.length > 0) {
+      count += activeFilters.brandIds.length;
+    }
+    
+    // Count search filter
+    if (activeFilters.search && activeFilters.search.trim() !== "") {
+      count += 1;
+    }
+    
+    // Count price filter
+    if ((activeFilters.minPrice ?? 0) > 0 || (activeFilters.maxPrice ?? 10000) < 10000) {
+      count += 1;
+    }
+    
+    // Count capacity filter
+    if ((activeFilters.minCapacity ?? 0) > 0 || (activeFilters.maxCapacity ?? 50000) < 50000) {
+      count += 1;
+    }
+    
+    // Count USB filters
+    if (activeFilters.inputConnector && activeFilters.inputConnector !== "") {
+      count += 1;
+    }
+    if (activeFilters.outputConnector && activeFilters.outputConnector !== "") {
+      count += 1;
+    }
+    if (activeFilters.cableLength && activeFilters.cableLength !== "") {
+      count += 1;
+    }
+    
+    // Count stock filter
+    if (activeFilters.inStockOnly) {
+      count += 1;
+    }
+    
+    return count;
+  };
+
+  const activeFiltersCount = getActiveFiltersCount();
+
   // Load products, categories, and brands on mount
   useEffect(() => {
     const loadData = async () => {
@@ -170,9 +220,12 @@ const HomePageClientContent = memo(function HomePageClientContent() {
           console.log("First product structure:", productsData.products[0]);
           setAllProducts(productsData.products);
           useProductStore.getState().setProducts(productsData.products);
-          
+
           // Apply current filters after loading products
-          console.log("Applying filters after loading products:", activeFilters);
+          console.log(
+            "Applying filters after loading products:",
+            activeFilters
+          );
           // Use setTimeout to ensure products are set in store before applying filters
           setTimeout(() => {
             applyFiltersAndUpdateUrl(activeFilters);
@@ -400,11 +453,16 @@ const HomePageClientContent = memo(function HomePageClientContent() {
           <div className="lg:hidden mb-4">
             <Button
               onClick={() => setIsMobileFiltersOpen(true)}
-              className="w-full"
+              className="w-full relative"
               variant="outline"
             >
               <Filter className="w-4 h-4 mr-2" />
               Фільтри
+              {activeFiltersCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                  {activeFiltersCount}
+                </span>
+              )}
             </Button>
           </div>
 
@@ -413,7 +471,14 @@ const HomePageClientContent = memo(function HomePageClientContent() {
             <div className="hidden lg:block lg:w-1/4">
               <div className="bg-white rounded-lg shadow-lg p-6 sticky top-4">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold">Фільтри</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-semibold">Фільтри</h3>
+                    {activeFiltersCount > 0 && (
+                      <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                        {activeFiltersCount}
+                      </span>
+                    )}
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"
@@ -459,9 +524,16 @@ const HomePageClientContent = memo(function HomePageClientContent() {
                     <div className="h-full flex flex-col">
                       {/* Header with close button */}
                       <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10">
-                        <h3 className="text-xl font-semibold text-gray-900">
-                          Фільтри
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-xl font-semibold text-gray-900">
+                            Фільтри
+                          </h3>
+                          {activeFiltersCount > 0 && (
+                            <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                              {activeFiltersCount}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2">
                           <Button
                             variant="outline"
