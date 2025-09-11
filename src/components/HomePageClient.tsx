@@ -253,10 +253,10 @@ const HomePageClient = memo(function HomePageClient() {
 
   // Restore scroll position on mount (only once)
   const hasRestoredScroll = useRef(false);
-  
+
   useEffect(() => {
     if (hasRestoredScroll.current) return;
-    
+
     // Check if we're returning from a product page
     const fromProductPage =
       sessionStorage.getItem("fromProductPage") === "true";
@@ -295,13 +295,24 @@ const HomePageClient = memo(function HomePageClient() {
 
   // Sort products and apply local pagination
   const sortedProducts = useMemo(() => {
-    const products = [...(filteredProducts || allProducts)];
+    // If no filters are applied, use allProducts; otherwise use filteredProducts
+    const hasActiveFilters = (activeFilters.categoryIds?.length || 0) > 0 || 
+                           (activeFilters.brandIds?.length || 0) > 0 || 
+                           (activeFilters.search?.trim() || "") !== "" ||
+                           (activeFilters.minPrice || 0) > 0 || 
+                           (activeFilters.maxPrice || 10000) < 10000 ||
+                           (activeFilters.minCapacity || 0) > 0 || 
+                           (activeFilters.maxCapacity || 50000) < 50000 ||
+                           activeFilters.inStockOnly || false;
+    
+    const products = hasActiveFilters ? [...(filteredProducts || [])] : [...allProducts];
 
     // Debug logging
     console.log("HomePageClient sortedProducts:", {
       filteredProducts: filteredProducts?.length,
       allProducts: allProducts.length,
-      usingFiltered: !!filteredProducts,
+      usingFiltered: hasActiveFilters,
+      hasActiveFilters,
       activeFilters,
       visibleCount,
     });
@@ -614,7 +625,13 @@ const HomePageClient = memo(function HomePageClient() {
                 <>
                   <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {sortedProducts.map((product) => (
-                      <ProductCard key={product.id} product={product} />
+                      <ProductCard 
+                        key={product.id} 
+                        product={{
+                          ...product,
+                          category: product.category || "Інше"
+                        }} 
+                      />
                     ))}
                   </div>
 

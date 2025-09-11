@@ -215,21 +215,15 @@ export function useUrlFilters() {
         JSON.stringify(defaultFilters, null, 2)
       );
       setActiveFilters(defaultFilters);
+      // Don't call applyFilters for default empty filters - let the component handle it
       console.log(
-        "Calling applyFilters with:",
-        JSON.stringify(defaultFilters, null, 2)
-      );
-      applyFilters(defaultFilters);
-      console.log(
-        "Calling updateUrl with:",
-        JSON.stringify(defaultFilters, null, 2)
+        "Skipping applyFilters for default empty filters"
       );
       updateUrl(defaultFilters);
     }
   }, [
     searchParams,
     setActiveFilters,
-    applyFilters,
     updateUrl,
     activeFilters.categoryIds,
   ]);

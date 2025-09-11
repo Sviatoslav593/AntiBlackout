@@ -397,31 +397,6 @@ export default function ProductPage() {
       )}
 
       <div className="container py-8">
-        {/* Back Button */}
-        <div className="mb-6">
-          <Button
-            variant="outline"
-            onClick={() => {
-              // Set flag that we're returning from product page
-              if (typeof window !== "undefined") {
-                sessionStorage.setItem("fromProductPage", "true");
-                const savedScrollPosition =
-                  sessionStorage.getItem("scrollPosition");
-                if (savedScrollPosition) {
-                  console.log(
-                    "Product page: Returning to scroll position:",
-                    savedScrollPosition
-                  );
-                }
-              }
-              router.push("/");
-            }}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Назад до каталогу
-          </Button>
-        </div>
 
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">

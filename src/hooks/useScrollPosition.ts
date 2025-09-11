@@ -17,7 +17,11 @@ export function useScrollPosition() {
 
   // Restore scroll position
   const restoreScrollPosition = () => {
-    if (typeof window !== "undefined" && scrollPosition > 0 && !isRestoring.current) {
+    if (
+      typeof window !== "undefined" &&
+      scrollPosition > 0 &&
+      !isRestoring.current
+    ) {
       console.log("Restoring scroll position:", scrollPosition);
       isRestoring.current = true;
 
