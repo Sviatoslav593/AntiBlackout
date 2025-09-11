@@ -108,7 +108,9 @@ const CapacitySelectFilter = memo(function CapacitySelectFilter({
   useEffect(() => {
     if (onGetCurrentValue) {
       const currentValue =
-        selectedCapacity === "all" || selectedCapacity === "" ? null : parseInt(selectedCapacity);
+        selectedCapacity === "all" || selectedCapacity === ""
+          ? null
+          : parseInt(selectedCapacity);
       onGetCurrentValue = () => currentValue;
     }
   }, [selectedCapacity, onGetCurrentValue]);

@@ -11,7 +11,7 @@ import ScrollToProductsButton from "@/components/ScrollToProductsButton";
 import { useScrollPosition } from "@/hooks/useScrollPosition";
 import FiltersSPA from "@/components/FiltersSPA";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
-import { useProductStore } from "@/store/productStore";
+import { useProductStore, FilterParams } from "@/store/productStore";
 import {
   Battery,
   Shield,
@@ -127,6 +127,7 @@ const HomePageClient = memo(function HomePageClient() {
   const [isMounted, setIsMounted] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(25);
+  const [currentMobileFilters, setCurrentMobileFilters] = useState<FilterParams | null>(null);
   const prevFilterState = useRef<string>("");
 
   // Block background scrolling when mobile filters are open
@@ -492,6 +493,7 @@ const HomePageClient = memo(function HomePageClient() {
                           capacityRange={{ min: 0, max: 50000 }}
                           isMobile={true}
                           onMobileClose={() => setIsMobileFiltersOpen(false)}
+                          onFiltersChange={setCurrentMobileFilters}
                         />
                       </div>
 
@@ -500,11 +502,12 @@ const HomePageClient = memo(function HomePageClient() {
                         <Button
                           onClick={() => {
                             // Apply filters and close modal
+                            const filtersToApply = currentMobileFilters || activeFilters;
                             console.log(
                               "Mobile: Applying filters:",
-                              activeFilters
+                              filtersToApply
                             );
-                            applyFiltersAndUpdateUrl(activeFilters);
+                            applyFiltersAndUpdateUrl(filtersToApply);
                             setIsMobileFiltersOpen(false);
                           }}
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white"

@@ -146,7 +146,10 @@ const USBCableFilters = memo(function USBCableFilters({
     // Don't call onFiltersChange immediately - wait for apply button
   };
 
-  const hasActiveFilters = (inputConnector && inputConnector !== "all") || (outputConnector && outputConnector !== "all") || (cableLength && cableLength !== "all");
+  const hasActiveFilters =
+    (inputConnector && inputConnector !== "all") ||
+    (outputConnector && outputConnector !== "all") ||
+    (cableLength && cableLength !== "all");
 
   console.log("USBCableFilters render:", { categoryId, loading, options });
 

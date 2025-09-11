@@ -19,6 +19,7 @@ interface FiltersSPAProps {
   capacityRange: { min: number; max: number };
   isMobile?: boolean;
   onMobileClose?: () => void; // Callback to close mobile modal
+  onFiltersChange?: (filters: FilterParams) => void; // Callback to get current filters
 }
 
 const FiltersSPA = memo(function FiltersSPA({
@@ -28,6 +29,7 @@ const FiltersSPA = memo(function FiltersSPA({
   capacityRange,
   isMobile = false,
   onMobileClose,
+  onFiltersChange,
 }: FiltersSPAProps) {
   const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
     useUrlFilters();
@@ -40,6 +42,13 @@ const FiltersSPA = memo(function FiltersSPA({
     // Always sync localFilters with activeFilters to ensure checkboxes work
     setLocalFilters(activeFilters);
   }, [activeFilters]); // Fixed: removed localFilters from dependencies to prevent infinite loop
+
+  // Notify parent component about current filters (for mobile)
+  useEffect(() => {
+    if (onFiltersChange) {
+      onFiltersChange(localFilters);
+    }
+  }, [localFilters, onFiltersChange]);
 
   // Category name to ID mapping
   const categoryNameToIdMap: Record<string, string> = {
@@ -149,9 +158,16 @@ const FiltersSPA = memo(function FiltersSPA({
     }) => {
       const newFilters = {
         ...localFilters,
-        inputConnector: usbFilters.inputConnector === "all" ? "" : (usbFilters.inputConnector || ""),
-        outputConnector: usbFilters.outputConnector === "all" ? "" : (usbFilters.outputConnector || ""),
-        cableLength: usbFilters.cableLength === "all" ? "" : (usbFilters.cableLength || ""),
+        inputConnector:
+          usbFilters.inputConnector === "all"
+            ? ""
+            : usbFilters.inputConnector || "",
+        outputConnector:
+          usbFilters.outputConnector === "all"
+            ? ""
+            : usbFilters.outputConnector || "",
+        cableLength:
+          usbFilters.cableLength === "all" ? "" : usbFilters.cableLength || "",
       };
 
       setLocalFilters(newFilters);
