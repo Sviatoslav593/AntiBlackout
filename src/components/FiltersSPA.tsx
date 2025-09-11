@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +20,7 @@ interface FiltersSPAProps {
   isMobile?: boolean;
 }
 
-export default function FiltersSPA({
+const FiltersSPA = memo(function FiltersSPA({
   availableCategories,
   availableBrands,
   priceRange,
@@ -32,19 +32,37 @@ export default function FiltersSPA({
   const { setSortBy } = useProductStore();
   const [localFilters, setLocalFilters] = useState<FilterParams>(activeFilters);
 
-  // Update local filters when URL filters change
-  useMemo(() => {
+  // Update local filters when URL filters change (but don't reset if we're in the middle of selecting)
+  useEffect(() => {
+    console.log("FiltersSPA: activeFilters changed:", activeFilters);
+    // Always sync localFilters with activeFilters to ensure checkboxes work
     setLocalFilters(activeFilters);
-  }, [activeFilters]);
+  }, [activeFilters]); // Fixed: removed localFilters from dependencies to prevent infinite loop
+
+  // Category name to ID mapping
+  const categoryNameToIdMap: Record<string, string> = {
+    "Портативні батареї": "1001",
+    "Зарядки та кабелі": "1002",
+    "Акумулятори та powerbank": "1",
+    "Мережеві зарядні пристрої": "15",
+    "Кабелі usb": "16",
+    "Бездротові зарядні пристрої": "80",
+  };
 
   // Handle category toggle
   const handleCategoryToggle = useCallback(
     (category: string) => {
       console.log("Category toggle clicked:", category);
+      console.log("Current localFilters:", localFilters);
+
+      // Convert category name to ID
+      const categoryId = categoryNameToIdMap[category] || category;
+      console.log("Category ID:", categoryId);
+
       const newCategories = localFilters.categoryIds || [];
-      const updatedCategories = newCategories.includes(category)
-        ? newCategories.filter((c) => c !== category)
-        : [...newCategories, category];
+      const updatedCategories = newCategories.includes(categoryId)
+        ? newCategories.filter((c) => c !== categoryId)
+        : [...newCategories, categoryId];
 
       const newFilters = {
         ...localFilters,
@@ -53,15 +71,16 @@ export default function FiltersSPA({
 
       console.log("New category filters:", newFilters);
       setLocalFilters(newFilters);
-      applyFiltersAndUpdateUrl(newFilters);
+      // Don't apply filters immediately - wait for apply button
     },
-    [localFilters, applyFiltersAndUpdateUrl]
+    [localFilters]
   );
 
   // Handle brand toggle
   const handleBrandToggle = useCallback(
     (brand: string) => {
       console.log("Brand toggle clicked:", brand);
+      console.log("Current localFilters:", localFilters);
       const newBrands = localFilters.brandIds || [];
       const updatedBrands = newBrands.includes(brand)
         ? newBrands.filter((b) => b !== brand)
@@ -74,9 +93,9 @@ export default function FiltersSPA({
 
       console.log("New brand filters:", newFilters);
       setLocalFilters(newFilters);
-      applyFiltersAndUpdateUrl(newFilters);
+      // Don't apply filters immediately - wait for apply button
     },
-    [localFilters, applyFiltersAndUpdateUrl]
+    [localFilters]
   );
 
   // Handle price change
@@ -96,21 +115,20 @@ export default function FiltersSPA({
 
   // Handle capacity change
   const handleCapacityChange = useCallback(
-    (capacity: string) => {
+    (capacity: number | null) => {
       let newFilters = { ...localFilters };
 
-      if (capacity === "all" || capacity === "") {
+      if (capacity === null) {
         newFilters = {
           ...newFilters,
           minCapacity: undefined,
           maxCapacity: undefined,
         };
       } else {
-        const capacityNum = parseFloat(capacity);
         newFilters = {
           ...newFilters,
-          minCapacity: capacityNum,
-          maxCapacity: capacityNum,
+          minCapacity: capacity,
+          maxCapacity: capacity,
         };
       }
 
@@ -179,22 +197,30 @@ export default function FiltersSPA({
       {/* Categories */}
       {availableCategories && availableCategories.length > 0 && (
         <div className="space-y-3">
-          <h4 className="font-medium">Категорії</h4>
+          <h4 className="font-medium text-gray-900">Категорії</h4>
           <div className="space-y-2">
             {availableCategories.map((category) => (
               <label
                 key={category}
-                className="flex items-center space-x-2 cursor-pointer"
+                className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors"
               >
                 <input
                   type="checkbox"
-                  checked={
-                    localFilters.categoryIds?.includes(category) || false
-                  }
-                  onChange={() => handleCategoryToggle(category)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  checked={(localFilters.categoryIds || []).includes(
+                    categoryNameToIdMap[category] || category
+                  )}
+                  onChange={() => {
+                    console.log(
+                      "Category checkbox clicked:",
+                      category,
+                      "Current state:",
+                      localFilters.categoryIds
+                    );
+                    handleCategoryToggle(category);
+                  }}
+                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
                 />
-                <span className="text-sm">{category}</span>
+                <span className="text-sm text-gray-700">{category}</span>
               </label>
             ))}
           </div>
@@ -205,20 +231,28 @@ export default function FiltersSPA({
       {/* Brands */}
       {availableBrands && availableBrands.length > 0 && (
         <div className="space-y-3">
-          <h4 className="font-medium">Бренди</h4>
+          <h4 className="font-medium text-gray-900">Бренди</h4>
           <div className="space-y-2">
             {availableBrands.map((brand) => (
               <label
                 key={brand}
-                className="flex items-center space-x-2 cursor-pointer"
+                className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors"
               >
                 <input
                   type="checkbox"
-                  checked={localFilters.brandIds?.includes(brand) || false}
-                  onChange={() => handleBrandToggle(brand)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  checked={(localFilters.brandIds || []).includes(brand)}
+                  onChange={() => {
+                    console.log(
+                      "Brand checkbox clicked:",
+                      brand,
+                      "Current state:",
+                      localFilters.brandIds
+                    );
+                    handleBrandToggle(brand);
+                  }}
+                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
                 />
-                <span className="text-sm">{brand}</span>
+                <span className="text-sm text-gray-700">{brand}</span>
               </label>
             ))}
           </div>
@@ -228,7 +262,7 @@ export default function FiltersSPA({
 
       {/* Price Filter */}
       <div className="space-y-3">
-        <h4 className="font-medium">Ціна</h4>
+        <h4 className="font-medium text-gray-900">Ціна</h4>
         <PriceFilter
           value={{
             min: localFilters.minPrice || priceRange.min,
@@ -243,7 +277,7 @@ export default function FiltersSPA({
 
       {/* Capacity Filter - always visible */}
       <div className="space-y-3">
-        <h4 className="font-medium">Ємність павербанку</h4>
+        <h4 className="font-medium text-gray-900">Ємність павербанку</h4>
         <CapacitySelectFilter
           onCapacityChange={handleCapacityChange}
           categoryId={1001}
@@ -253,7 +287,7 @@ export default function FiltersSPA({
 
       {/* USB Cable Filters - always visible */}
       <div className="space-y-3">
-        <h4 className="font-medium">Фільтри кабелів</h4>
+        <h4 className="font-medium text-gray-900">Фільтри кабелів</h4>
         <USBCableFilters
           onFiltersChange={handleUSBFiltersChange}
           categoryId={1002}
@@ -263,15 +297,31 @@ export default function FiltersSPA({
 
       {/* Stock Filter */}
       <div className="space-y-3">
-        <label className="flex items-center space-x-2 cursor-pointer">
+        <label className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors">
           <input
             type="checkbox"
             checked={localFilters.inStockOnly || false}
             onChange={handleStockToggle}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
           />
-          <span className="text-sm font-medium">Тільки в наявності</span>
+          <span className="text-sm font-medium text-gray-700">
+            Тільки в наявності
+          </span>
         </label>
+      </div>
+
+      {/* Apply Filters Button */}
+      <div className="pt-4 border-t">
+        <Button
+          onClick={() => {
+            console.log("Applying filters:", localFilters);
+            applyFiltersAndUpdateUrl(localFilters);
+          }}
+          className="w-full"
+          size="lg"
+        >
+          Застосувати фільтри
+        </Button>
       </div>
     </div>
   );
@@ -302,4 +352,6 @@ export default function FiltersSPA({
       </CardContent>
     </Card>
   );
-}
+});
+
+export default FiltersSPA;

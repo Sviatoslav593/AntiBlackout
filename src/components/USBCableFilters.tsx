@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 
 interface USBCableFiltersProps {
@@ -17,7 +17,7 @@ interface FilterOption {
   label: string;
 }
 
-export default function USBCableFilters({
+const USBCableFilters = memo(function USBCableFilters({
   onFiltersChange,
   categoryId,
 }: USBCableFiltersProps) {
@@ -25,6 +25,7 @@ export default function USBCableFilters({
   const [outputConnector, setOutputConnector] = useState<string>("");
   const [cableLength, setCableLength] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [filtersLoaded, setFiltersLoaded] = useState(false);
   const [options, setOptions] = useState<{
     inputConnectors: FilterOption[];
     outputConnectors: FilterOption[];
@@ -35,15 +36,22 @@ export default function USBCableFilters({
     cableLengths: [],
   });
 
-  // Load filter options when categoryId changes
+  // Load filter options when component mounts
   useEffect(() => {
-    console.log("USBCableFilters useEffect:", { categoryId });
+    console.log("USBCableFilters useEffect:", {
+      categoryId,
+      filtersLoaded,
+      hasOptions: options.inputConnectors.length > 0,
+    });
+
+    // Only load if we haven't loaded filters yet
+    if (filtersLoaded) {
+      console.log("Skipping USB filter load - already loaded");
+      return;
+    }
+
     // Always load options, but use categoryId 1002 for cables
     const effectiveCategoryId = 1002; // Always use 1002 for cables
-    console.log(
-      "USBCableFilters: Using effective categoryId:",
-      effectiveCategoryId
-    );
 
     const loadOptions = async () => {
       console.log(
@@ -75,16 +83,17 @@ export default function USBCableFilters({
               label: `${value} м`,
             })),
           });
+          setFiltersLoaded(true);
         }
       } catch (error) {
-        console.error("Error loading filter options:", error);
+        console.error("Error loading USB filter options:", error);
       } finally {
         setLoading(false);
       }
     };
 
     loadOptions();
-  }, [categoryId]);
+  }, [filtersLoaded]); // Fixed: only depend on filtersLoaded
 
   // Handle individual filter changes
   const handleInputConnectorChange = useCallback(
@@ -223,4 +232,6 @@ export default function USBCableFilters({
       )}
     </div>
   );
-}
+});
+
+export default USBCableFilters;

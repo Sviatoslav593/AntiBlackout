@@ -26,18 +26,27 @@ export interface Product {
   images?: string[];
   brand: string;
   category: string;
-  categoryId: string;
+  categoryId?: string;
+  category_id?: number;
   inStock: boolean;
-  stockQuantity: number;
+  stockQuantity?: number;
   rating: number;
   reviewCount: number;
-  specifications: Record<string, any>;
+  specifications?: Record<string, any>;
   characteristics?: Record<string, any>;
   external_id?: string;
   slug?: string;
   created_at?: string;
   updated_at?: string;
   popularity?: number;
+  capacity?: number;
+  vendor_code?: string;
+  quantity?: number;
+  categories?: {
+    id: number;
+    name: string;
+    parent_id?: number;
+  };
 }
 
 interface ProductCardProps {

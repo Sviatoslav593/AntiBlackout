@@ -33,7 +33,7 @@ export function useProducts() {
       // Fetch products, categories, and brands in parallel
       const [productsResponse, categoriesResponse, brandsResponse] =
         await Promise.all([
-          fetch("/api/products?categoryId=1001&limit=100"), // Load more initially
+          fetch("/api/products?limit=10000"), // Load all products
           fetch("/api/categories"),
           fetch("/api/brands"),
         ]);
@@ -49,10 +49,9 @@ export function useProducts() {
         console.log("Loaded products from API:", productsData.products.length);
       }
 
-      if (categoriesData.success && categoriesData.categories) {
-        const categoryNames = categoriesData.categories.map(
-          (cat: any) => cat.name
-        );
+      if (categoriesData.success && categoriesData.flat) {
+        // Use flat categories array which contains all categories
+        const categoryNames = categoriesData.flat.map((cat: any) => cat.name);
         setCategories(categoryNames);
         console.log("Loaded categories:", categoryNames);
       }

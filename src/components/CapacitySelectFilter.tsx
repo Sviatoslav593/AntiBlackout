@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 
 interface CapacitySelectFilterProps {
@@ -8,23 +8,31 @@ interface CapacitySelectFilterProps {
   categoryId?: number;
 }
 
-export default function CapacitySelectFilter({
+const CapacitySelectFilter = memo(function CapacitySelectFilter({
   onCapacityChange,
   categoryId,
 }: CapacitySelectFilterProps) {
   const [selectedCapacity, setSelectedCapacity] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [filtersLoaded, setFiltersLoaded] = useState(false);
   const [availableCapacities, setAvailableCapacities] = useState<number[]>([]);
 
-  // Load available capacities when categoryId changes
+  // Load available capacities when component mounts
   useEffect(() => {
-    console.log("CapacitySelectFilter useEffect:", { categoryId });
+    console.log("CapacitySelectFilter useEffect:", {
+      categoryId,
+      filtersLoaded,
+      availableCapacitiesLength: availableCapacities.length,
+    });
+
+    // Only load if we haven't loaded filters yet
+    if (filtersLoaded) {
+      console.log("Skipping capacity load - already loaded");
+      return;
+    }
+
     // Always load options, but use categoryId 1001 for power banks
     const effectiveCategoryId = 1001; // Always use 1001 for power banks
-    console.log(
-      "CapacitySelectFilter: Using effective categoryId:",
-      effectiveCategoryId
-    );
 
     const loadCapacities = async () => {
       console.log(
@@ -51,6 +59,7 @@ export default function CapacitySelectFilter({
           const sortedCapacities = Array.from(capacities).sort((a, b) => a - b);
           console.log("Available capacities:", sortedCapacities);
           setAvailableCapacities(sortedCapacities);
+          setFiltersLoaded(true);
         }
       } catch (error) {
         console.error("Error loading capacities:", error);
@@ -60,7 +69,7 @@ export default function CapacitySelectFilter({
     };
 
     loadCapacities();
-  }, [categoryId]);
+  }, [filtersLoaded]); // Fixed: only depend on filtersLoaded
 
   // Handle capacity selection
   const handleCapacitySelect = useCallback(
@@ -124,4 +133,6 @@ export default function CapacitySelectFilter({
       )}
     </div>
   );
-}
+});
+
+export default CapacitySelectFilter;

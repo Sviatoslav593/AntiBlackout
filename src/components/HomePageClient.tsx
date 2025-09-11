@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef, memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import SortDropdown from "@/components/SortDropdown";
@@ -64,18 +64,21 @@ interface Product {
   reviewCount: number;
   inStock: boolean;
   badge?: string;
-  capacity: number;
+  capacity?: number;
   brand: string;
-  popularity: number;
+  popularity?: number;
   createdAt: string;
-  allCategories?: {
-    id: number;
-    name: string;
-  };
+  category?: string;
+  categoryId?: string;
   category_id?: number;
   vendor_code?: string;
   quantity?: number;
   characteristics?: Record<string, any>;
+  categories?: {
+    id: number;
+    name: string;
+    parent_id?: number;
+  };
 }
 
 type SortOption =
@@ -104,11 +107,13 @@ const sortProducts = (products: Product[], sortBy: SortOption): Product[] => {
       );
     case "popularity-desc":
     default:
-      return sortedProducts.sort((a, b) => b.popularity - a.popularity);
+      return sortedProducts.sort(
+        (a, b) => (b.popularity || 0) - (a.popularity || 0)
+      );
   }
 };
 
-function HomePageClient() {
+const HomePageClient = memo(function HomePageClient() {
   // State for products
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [allCategories, setAllCategories] = useState<string[]>([]);
@@ -121,6 +126,7 @@ function HomePageClient() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(25);
   const prevFilterState = useRef<string>("");
 
   // Block background scrolling when mobile filters are open
@@ -168,10 +174,8 @@ function HomePageClient() {
       try {
         setLoading(true);
 
-        // Load products
-        const productsResponse = await fetch(
-          "/api/products?categoryId=1001&limit=20"
-        );
+        // Load products from all categories
+        const productsResponse = await fetch("/api/products?limit=10000");
         const productsData = await productsResponse.json();
 
         if (productsData.success && productsData.products) {
@@ -185,10 +189,9 @@ function HomePageClient() {
         const categoriesResponse = await fetch("/api/categories");
         const categoriesData = await categoriesResponse.json();
 
-        if (categoriesData.success && categoriesData.categories) {
-          const categoryNames = categoriesData.categories.map(
-            (cat: any) => cat.name
-          );
+        if (categoriesData.success && categoriesData.flat) {
+          // Use flat categories array which contains all categories
+          const categoryNames = categoriesData.flat.map((cat: any) => cat.name);
           setAllCategories(categoryNames);
 
           // Also load categories into store for filtering
@@ -220,7 +223,7 @@ function HomePageClient() {
     restoreScrollPosition();
   }, [restoreScrollPosition]);
 
-  // Sort products
+  // Sort products and apply local pagination
   const sortedProducts = useMemo(() => {
     const products = [...(filteredProducts || allProducts)];
 
@@ -230,31 +233,52 @@ function HomePageClient() {
       allProducts: allProducts.length,
       usingFiltered: !!filteredProducts,
       activeFilters,
+      visibleCount,
     });
 
+    let sorted = products;
     switch (sortBy) {
       case "price-asc":
-        return products.sort((a, b) => a.price - b.price);
+        sorted = products.sort((a, b) => a.price - b.price);
+        break;
       case "price-desc":
-        return products.sort((a, b) => b.price - a.price);
+        sorted = products.sort((a, b) => b.price - a.price);
+        break;
       case "name-asc":
-        return products.sort((a, b) => a.name.localeCompare(b.name));
+        sorted = products.sort((a, b) => a.name.localeCompare(b.name));
+        break;
       case "name-desc":
-        return products.sort((a, b) => b.name.localeCompare(a.name));
+        sorted = products.sort((a, b) => b.name.localeCompare(a.name));
+        break;
       case "rating-desc":
-        return products.sort((a, b) => b.rating - a.rating);
+        sorted = products.sort((a, b) => b.rating - a.rating);
+        break;
       case "popularity-desc":
       default:
-        return products.sort(
+        sorted = products.sort(
           (a, b) => (b.reviewCount || 0) - (a.reviewCount || 0)
         );
+        break;
     }
-  }, [filteredProducts, allProducts, sortBy, activeFilters]);
+
+    // Apply local pagination - show only first visibleCount items
+    return sorted.slice(0, visibleCount);
+  }, [filteredProducts, allProducts, sortBy, activeFilters, visibleCount]);
 
   // Handle sort change
   const handleSortChange = (newSort: string) => {
     setSortBy(newSort as any);
   };
+
+  // Handle load more products (local pagination)
+  const handleLoadMore = useCallback(() => {
+    setVisibleCount((prev) => prev + 25);
+  }, []);
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(25);
+  }, [activeFilters]);
 
   // Handle scroll to products
   const handleScrollToProducts = () => {
@@ -267,35 +291,6 @@ function HomePageClient() {
   // Clear all filters
   const handleClearFilters = () => {
     clearFilters();
-  };
-
-  // Handle load more products
-  const handleLoadMore = async () => {
-    if (loadingMore || !hasMoreProducts) return;
-
-    try {
-      setLoadingMore(true);
-      const nextPage = currentPage + 1;
-      const response = await fetch(
-        `/api/products?categoryId=1001&limit=20&page=${nextPage}`
-      );
-      const data = await response.json();
-
-      if (data.success && data.products) {
-        const newProducts = [...allProducts, ...data.products];
-        setAllProducts(newProducts);
-        useProductStore.getState().setProducts(newProducts);
-        setCurrentPage(nextPage);
-
-        if (data.products.length < 20) {
-          setHasMoreProducts(false);
-        }
-      }
-    } catch (error) {
-      console.error("Error loading more products:", error);
-    } finally {
-      setLoadingMore(false);
-    }
   };
 
   return (
@@ -444,48 +439,76 @@ function HomePageClient() {
             </div>
 
             {/* Mobile Filters Overlay */}
-            {isMobileFiltersOpen && (
-              <div className="fixed inset-0 z-50 lg:hidden">
-                <div
-                  className="fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
-                  onClick={() => setIsMobileFiltersOpen(false)}
-                />
-                <div className="fixed left-0 top-0 h-full w-4/5 max-w-sm bg-white shadow-xl overflow-y-auto transform transition-transform duration-300 ease-in-out animate-in slide-in-from-left">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pb-4 border-b">
-                      <h3 className="text-xl font-semibold">Фільтри товарів</h3>
-                      <div className="flex items-center gap-2">
+            <AnimatePresence>
+              {isMobileFiltersOpen && (
+                <div className="fixed inset-0 z-[9999] lg:hidden">
+                  <motion.div
+                    className="fixed inset-0 bg-black/20 backdrop-blur-sm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    onClick={() => setIsMobileFiltersOpen(false)}
+                  />
+                  <motion.div
+                    className="fixed left-0 top-0 h-full w-4/5 max-w-sm bg-white shadow-2xl"
+                    initial={{ x: "-100%" }}
+                    animate={{ x: 0 }}
+                    exit={{ x: "-100%" }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                  >
+                    <div className="h-full flex flex-col">
+                      {/* Header with close button */}
+                      <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10">
+                        <h3 className="text-xl font-semibold text-gray-900">
+                          Фільтри товарів
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={clearFilters}
+                            className="text-sm"
+                          >
+                            Очистити
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsMobileFiltersOpen(false)}
+                            className="p-2 hover:bg-gray-100 rounded-full"
+                          >
+                            <X className="w-5 h-5" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Scrollable content */}
+                      <div className="flex-1 overflow-y-auto p-4">
+                        <FiltersSPA
+                          availableCategories={allCategories || []}
+                          availableBrands={allBrands || []}
+                          priceRange={{ min: 0, max: 10000 }}
+                          capacityRange={{ min: 0, max: 50000 }}
+                          isMobile={true}
+                        />
+                      </div>
+
+                      {/* Fixed bottom button */}
+                      <div className="p-4 border-t bg-white sticky bottom-0">
                         <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={clearFilters}
-                          className="text-sm"
+                          onClick={() => setIsMobileFiltersOpen(false)}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                          size="lg"
                         >
-                          Очистити
+                          Застосувати фільтри
                         </Button>
                       </div>
                     </div>
-                    
-                    {/* Close button in top-right corner */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsMobileFiltersOpen(false)}
-                      className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full"
-                    >
-                      <X className="w-5 h-5" />
-                    </Button>
-                    
-                    <FiltersSPA
-                      availableCategories={allCategories || []}
-                      availableBrands={allBrands || []}
-                      priceRange={{ min: 0, max: 10000 }}
-                      capacityRange={{ min: 0, max: 50000 }}
-                    />
-                  </div>
+                  </motion.div>
                 </div>
-              </div>
-            )}
+              )}
+            </AnimatePresence>
 
             {/* Products Grid */}
             <div className="lg:w-3/4">
@@ -511,23 +534,17 @@ function HomePageClient() {
                     ))}
                   </div>
 
-                  {/* Load More Button */}
-                  {hasMoreProducts && (
+                  {/* Load More Button - Show if there are more products to display */}
+                  {sortedProducts.length <
+                    (filteredProducts || allProducts).length && (
                     <div className="text-center mt-12">
                       <Button
                         onClick={handleLoadMore}
-                        disabled={loadingMore}
                         size="lg"
                         className="px-8"
                       >
-                        {loadingMore ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Завантаження...
-                          </>
-                        ) : (
-                          "Завантажити ще"
-                        )}
+                        Завантажити ще ({sortedProducts.length} з{" "}
+                        {(filteredProducts || allProducts).length})
                       </Button>
                     </div>
                   )}
@@ -581,6 +598,6 @@ function HomePageClient() {
       </section>
     </>
   );
-}
+});
 
 export default HomePageClient;

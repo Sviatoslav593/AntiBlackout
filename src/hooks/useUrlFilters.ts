@@ -11,16 +11,19 @@ export function useUrlFilters() {
 
   // Parse URL parameters to filter state
   const parseUrlToFilters = useCallback((): FilterParams => {
-    const filters: FilterParams = {};
+    const filters: FilterParams = {
+      categoryIds: [], // Default to empty array
+      brandIds: [], // Default to empty array
+    };
 
     // Category IDs
-    const categoryIds = searchParams.get("categories");
+    const categoryIds = searchParams.get("categoryIds");
     if (categoryIds) {
       filters.categoryIds = categoryIds.split(",").filter(Boolean);
     }
 
     // Brand IDs
-    const brandIds = searchParams.get("brands");
+    const brandIds = searchParams.get("brandIds");
     if (brandIds) {
       filters.brandIds = brandIds.split(",").filter(Boolean);
     }
@@ -93,7 +96,10 @@ export function useUrlFilters() {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== "" && value !== null) {
           if (Array.isArray(value)) {
-            if (value.length > 0) {
+            // Always add arrays, even if empty (for categoryIds and brandIds)
+            if (key === "categoryIds" || key === "brandIds") {
+              params.append(key, value.join(","));
+            } else if (value.length > 0) {
               params.append(key, value.join(","));
             }
           } else if (typeof value === "boolean") {
@@ -134,7 +140,7 @@ export function useUrlFilters() {
   // Clear all filters
   const clearFilters = useCallback(() => {
     const defaultFilters: FilterParams = {
-      categoryIds: ["1001"], // Default to power banks
+      categoryIds: [], // Clear all categories
       brandIds: [],
       search: "",
       inStockOnly: false,
@@ -147,6 +153,7 @@ export function useUrlFilters() {
       cableLength: "",
     };
 
+    console.log("Clearing filters:", defaultFilters);
     setActiveFilters(defaultFilters);
     applyFilters(defaultFilters);
     updateUrl(defaultFilters);
@@ -164,20 +171,14 @@ export function useUrlFilters() {
       setActiveFilters(urlFilters);
       applyFilters(urlFilters);
     }
-  }, [
-    searchParams,
-    parseUrlToFilters,
-    activeFilters,
-    setActiveFilters,
-    applyFilters,
-  ]);
+  }, [searchParams, parseUrlToFilters, setActiveFilters, applyFilters]); // Fixed: removed activeFilters from dependencies
 
   // Apply default filters on mount if no URL parameters
   useEffect(() => {
     const hasUrlParams = searchParams.toString().length > 0;
-    if (!hasUrlParams) {
+    if (!hasUrlParams && activeFilters.categoryIds === undefined) {
       const defaultFilters: FilterParams = {
-        categoryIds: ["1001"], // Default to power banks
+        categoryIds: [], // No default categories
         brandIds: [],
         search: "",
         inStockOnly: false,
@@ -189,11 +190,18 @@ export function useUrlFilters() {
         outputConnector: "",
         cableLength: "",
       };
+      console.log("Setting default filters:", defaultFilters);
       setActiveFilters(defaultFilters);
       applyFilters(defaultFilters);
       updateUrl(defaultFilters);
     }
-  }, [searchParams, setActiveFilters, applyFilters, updateUrl]);
+  }, [
+    searchParams,
+    setActiveFilters,
+    applyFilters,
+    updateUrl,
+    activeFilters.categoryIds,
+  ]);
 
   return {
     activeFilters,

@@ -12,17 +12,27 @@ export interface Product {
   images?: string[];
   brand: string;
   category: string;
-  categoryId: string;
+  categoryId?: string;
+  category_id?: number;
   inStock: boolean;
-  stockQuantity: number;
+  stockQuantity?: number;
   rating: number;
   reviewCount: number;
-  specifications: Record<string, any>;
+  specifications?: Record<string, any>;
   characteristics?: Record<string, any>;
   external_id?: string;
   slug?: string;
   created_at?: string;
   updated_at?: string;
+  capacity?: number;
+  popularity?: number;
+  vendor_code?: string;
+  quantity?: number;
+  categories?: {
+    id: number;
+    name: string;
+    parent_id?: number;
+  };
 }
 
 export interface FilterParams {
@@ -87,7 +97,7 @@ export interface ProductState {
 }
 
 const defaultFilters: FilterParams = {
-  categoryIds: ["1001"], // Default to power banks
+  categoryIds: [], // No default categories
   brandIds: [],
   search: "",
   inStockOnly: false,
@@ -161,36 +171,115 @@ export const useProductStore = create<ProductState>()(
           hasMoreProducts: true,
         });
 
+        // Create reliable category mapping (both ways)
+        const categoryIdToNameMap: Record<string, string> = {
+          "1001": "Портативні батареї",
+          "1002": "Зарядки та кабелі",
+          "1": "Акумулятори та powerbank",
+          "15": "Мережеві зарядні пристрої",
+          "16": "Кабелі usb",
+          "80": "Бездротові зарядні пристрої",
+        };
+
+        const categoryNameToIdMap: Record<string, string> = {
+          "Портативні батареї": "1001",
+          "Зарядки та кабелі": "1002",
+          "Акумулятори та powerbank": "1",
+          "Мережеві зарядні пристрої": "15",
+          "Кабелі usb": "16",
+          "Бездротові зарядні пристрої": "80",
+        };
+
         // Apply client-side filtering
+        console.log("Starting filtering with:", {
+          totalProducts: state.allProducts.length,
+          filters: filters,
+          categoryIds: filters.categoryIds,
+          brandIds: filters.brandIds,
+        });
+
         const filtered = state.allProducts.filter((product) => {
-          // Category filter
+          // Category filter - only apply if there are selected categories
           if (filters.categoryIds && filters.categoryIds.length > 0) {
-            console.log(
-              "Category filter:",
-              filters.categoryIds,
-              "Product category:",
-              product.category,
-              "Product categoryId:",
-              product.categoryId
+            console.log("Category filter:", {
+              selectedCategoryIds: filters.categoryIds,
+              productCategoryId: product.category_id,
+              productCategoryName: product.category,
+            });
+
+            // Get product's category ID
+            const productCategoryId = product.category_id?.toString();
+
+            if (!productCategoryId) {
+              console.log("Product has no category_id:", product.name);
+              return false;
+            }
+
+            // Check if any selected category ID matches the product's category ID
+            const categoryMatch = filters.categoryIds.some(
+              (selectedCategoryId) => {
+                console.log(
+                  `Checking category match: "${selectedCategoryId}" vs "${productCategoryId}"`
+                );
+
+                // Direct ID match
+                if (selectedCategoryId === productCategoryId) {
+                  console.log(
+                    `✅ Category match by ID: ${selectedCategoryId} === ${productCategoryId}`
+                  );
+                  return true;
+                }
+
+                // Name to ID mapping match (if selectedCategoryId is a name)
+                const mappedId = categoryNameToIdMap[selectedCategoryId];
+                if (mappedId && mappedId === productCategoryId) {
+                  console.log(
+                    `✅ Category match by mapping: ${selectedCategoryId} → ${mappedId} === ${productCategoryId}`
+                  );
+                  return true;
+                }
+
+                console.log(
+                  `❌ No category match: ${selectedCategoryId} vs ${productCategoryId}`
+                );
+                return false;
+              }
             );
-            // Check both category name and categoryId
-            const categoryMatch = filters.categoryIds.includes(product.category) || 
-                                 filters.categoryIds.includes(product.categoryId);
+
             if (!categoryMatch) {
+              console.log("Product filtered out by category:", product.name);
               return false;
             }
           }
 
-          // Brand filter
+          // Brand filter - only apply if there are selected brands
           if (filters.brandIds && filters.brandIds.length > 0) {
-            console.log(
-              "Brand filter:",
-              filters.brandIds,
-              "Product brand:",
-              product.brand
+            console.log("Brand filter:", {
+              selectedBrands: filters.brandIds,
+              productBrand: product.brand,
+            });
+
+            // Clean and normalize brand names for comparison
+            const productBrand = product.brand?.trim()?.toLowerCase() || "";
+            const selectedBrands = filters.brandIds.map((brand) =>
+              brand.trim().toLowerCase()
             );
-            if (!filters.brandIds.includes(product.brand)) {
+
+            console.log(
+              `Checking brand match: "${productBrand}" in [${selectedBrands.join(
+                ", "
+              )}]`
+            );
+
+            const brandMatch = selectedBrands.includes(productBrand);
+
+            if (!brandMatch) {
+              console.log(
+                `Product filtered out by brand: ${product.name} (${productBrand} not in ${selectedBrands})`
+              );
               return false;
+            } else {
+              console.log(`✅ Brand match: ${product.name} (${productBrand})`);
             }
           }
 
@@ -211,49 +300,70 @@ export const useProductStore = create<ProductState>()(
             return false;
           }
 
-          // Price filter
-          if (filters.minPrice && product.price < filters.minPrice) {
+          // Price filter - only apply if price range is set
+          if (filters.minPrice > 0 && product.price < filters.minPrice) {
+            console.log(
+              `Product ${product.name} filtered out by minPrice: ${product.price} < ${filters.minPrice}`
+            );
             return false;
           }
-          if (filters.maxPrice && product.price > filters.maxPrice) {
+          if (filters.maxPrice < 10000 && product.price > filters.maxPrice) {
+            console.log(
+              `Product ${product.name} filtered out by maxPrice: ${product.price} > ${filters.maxPrice}`
+            );
             return false;
           }
 
-          // Capacity filter (for power banks)
-          if (filters.minCapacity || filters.maxCapacity) {
-            const capacity =
-              product.characteristics?.["Ємність акумулятора, mah"];
-            if (capacity) {
-              const capacityNum = parseFloat(capacity.toString());
-              if (filters.minCapacity && capacityNum < filters.minCapacity) {
+          // Capacity filter (for power banks) - only apply if capacity range is set
+          if (filters.minCapacity > 0 || filters.maxCapacity < 50000) {
+            const capacity = product.capacity || 0;
+            if (capacity > 0) {
+              if (filters.minCapacity && capacity < filters.minCapacity) {
                 return false;
               }
-              if (filters.maxCapacity && capacityNum > filters.maxCapacity) {
+              if (filters.maxCapacity && capacity > filters.maxCapacity) {
                 return false;
               }
+            } else {
+              // If no capacity specified and we're filtering by capacity, skip this product
+              return false;
             }
           }
 
-          // USB filters (for cables)
-          if (filters.inputConnector) {
+          // USB filters (for cables) - only apply if filters are set
+          if (filters.inputConnector && filters.inputConnector !== "") {
             const inputConnector =
               product.characteristics?.["Вхід (Тип коннектора)"];
-            if (inputConnector !== filters.inputConnector) {
+            if (!inputConnector || inputConnector !== filters.inputConnector) {
+              console.log(
+                `Product ${product.name} filtered out: inputConnector ${inputConnector} !== ${filters.inputConnector}`
+              );
               return false;
             }
           }
 
-          if (filters.outputConnector) {
+          if (filters.outputConnector && filters.outputConnector !== "") {
             const outputConnector =
               product.characteristics?.["Вихід (Тип коннектора)"];
-            if (outputConnector !== filters.outputConnector) {
+            if (
+              !outputConnector ||
+              outputConnector !== filters.outputConnector
+            ) {
+              console.log(
+                `Product ${product.name} filtered out: outputConnector ${outputConnector} !== ${filters.outputConnector}`
+              );
               return false;
             }
           }
 
-          if (filters.cableLength) {
+          if (filters.cableLength && filters.cableLength !== "") {
             const cableLength = product.characteristics?.["Довжина кабелю, м"];
-            if (cableLength !== filters.cableLength) {
+            const cableLengthStr = cableLength?.toString();
+            const filterLengthStr = filters.cableLength.toString();
+            if (!cableLengthStr || cableLengthStr !== filterLengthStr) {
+              console.log(
+                `Product ${product.name} filtered out: cableLength ${cableLengthStr} !== ${filterLengthStr}`
+              );
               return false;
             }
           }
@@ -261,7 +371,23 @@ export const useProductStore = create<ProductState>()(
           return true;
         });
 
-        set({ filteredProducts: filtered });
+        console.log(
+          `Filtering complete: ${filtered.length} products out of ${state.allProducts.length}`
+        );
+        console.log(
+          "Filtered products sample:",
+          filtered.slice(0, 3).map((p) => ({
+            name: p.name,
+            category_id: p.category_id,
+            category: p.category,
+            brand: p.brand,
+          }))
+        );
+
+        set({
+          filteredProducts: filtered,
+          allProducts: state.allProducts, // Ensure allProducts is preserved
+        });
       },
 
       clearFilters: () => {
