@@ -2,20 +2,36 @@
 
 import { useState, useEffect, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface CapacitySelectFilterProps {
   onCapacityChange: (capacity: number | null) => void;
   categoryId?: number;
+  value?: number | null; // Add value prop for controlled component
+  onGetCurrentValue?: () => number | null; // Callback to get current value
 }
 
 const CapacitySelectFilter = memo(function CapacitySelectFilter({
   onCapacityChange,
   categoryId,
+  value,
+  onGetCurrentValue,
 }: CapacitySelectFilterProps) {
-  const [selectedCapacity, setSelectedCapacity] = useState<string>("");
+  const [selectedCapacity, setSelectedCapacity] = useState<string>(value?.toString() || "");
   const [loading, setLoading] = useState(false);
   const [filtersLoaded, setFiltersLoaded] = useState(false);
   const [availableCapacities, setAvailableCapacities] = useState<number[]>([]);
+
+  // Update selectedCapacity when value prop changes
+  useEffect(() => {
+    setSelectedCapacity(value?.toString() || "");
+  }, [value]);
 
   // Load available capacities when component mounts
   useEffect(() => {
@@ -71,7 +87,7 @@ const CapacitySelectFilter = memo(function CapacitySelectFilter({
     loadCapacities();
   }, [filtersLoaded]); // Fixed: only depend on filtersLoaded
 
-  // Handle capacity selection
+  // Handle capacity selection - only update local state, don't call onCapacityChange immediately
   const handleCapacitySelect = useCallback(
     (value: string) => {
       console.log(
@@ -79,59 +95,61 @@ const CapacitySelectFilter = memo(function CapacitySelectFilter({
         value
       );
       setSelectedCapacity(value);
-      const capacity = value === "all" || value === "" ? null : parseInt(value);
-      console.log(
-        "CapacitySelectFilter: calling onCapacityChange with:",
-        capacity
-      );
-      onCapacityChange(capacity);
+      // Don't call onCapacityChange immediately - wait for apply button
     },
-    [onCapacityChange]
+    []
   );
 
   const clearFilter = () => {
     setSelectedCapacity("");
-    onCapacityChange(null);
+    // Don't call onCapacityChange immediately - wait for apply button
   };
+
+  // Expose current value to parent component
+  useEffect(() => {
+    if (onGetCurrentValue) {
+      const currentValue = selectedCapacity === "" ? null : parseInt(selectedCapacity);
+      onGetCurrentValue = () => currentValue;
+    }
+  }, [selectedCapacity, onGetCurrentValue]);
 
   // Always show capacity filter with data
 
   return (
-    <div className="space-y-4">
-      <h4 className="font-medium">Ємність акумулятора</h4>
+    <div className="space-y-3">
+      <h4 className="font-medium text-gray-900">Ємність акумулятора</h4>
       {loading ? (
         <div className="text-sm text-muted-foreground">
           Завантаження опцій...
         </div>
       ) : (
-        <div className="space-y-3">
-          <select
-            value={selectedCapacity}
-            onChange={(e) => handleCapacitySelect(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm hover:border-gray-400 transition-colors duration-200 appearance-none cursor-pointer"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
-              backgroundPosition: 'right 0.5rem center',
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: '1.5em 1.5em',
-              paddingRight: '2.5rem'
-            }}
-          >
-            <option value="">Оберіть ємність</option>
-            <option value="all">Всі ємності</option>
-            {availableCapacities.map((capacity) => (
-              <option key={capacity} value={capacity.toString()}>
-                {capacity} мАг
-              </option>
-            ))}
-          </select>
+        <div className="space-y-2">
+          <Select value={selectedCapacity} onValueChange={handleCapacitySelect}>
+            <SelectTrigger className="w-full cursor-pointer">
+              <SelectValue placeholder="Оберіть ємність" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="" className="cursor-pointer">
+                Всі ємності
+              </SelectItem>
+              {availableCapacities.map((capacity) => (
+                <SelectItem
+                  key={capacity}
+                  value={capacity.toString()}
+                  className="cursor-pointer"
+                >
+                  {capacity} мАг
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          {selectedCapacity && selectedCapacity !== "all" && (
+          {selectedCapacity && selectedCapacity !== "" && (
             <Button
               variant="ghost"
               size="sm"
               onClick={clearFilter}
-              className="cursor-pointer w-full"
+              className="cursor-pointer w-full text-sm"
             >
               Очистити фільтр ємності
             </Button>

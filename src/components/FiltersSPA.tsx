@@ -115,7 +115,7 @@ const FiltersSPA = memo(function FiltersSPA({
     [localFilters, applyFiltersAndUpdateUrl]
   );
 
-  // Handle capacity change
+  // Handle capacity change - only update local state, don't apply immediately
   const handleCapacityChange = useCallback(
     (capacity: number | null) => {
       let newFilters = { ...localFilters };
@@ -135,12 +135,12 @@ const FiltersSPA = memo(function FiltersSPA({
       }
 
       setLocalFilters(newFilters);
-      applyFiltersAndUpdateUrl(newFilters);
+      // Don't apply filters immediately - wait for apply button
     },
-    [localFilters, applyFiltersAndUpdateUrl]
+    [localFilters]
   );
 
-  // Handle USB filter changes
+  // Handle USB filter changes - only update local state, don't apply immediately
   const handleUSBFiltersChange = useCallback(
     (usbFilters: {
       inputConnector?: string;
@@ -155,9 +155,9 @@ const FiltersSPA = memo(function FiltersSPA({
       };
 
       setLocalFilters(newFilters);
-      applyFiltersAndUpdateUrl(newFilters);
+      // Don't apply filters immediately - wait for apply button
     },
-    [localFilters, applyFiltersAndUpdateUrl]
+    [localFilters]
   );
 
   // Handle stock filter
@@ -278,21 +278,25 @@ const FiltersSPA = memo(function FiltersSPA({
       <Separator />
 
       {/* Capacity Filter - always visible */}
-      <div className="space-y-3">
-        <h4 className="font-medium text-gray-900">Ємність павербанку</h4>
+      <div className="space-y-2">
         <CapacitySelectFilter
           onCapacityChange={handleCapacityChange}
           categoryId={1001}
+          value={localFilters.minCapacity || null}
         />
       </div>
       <Separator />
 
       {/* USB Cable Filters - always visible */}
-      <div className="space-y-3">
-        <h4 className="font-medium text-gray-900">Фільтри кабелів</h4>
+      <div className="space-y-2">
         <USBCableFilters
           onFiltersChange={handleUSBFiltersChange}
           categoryId={1002}
+          values={{
+            inputConnector: localFilters.inputConnector || "",
+            outputConnector: localFilters.outputConnector || "",
+            cableLength: localFilters.cableLength || "",
+          }}
         />
       </div>
       <Separator />
@@ -318,7 +322,19 @@ const FiltersSPA = memo(function FiltersSPA({
           <Button
             onClick={() => {
               console.log("Applying filters:", localFilters);
-              applyFiltersAndUpdateUrl(localFilters);
+              // Apply all filters including capacity and USB filters
+              const filtersToApply = {
+                ...localFilters,
+                // Ensure capacity filters are properly set
+                minCapacity: localFilters.minCapacity,
+                maxCapacity: localFilters.maxCapacity,
+                // Ensure USB filters are properly set
+                inputConnector: localFilters.inputConnector || "",
+                outputConnector: localFilters.outputConnector || "",
+                cableLength: localFilters.cableLength || "",
+              };
+              console.log("Final filters to apply:", filtersToApply);
+              applyFiltersAndUpdateUrl(filtersToApply);
             }}
             className="w-full"
             size="lg"

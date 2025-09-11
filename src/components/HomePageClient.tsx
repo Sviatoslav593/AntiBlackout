@@ -484,7 +484,7 @@ const HomePageClient = memo(function HomePageClient() {
                       </div>
 
                       {/* Scrollable content */}
-                      <div className="flex-1 overflow-y-auto p-4 pb-20">
+                      <div className="flex-1 overflow-y-auto p-4 pb-16">
                         <FiltersSPA
                           availableCategories={allCategories || []}
                           availableBrands={allBrands || []}
@@ -498,7 +498,12 @@ const HomePageClient = memo(function HomePageClient() {
                       {/* Fixed bottom button - always visible */}
                       <div className="p-4 border-t bg-white sticky bottom-0 z-20">
                         <Button
-                          onClick={() => setIsMobileFiltersOpen(false)}
+                          onClick={() => {
+                            // Apply filters and close modal
+                            console.log("Mobile: Applying filters:", activeFilters);
+                            applyFiltersAndUpdateUrl(activeFilters);
+                            setIsMobileFiltersOpen(false);
+                          }}
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                           size="lg"
                         >
