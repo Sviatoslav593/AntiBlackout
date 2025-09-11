@@ -10,6 +10,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Static filter options for USB cables
+const STATIC_INPUT_CONNECTORS = [
+  { value: "USB-A", label: "USB-A" },
+  { value: "USB-C", label: "USB-C" },
+  { value: "Micro-USB", label: "Micro-USB" },
+  { value: "Lightning", label: "Lightning" },
+];
+
+const STATIC_OUTPUT_CONNECTORS = [
+  { value: "USB-A", label: "USB-A" },
+  { value: "USB-C", label: "USB-C" },
+  { value: "Micro-USB", label: "Micro-USB" },
+  { value: "Lightning", label: "Lightning" },
+];
+
+const STATIC_CABLE_LENGTHS = [
+  { value: "0.5m", label: "0.5 метра" },
+  { value: "1m", label: "1 метр" },
+  { value: "1.5m", label: "1.5 метра" },
+  { value: "2m", label: "2 метри" },
+  { value: "3m", label: "3 метри" },
+];
+
 interface USBCableFiltersProps {
   onFiltersChange: (filters: {
     inputConnector?: string;
@@ -43,76 +66,12 @@ const USBCableFilters = memo(function USBCableFilters({
   const [cableLength, setCableLength] = useState<string>(
     values?.cableLength || "all"
   );
-  const [loading, setLoading] = useState(false);
-  const [filtersLoaded, setFiltersLoaded] = useState(false);
-  const [options, setOptions] = useState<{
-    inputConnectors: FilterOption[];
-    outputConnectors: FilterOption[];
-    cableLengths: FilterOption[];
-  }>({
-    inputConnectors: [],
-    outputConnectors: [],
-    cableLengths: [],
-  });
-
-  // Load filter options when component mounts
-  useEffect(() => {
-    console.log("USBCableFilters useEffect:", {
-      categoryId,
-      filtersLoaded,
-      hasOptions: options.inputConnectors.length > 0,
-    });
-
-    // Only load if we haven't loaded filters yet
-    if (filtersLoaded) {
-      console.log("Skipping USB filter load - already loaded");
-      return;
-    }
-
-    // Always load options, but use categoryId 1002 for cables
-    const effectiveCategoryId = 1002; // Always use 1002 for cables
-
-    const loadOptions = async () => {
-      console.log(
-        "Loading USB filter options for effectiveCategoryId:",
-        effectiveCategoryId
-      );
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `/api/filter-options?categoryId=${effectiveCategoryId}`
-        );
-        const data = await response.json();
-
-        if (data.success && data.options) {
-          const { inputConnectors, outputConnectors, cableLengths } =
-            data.options;
-
-          setOptions({
-            inputConnectors: inputConnectors.map((value: string) => ({
-              value,
-              label: value,
-            })),
-            outputConnectors: outputConnectors.map((value: string) => ({
-              value,
-              label: value,
-            })),
-            cableLengths: cableLengths.map((value: string) => ({
-              value,
-              label: `${value} м`,
-            })),
-          });
-          setFiltersLoaded(true);
-        }
-      } catch (error) {
-        console.error("Error loading USB filter options:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadOptions();
-  }, [filtersLoaded]); // Fixed: only depend on filtersLoaded
+  // Use static options instead of loading from API
+  const options = {
+    inputConnectors: STATIC_INPUT_CONNECTORS,
+    outputConnectors: STATIC_OUTPUT_CONNECTORS,
+    cableLengths: STATIC_CABLE_LENGTHS,
+  };
 
   // Handle individual filter changes
   const handleInputConnectorChange = useCallback((value: string) => {
@@ -151,19 +110,12 @@ const USBCableFilters = memo(function USBCableFilters({
     (outputConnector && outputConnector !== "all") ||
     (cableLength && cableLength !== "all");
 
-  console.log("USBCableFilters render:", { categoryId, loading, options });
-
-  // Always show cable filters with data
+  console.log("USBCableFilters render:", { categoryId, options });
 
   return (
     <div className="space-y-3">
       <h4 className="font-medium text-gray-900">Фільтри для кабелів</h4>
-      {loading ? (
-        <div className="text-sm text-muted-foreground">
-          Завантаження опцій...
-        </div>
-      ) : (
-        <div className="space-y-2">
+      <div className="space-y-2">
           {/* Input Connector */}
           {options.inputConnectors.length > 0 && (
             <Select
@@ -238,8 +190,7 @@ const USBCableFilters = memo(function USBCableFilters({
               </SelectContent>
             </Select>
           )}
-        </div>
-      )}
+      </div>
       {hasActiveFilters && (
         <Button
           variant="ghost"

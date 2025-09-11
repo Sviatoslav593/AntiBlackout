@@ -127,7 +127,8 @@ const HomePageClient = memo(function HomePageClient() {
   const [isMounted, setIsMounted] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(25);
-  const [currentMobileFilters, setCurrentMobileFilters] = useState<FilterParams | null>(null);
+  const [currentMobileFilters, setCurrentMobileFilters] =
+    useState<FilterParams | null>(null);
   const prevFilterState = useRef<string>("");
 
   // Block background scrolling when mobile filters are open
@@ -502,7 +503,8 @@ const HomePageClient = memo(function HomePageClient() {
                         <Button
                           onClick={() => {
                             // Apply filters and close modal
-                            const filtersToApply = currentMobileFilters || activeFilters;
+                            const filtersToApply =
+                              currentMobileFilters || activeFilters;
                             console.log(
                               "Mobile: Applying filters:",
                               filtersToApply
