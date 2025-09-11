@@ -484,7 +484,7 @@ const HomePageClient = memo(function HomePageClient() {
                       </div>
 
                       {/* Scrollable content */}
-                      <div className="flex-1 overflow-y-auto p-4">
+                      <div className="flex-1 overflow-y-auto p-4 pb-20">
                         <FiltersSPA
                           availableCategories={allCategories || []}
                           availableBrands={allBrands || []}
@@ -493,6 +493,17 @@ const HomePageClient = memo(function HomePageClient() {
                           isMobile={true}
                           onMobileClose={() => setIsMobileFiltersOpen(false)}
                         />
+                      </div>
+
+                      {/* Fixed bottom button - always visible */}
+                      <div className="p-4 border-t bg-white sticky bottom-0 z-20">
+                        <Button
+                          onClick={() => setIsMobileFiltersOpen(false)}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                          size="lg"
+                        >
+                          Застосувати фільтри
+                        </Button>
                       </div>
                     </div>
                   </motion.div>

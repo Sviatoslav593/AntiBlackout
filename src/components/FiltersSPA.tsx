@@ -220,7 +220,7 @@ const FiltersSPA = memo(function FiltersSPA({
                     );
                     handleCategoryToggle(category);
                   }}
-                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
+                  className="w-5 h-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 hover:border-blue-400 transition-colors duration-200 cursor-pointer"
                 />
                 <span className="text-sm text-gray-700">{category}</span>
               </label>
@@ -252,7 +252,7 @@ const FiltersSPA = memo(function FiltersSPA({
                     );
                     handleBrandToggle(brand);
                   }}
-                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
+                  className="w-5 h-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 hover:border-blue-400 transition-colors duration-200 cursor-pointer"
                 />
                 <span className="text-sm text-gray-700">{brand}</span>
               </label>
@@ -304,7 +304,7 @@ const FiltersSPA = memo(function FiltersSPA({
             type="checkbox"
             checked={localFilters.inStockOnly || false}
             onChange={handleStockToggle}
-            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
+            className="w-5 h-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 hover:border-blue-400 transition-colors duration-200 cursor-pointer"
           />
           <span className="text-sm font-medium text-gray-700">
             Тільки в наявності
@@ -312,23 +312,21 @@ const FiltersSPA = memo(function FiltersSPA({
         </label>
       </div>
 
-      {/* Apply Filters Button */}
-      <div className="pt-4 border-t">
-        <Button
-          onClick={() => {
-            console.log("Applying filters:", localFilters);
-            applyFiltersAndUpdateUrl(localFilters);
-            // Close mobile modal if on mobile
-            if (isMobile && onMobileClose) {
-              onMobileClose();
-            }
-          }}
-          className="w-full"
-          size="lg"
-        >
-          Застосувати фільтри
-        </Button>
-      </div>
+      {/* Apply Filters Button - only show on desktop */}
+      {!isMobile && (
+        <div className="pt-4 border-t">
+          <Button
+            onClick={() => {
+              console.log("Applying filters:", localFilters);
+              applyFiltersAndUpdateUrl(localFilters);
+            }}
+            className="w-full"
+            size="lg"
+          >
+            Застосувати фільтри
+          </Button>
+        </div>
+      )}
     </div>
   );
 
