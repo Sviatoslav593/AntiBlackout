@@ -181,28 +181,54 @@ const HomePageClient = memo(function HomePageClient() {
         // Load categories
         const categoriesResponse = await fetch("/api/categories");
         const categoriesData = await categoriesResponse.json();
+        console.log("Categories API response:", categoriesData);
 
         if (categoriesData.success && categoriesData.flat) {
           // Use flat categories array which contains all categories
           const categoryNames = categoriesData.flat.map((cat: any) => cat.name);
+          console.log("Category names:", categoryNames);
           setAllCategories(categoryNames);
 
           // Also load categories into store for filtering
           useProductStore.getState().setCategories(categoryNames);
+        } else {
+          console.log("Categories API failed or no flat data:", categoriesData);
+          // Fallback categories
+          const fallbackCategories = ["Повербанки", "Кабелі USB", "Зарядні пристрої", "Аксесуари"];
+          console.log("Using fallback categories:", fallbackCategories);
+          setAllCategories(fallbackCategories);
+          useProductStore.getState().setCategories(fallbackCategories);
         }
 
         // Load brands
         const brandsResponse = await fetch("/api/brands");
         const brandsData = await brandsResponse.json();
+        console.log("Brands API response:", brandsData);
 
         if (brandsData.success && brandsData.brands) {
+          console.log("Brand names:", brandsData.brands);
           setAllBrands(brandsData.brands);
 
           // Also load brands into store for filtering
           useProductStore.getState().setBrands(brandsData.brands);
+        } else {
+          console.log("Brands API failed or no brands data:", brandsData);
+          // Fallback brands
+          const fallbackBrands = ["Samsung", "Apple", "Xiaomi", "Huawei", "Anker", "Baseus"];
+          console.log("Using fallback brands:", fallbackBrands);
+          setAllBrands(fallbackBrands);
+          useProductStore.getState().setBrands(fallbackBrands);
         }
       } catch (error) {
         console.error("Error loading data:", error);
+        // Set fallback data on error
+        const fallbackCategories = ["Повербанки", "Кабелі USB", "Зарядні пристрої", "Аксесуари"];
+        const fallbackBrands = ["Samsung", "Apple", "Xiaomi", "Huawei", "Anker", "Baseus"];
+        console.log("Setting fallback data due to error");
+        setAllCategories(fallbackCategories);
+        setAllBrands(fallbackBrands);
+        useProductStore.getState().setCategories(fallbackCategories);
+        useProductStore.getState().setBrands(fallbackBrands);
       } finally {
         setLoading(false);
       }

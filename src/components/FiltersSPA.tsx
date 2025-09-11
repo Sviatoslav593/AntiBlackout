@@ -222,159 +222,162 @@ const FiltersSPA = memo(function FiltersSPA({
   }, [localFilters]);
 
   const FilterContent = () => {
-    console.log("FiltersSPA FilterContent - availableCategories:", availableCategories);
+    console.log(
+      "FiltersSPA FilterContent - availableCategories:",
+      availableCategories
+    );
     console.log("FiltersSPA FilterContent - availableBrands:", availableBrands);
-    
+
     return (
-    <div className="space-y-6">
-      {/* Categories */}
-      {availableCategories && availableCategories.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="font-medium text-gray-900">Категорії</h4>
-          <div className="space-y-2">
-            {availableCategories.map((category) => (
-              <label
-                key={category}
-                className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors"
-              >
-                <input
-                  type="checkbox"
-                  checked={(localFilters.categoryIds || []).includes(
-                    categoryNameToIdMap[category] || category
-                  )}
-                  onChange={() => {
-                    console.log(
-                      "Category checkbox clicked:",
-                      category,
-                      "Current state:",
-                      localFilters.categoryIds
-                    );
-                    handleCategoryToggle(category);
-                  }}
-                  className="w-5 h-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 hover:border-blue-400 transition-colors duration-200 cursor-pointer"
-                />
-                <span className="text-sm text-gray-700">{category}</span>
-              </label>
-            ))}
+      <div className="space-y-6">
+        {/* Categories */}
+        {availableCategories && availableCategories.length > 0 && (
+          <div className="space-y-3">
+            <h4 className="font-medium text-gray-900">Категорії</h4>
+            <div className="space-y-2">
+              {availableCategories.map((category) => (
+                <label
+                  key={category}
+                  className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    checked={(localFilters.categoryIds || []).includes(
+                      categoryNameToIdMap[category] || category
+                    )}
+                    onChange={() => {
+                      console.log(
+                        "Category checkbox clicked:",
+                        category,
+                        "Current state:",
+                        localFilters.categoryIds
+                      );
+                      handleCategoryToggle(category);
+                    }}
+                    className="w-5 h-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 hover:border-blue-400 transition-colors duration-200 cursor-pointer"
+                  />
+                  <span className="text-sm text-gray-700">{category}</span>
+                </label>
+              ))}
+            </div>
+            <Separator />
           </div>
-          <Separator />
-        </div>
-      )}
+        )}
 
-      {/* Brands */}
-      {availableBrands && availableBrands.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="font-medium text-gray-900">Бренди</h4>
-          <div className="space-y-2">
-            {availableBrands.map((brand) => (
-              <label
-                key={brand}
-                className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors"
-              >
-                <input
-                  type="checkbox"
-                  checked={(localFilters.brandIds || []).includes(brand)}
-                  onChange={() => {
-                    console.log(
-                      "Brand checkbox clicked:",
-                      brand,
-                      "Current state:",
-                      localFilters.brandIds
-                    );
-                    handleBrandToggle(brand);
-                  }}
-                  className="w-5 h-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 hover:border-blue-400 transition-colors duration-200 cursor-pointer"
-                />
-                <span className="text-sm text-gray-700">{brand}</span>
-              </label>
-            ))}
+        {/* Brands */}
+        {availableBrands && availableBrands.length > 0 && (
+          <div className="space-y-3">
+            <h4 className="font-medium text-gray-900">Бренди</h4>
+            <div className="space-y-2">
+              {availableBrands.map((brand) => (
+                <label
+                  key={brand}
+                  className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    checked={(localFilters.brandIds || []).includes(brand)}
+                    onChange={() => {
+                      console.log(
+                        "Brand checkbox clicked:",
+                        brand,
+                        "Current state:",
+                        localFilters.brandIds
+                      );
+                      handleBrandToggle(brand);
+                    }}
+                    className="w-5 h-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 hover:border-blue-400 transition-colors duration-200 cursor-pointer"
+                  />
+                  <span className="text-sm text-gray-700">{brand}</span>
+                </label>
+              ))}
+            </div>
+            <Separator />
           </div>
-          <Separator />
-        </div>
-      )}
+        )}
 
-      {/* Price Filter */}
-      <div className="space-y-3">
-        <h4 className="font-medium text-gray-900">Ціна</h4>
-        <PriceFilter
-          value={{
-            min: localFilters.minPrice || priceRange.min,
-            max: localFilters.maxPrice || priceRange.max,
-          }}
-          onChange={handlePriceChange}
-          min={priceRange.min}
-          max={priceRange.max}
-        />
-      </div>
-      <Separator />
-
-      {/* Capacity Filter - always visible */}
-      <div className="space-y-2">
-        <CapacitySelectFilter
-          onCapacityChange={handleCapacityChange}
-          categoryId={1001}
-          value={localFilters.minCapacity || null}
-        />
-      </div>
-      <Separator />
-
-      {/* USB Cable Filters - always visible */}
-      <div className="space-y-2">
-        <USBCableFilters
-          onFiltersChange={handleUSBFiltersChange}
-          categoryId={1002}
-          values={{
-            inputConnector: localFilters.inputConnector || "all",
-            outputConnector: localFilters.outputConnector || "all",
-            cableLength: localFilters.cableLength || "all",
-          }}
-        />
-      </div>
-      <Separator />
-
-      {/* Stock Filter */}
-      <div className="space-y-3">
-        <label className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors">
-          <input
-            type="checkbox"
-            checked={localFilters.inStockOnly || false}
-            onChange={handleStockToggle}
-            className="w-5 h-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 hover:border-blue-400 transition-colors duration-200 cursor-pointer"
-          />
-          <span className="text-sm font-medium text-gray-700">
-            Тільки в наявності
-          </span>
-        </label>
-      </div>
-
-      {/* Apply Filters Button - only show on desktop */}
-      {!isMobile && (
-        <div className="pt-4 border-t">
-          <Button
-            onClick={() => {
-              console.log("Applying filters:", localFilters);
-              // Apply all filters including capacity and USB filters
-              const filtersToApply = {
-                ...localFilters,
-                // Ensure capacity filters are properly set
-                minCapacity: localFilters.minCapacity,
-                maxCapacity: localFilters.maxCapacity,
-                // Ensure USB filters are properly set
-                inputConnector: localFilters.inputConnector || "",
-                outputConnector: localFilters.outputConnector || "",
-                cableLength: localFilters.cableLength || "",
-              };
-              console.log("Final filters to apply:", filtersToApply);
-              applyFiltersAndUpdateUrl(filtersToApply);
+        {/* Price Filter */}
+        <div className="space-y-3">
+          <h4 className="font-medium text-gray-900">Ціна</h4>
+          <PriceFilter
+            value={{
+              min: localFilters.minPrice || priceRange.min,
+              max: localFilters.maxPrice || priceRange.max,
             }}
-            className="w-full"
-            size="lg"
-          >
-            Застосувати фільтри
-          </Button>
+            onChange={handlePriceChange}
+            min={priceRange.min}
+            max={priceRange.max}
+          />
         </div>
-      )}
-    </div>
+        <Separator />
+
+        {/* Capacity Filter - always visible */}
+        <div className="space-y-2">
+          <CapacitySelectFilter
+            onCapacityChange={handleCapacityChange}
+            categoryId={1001}
+            value={localFilters.minCapacity || null}
+          />
+        </div>
+        <Separator />
+
+        {/* USB Cable Filters - always visible */}
+        <div className="space-y-2">
+          <USBCableFilters
+            onFiltersChange={handleUSBFiltersChange}
+            categoryId={1002}
+            values={{
+              inputConnector: localFilters.inputConnector || "all",
+              outputConnector: localFilters.outputConnector || "all",
+              cableLength: localFilters.cableLength || "all",
+            }}
+          />
+        </div>
+        <Separator />
+
+        {/* Stock Filter */}
+        <div className="space-y-3">
+          <label className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors">
+            <input
+              type="checkbox"
+              checked={localFilters.inStockOnly || false}
+              onChange={handleStockToggle}
+              className="w-5 h-5 rounded border-2 border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 hover:border-blue-400 transition-colors duration-200 cursor-pointer"
+            />
+            <span className="text-sm font-medium text-gray-700">
+              Тільки в наявності
+            </span>
+          </label>
+        </div>
+
+        {/* Apply Filters Button - only show on desktop */}
+        {!isMobile && (
+          <div className="pt-4 border-t">
+            <Button
+              onClick={() => {
+                console.log("Applying filters:", localFilters);
+                // Apply all filters including capacity and USB filters
+                const filtersToApply = {
+                  ...localFilters,
+                  // Ensure capacity filters are properly set
+                  minCapacity: localFilters.minCapacity,
+                  maxCapacity: localFilters.maxCapacity,
+                  // Ensure USB filters are properly set
+                  inputConnector: localFilters.inputConnector || "",
+                  outputConnector: localFilters.outputConnector || "",
+                  cableLength: localFilters.cableLength || "",
+                };
+                console.log("Final filters to apply:", filtersToApply);
+                applyFiltersAndUpdateUrl(filtersToApply);
+              }}
+              className="w-full"
+              size="lg"
+            >
+              Застосувати фільтри
+            </Button>
+          </div>
+        )}
+      </div>
     );
   };
 
