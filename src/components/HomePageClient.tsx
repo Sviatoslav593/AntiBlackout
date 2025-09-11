@@ -186,8 +186,8 @@ const HomePageClient = memo(function HomePageClient() {
             storeProducts.length
           );
           setAllProducts(storeProducts as Product[]);
-          setLoading(false);
-          return;
+          // Don't return here - we still need to load categories and brands
+        } else {
         }
 
         // Load products from all categories
