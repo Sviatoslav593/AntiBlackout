@@ -31,6 +31,15 @@ const FiltersSPA = memo(function FiltersSPA({
   onMobileClose,
   onFiltersChange,
 }: FiltersSPAProps) {
+  // Debug logging for received props
+  console.log("FiltersSPA - Received props:", {
+    availableCategories,
+    availableBrands,
+    categoriesLength: availableCategories?.length,
+    brandsLength: availableBrands?.length,
+    categoriesType: typeof availableCategories,
+    brandsType: typeof availableBrands
+  });
   const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
     useUrlFilters();
   const { setSortBy } = useProductStore();
@@ -226,18 +235,34 @@ const FiltersSPA = memo(function FiltersSPA({
       "FiltersSPA FilterContent - availableCategories:",
       availableCategories,
       "length:",
-      availableCategories?.length
+      availableCategories?.length,
+      "isArray:",
+      Array.isArray(availableCategories)
     );
     console.log(
       "FiltersSPA FilterContent - availableBrands:",
       availableBrands,
       "length:",
-      availableBrands?.length
+      availableBrands?.length,
+      "isArray:",
+      Array.isArray(availableBrands)
     );
+    
+    // Check if we should render categories and brands sections
+    const shouldRenderCategories = availableCategories && availableCategories.length > 0;
+    const shouldRenderBrands = availableBrands && availableBrands.length > 0;
+    
+    console.log("FiltersSPA FilterContent - Render conditions:", {
+      shouldRenderCategories,
+      shouldRenderBrands,
+      categoriesCondition: availableCategories && availableCategories.length > 0,
+      brandsCondition: availableBrands && availableBrands.length > 0
+    });
 
     return (
       <div className="space-y-6">
         {/* Categories */}
+        {console.log("Rendering categories check:", availableCategories && availableCategories.length > 0, "categories:", availableCategories)}
         {availableCategories && availableCategories.length > 0 && (
           <div className="space-y-3">
             <h4 className="font-medium text-gray-900">Категорії</h4>
@@ -272,6 +297,7 @@ const FiltersSPA = memo(function FiltersSPA({
         )}
 
         {/* Brands */}
+        {console.log("Rendering brands check:", availableBrands && availableBrands.length > 0, "brands:", availableBrands)}
         {availableBrands && availableBrands.length > 0 && (
           <div className="space-y-3">
             <h4 className="font-medium text-gray-900">Бренди</h4>

@@ -19,7 +19,11 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error("Error fetching brands:", error);
       return NextResponse.json(
-        { success: false, error: "Failed to fetch brands", details: error.message },
+        {
+          success: false,
+          error: "Failed to fetch brands",
+          details: error.message,
+        },
         { status: 500 }
       );
     }
@@ -36,7 +40,7 @@ export async function GET(request: NextRequest) {
       success: true,
       brands: brands,
     };
-    
+
     console.log("Brands API: Returning response:", response);
     return NextResponse.json(response);
   } catch (error) {

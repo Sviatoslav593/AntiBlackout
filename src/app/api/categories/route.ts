@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       categories: rootCategories,
       flat: categories,
     };
-    
+
     console.log("Categories API: Returning response:", response);
     return NextResponse.json(response);
   } catch (error) {

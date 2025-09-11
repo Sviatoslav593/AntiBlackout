@@ -140,14 +140,26 @@ const HomePageClient = memo(function HomePageClient() {
       "HomePageClient - allCategories:",
       allCategories,
       "length:",
-      allCategories?.length
+      allCategories?.length,
+      "type:",
+      typeof allCategories
     );
     console.log(
       "HomePageClient - allBrands:",
       allBrands,
       "length:",
-      allBrands?.length
+      allBrands?.length,
+      "type:",
+      typeof allBrands
     );
+    
+    // Check if data is being passed to FiltersSPA
+    console.log("HomePageClient - Passing to FiltersSPA:", {
+      availableCategories: allCategories || [],
+      availableBrands: allBrands || [],
+      categoriesLength: (allCategories || []).length,
+      brandsLength: (allBrands || []).length
+    });
   }, [allCategories, allBrands]);
 
   // No fallback data - only real data from database
