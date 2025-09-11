@@ -135,18 +135,42 @@ const HomePageClientContent = memo(function HomePageClientContent() {
   // Block background scrolling when mobile filters are open
   useEffect(() => {
     if (isMobileFiltersOpen) {
-      // Block scrolling on mobile devices
+      // Save current scroll position before blocking
+      const currentScrollY = window.scrollY;
+      
+      // Block scrolling completely
       document.body.style.overflow = "hidden";
       document.body.style.position = "fixed";
       document.body.style.width = "100%";
       document.body.style.height = "100%";
+      document.body.style.top = `-${currentScrollY}px`;
+      
+      // Store scroll position for restoration
+      document.body.setAttribute('data-scroll-position', currentScrollY.toString());
     } else {
-      // Restore scrolling
+      // Restore scrolling and position
+      const savedScrollY = parseInt(document.body.getAttribute('data-scroll-position') || '0');
+      
       document.body.style.overflow = "";
       document.body.style.position = "";
       document.body.style.width = "";
       document.body.style.height = "";
+      document.body.style.top = "";
+      document.body.removeAttribute('data-scroll-position');
+      
+      // Restore scroll position
+      window.scrollTo(0, savedScrollY);
     }
+
+    // Cleanup function
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      document.body.style.height = "";
+      document.body.style.top = "";
+      document.body.removeAttribute('data-scroll-position');
+    };
   }, [isMobileFiltersOpen]);
 
   // Context hooks
@@ -206,7 +230,12 @@ const HomePageClientContent = memo(function HomePageClientContent() {
       count += 1;
     }
 
-    console.log("Active filters count updated:", count, "filters:", activeFilters);
+    console.log(
+      "Active filters count updated:",
+      count,
+      "filters:",
+      activeFilters
+    );
     return count;
   }, [activeFilters]);
 

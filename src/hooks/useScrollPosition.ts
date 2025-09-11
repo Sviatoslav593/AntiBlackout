@@ -55,12 +55,14 @@ export function useScrollPosition() {
     };
   }, [setScrollPosition]);
 
-  // Restore scroll position on mount (only on homepage)
+  // Restore scroll position on mount (only on homepage and only if returning from product page)
   useEffect(() => {
     if (scrollPosition > 0 && typeof window !== "undefined") {
       // Only restore scroll position on homepage, not on product pages
       const isProductPage = window.location.pathname.includes("/product/");
-      if (!isProductPage) {
+      const fromProductPage = sessionStorage.getItem("fromProductPage");
+      
+      if (!isProductPage && fromProductPage) {
         // Use requestAnimationFrame to ensure DOM is ready
         requestAnimationFrame(() => {
           restoreScrollPosition();
