@@ -224,9 +224,16 @@ const FiltersSPA = memo(function FiltersSPA({
   const FilterContent = () => {
     console.log(
       "FiltersSPA FilterContent - availableCategories:",
-      availableCategories
+      availableCategories,
+      "length:",
+      availableCategories?.length
     );
-    console.log("FiltersSPA FilterContent - availableBrands:", availableBrands);
+    console.log(
+      "FiltersSPA FilterContent - availableBrands:",
+      availableBrands,
+      "length:",
+      availableBrands?.length
+    );
 
     return (
       <div className="space-y-6">

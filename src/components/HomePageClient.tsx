@@ -136,8 +136,8 @@ const HomePageClient = memo(function HomePageClient() {
 
   // Debug logging for categories and brands
   useEffect(() => {
-    console.log("HomePageClient - allCategories:", allCategories);
-    console.log("HomePageClient - allBrands:", allBrands);
+    console.log("HomePageClient - allCategories:", allCategories, "length:", allCategories?.length);
+    console.log("HomePageClient - allBrands:", allBrands, "length:", allBrands?.length);
   }, [allCategories, allBrands]);
 
   // Context hooks
@@ -182,6 +182,7 @@ const HomePageClient = memo(function HomePageClient() {
         const categoriesResponse = await fetch("/api/categories");
         const categoriesData = await categoriesResponse.json();
         console.log("Categories API response:", categoriesData);
+        console.log("Categories API status:", categoriesResponse.status);
 
         if (categoriesData.success && categoriesData.flat) {
           // Use flat categories array which contains all categories
@@ -191,10 +192,22 @@ const HomePageClient = memo(function HomePageClient() {
 
           // Also load categories into store for filtering
           useProductStore.getState().setCategories(categoryNames);
+        } else if (categoriesData.categories) {
+          // Try alternative structure
+          console.log("Trying alternative categories structure:", categoriesData.categories);
+          const categoryNames = categoriesData.categories.map((cat: any) => cat.name || cat);
+          console.log("Alternative category names:", categoryNames);
+          setAllCategories(categoryNames);
+          useProductStore.getState().setCategories(categoryNames);
         } else {
           console.log("Categories API failed or no flat data:", categoriesData);
           // Fallback categories
-          const fallbackCategories = ["Повербанки", "Кабелі USB", "Зарядні пристрої", "Аксесуари"];
+          const fallbackCategories = [
+            "Повербанки",
+            "Кабелі USB",
+            "Зарядні пристрої",
+            "Аксесуари",
+          ];
           console.log("Using fallback categories:", fallbackCategories);
           setAllCategories(fallbackCategories);
           useProductStore.getState().setCategories(fallbackCategories);
@@ -204,6 +217,7 @@ const HomePageClient = memo(function HomePageClient() {
         const brandsResponse = await fetch("/api/brands");
         const brandsData = await brandsResponse.json();
         console.log("Brands API response:", brandsData);
+        console.log("Brands API status:", brandsResponse.status);
 
         if (brandsData.success && brandsData.brands) {
           console.log("Brand names:", brandsData.brands);
@@ -211,10 +225,24 @@ const HomePageClient = memo(function HomePageClient() {
 
           // Also load brands into store for filtering
           useProductStore.getState().setBrands(brandsData.brands);
+        } else if (brandsData.brands) {
+          // Try alternative structure
+          console.log("Trying alternative brands structure:", brandsData.brands);
+          const brandNames = brandsData.brands.map((brand: any) => brand.name || brand);
+          console.log("Alternative brand names:", brandNames);
+          setAllBrands(brandNames);
+          useProductStore.getState().setBrands(brandNames);
         } else {
           console.log("Brands API failed or no brands data:", brandsData);
           // Fallback brands
-          const fallbackBrands = ["Samsung", "Apple", "Xiaomi", "Huawei", "Anker", "Baseus"];
+          const fallbackBrands = [
+            "Samsung",
+            "Apple",
+            "Xiaomi",
+            "Huawei",
+            "Anker",
+            "Baseus",
+          ];
           console.log("Using fallback brands:", fallbackBrands);
           setAllBrands(fallbackBrands);
           useProductStore.getState().setBrands(fallbackBrands);
@@ -222,8 +250,20 @@ const HomePageClient = memo(function HomePageClient() {
       } catch (error) {
         console.error("Error loading data:", error);
         // Set fallback data on error
-        const fallbackCategories = ["Повербанки", "Кабелі USB", "Зарядні пристрої", "Аксесуари"];
-        const fallbackBrands = ["Samsung", "Apple", "Xiaomi", "Huawei", "Anker", "Baseus"];
+        const fallbackCategories = [
+          "Повербанки",
+          "Кабелі USB",
+          "Зарядні пристрої",
+          "Аксесуари",
+        ];
+        const fallbackBrands = [
+          "Samsung",
+          "Apple",
+          "Xiaomi",
+          "Huawei",
+          "Anker",
+          "Baseus",
+        ];
         console.log("Setting fallback data due to error");
         setAllCategories(fallbackCategories);
         setAllBrands(fallbackBrands);
