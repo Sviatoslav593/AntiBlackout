@@ -133,53 +133,68 @@ const HomePageClientContent = memo(function HomePageClientContent() {
     useState<FilterParams | null>(null);
   const prevFilterState = useRef<string>("");
 
-  // Block background scrolling when mobile filters are open
+  // Block background scrolling when mobile filters are open (robust)
   useEffect(() => {
     const body = document.body;
-    
+    const html = document.documentElement;
+
+    const preventScroll = (e: Event) => {
+      e.preventDefault();
+    };
+
     if (isMobileFiltersOpen) {
-      // Save current scroll position before blocking
       const scrollY = window.scrollY;
-      
-      // Apply fixed positioning to prevent scroll
-      body.style.position = 'fixed';
-      body.style.top = `-${scrollY}px`;
-      body.style.left = '0';
-      body.style.right = '0';
-      body.style.width = '100%';
-      body.style.overflow = 'hidden';
-      
-      // Store scroll position in dataset
       body.dataset.scrollY = scrollY.toString();
+
+      // Compensate scrollbar width to avoid layout shift
+      const scrollbarWidth = window.innerWidth - html.clientWidth;
+      if (scrollbarWidth > 0) {
+        body.style.paddingRight = `${scrollbarWidth}px`;
+      }
+
+      body.style.position = "fixed";
+      body.style.top = `-${scrollY}px`;
+      body.style.left = "0";
+      body.style.right = "0";
+      body.style.width = "100%";
+      body.style.overflow = "hidden";
+
+      // Block wheel/touchmove
+      window.addEventListener("wheel", preventScroll, { passive: false });
+      window.addEventListener("touchmove", preventScroll, { passive: false });
     } else {
-      // Restore scroll position and remove fixed positioning
-      const scrollY = body.dataset.scrollY ? parseInt(body.dataset.scrollY) : 0;
-      
-      body.style.position = '';
-      body.style.top = '';
-      body.style.left = '';
-      body.style.right = '';
-      body.style.width = '';
-      body.style.overflow = '';
-      
-      // Clean up dataset
+      const saved = body.dataset.scrollY ? parseInt(body.dataset.scrollY) : 0;
+
+      body.style.position = "";
+      body.style.top = "";
+      body.style.left = "";
+      body.style.right = "";
+      body.style.width = "";
+      body.style.overflow = "";
+      body.style.paddingRight = "";
+
+      window.removeEventListener("wheel", preventScroll as EventListener);
+      window.removeEventListener("touchmove", preventScroll as EventListener);
+
       delete body.dataset.scrollY;
-      
-      // Restore scroll position without triggering scroll events
-      window.scrollTo(0, scrollY);
+
+      // Restore next frame to avoid visual jump
+      requestAnimationFrame(() => {
+        window.scrollTo(0, saved);
+      });
     }
 
-    // Cleanup function
     return () => {
-      body.style.position = '';
-      body.style.top = '';
-      body.style.left = '';
-      body.style.right = '';
-      body.style.width = '';
-      body.style.overflow = '';
-      if (body.dataset.scrollY) {
-        delete body.dataset.scrollY;
-      }
+      window.removeEventListener("wheel", preventScroll as EventListener);
+      window.removeEventListener("touchmove", preventScroll as EventListener);
+      body.style.position = "";
+      body.style.top = "";
+      body.style.left = "";
+      body.style.right = "";
+      body.style.width = "";
+      body.style.overflow = "";
+      body.style.paddingRight = "";
+      if (body.dataset.scrollY) delete body.dataset.scrollY;
     };
   }, [isMobileFiltersOpen]);
 
@@ -373,10 +388,12 @@ const HomePageClientContent = memo(function HomePageClientContent() {
 
   // Handle scroll to products (only when needed)
   const handleScrollToProducts = useCallback(() => {
-    const fromProductPage = sessionStorage.getItem("fromProductPage") === "true";
+    const fromProductPage =
+      sessionStorage.getItem("fromProductPage") === "true";
     const searchParams = new URLSearchParams(window.location.search);
-    const hasSearchQuery = searchParams.has("search") || searchParams.has("query");
-    
+    const hasSearchQuery =
+      searchParams.has("search") || searchParams.has("query");
+
     // Only scroll if returning from product page or there's a search query
     if (fromProductPage || hasSearchQuery) {
       setTimeout(() => {
@@ -385,7 +402,7 @@ const HomePageClientContent = memo(function HomePageClientContent() {
           productsSection.scrollIntoView({ behavior: "smooth" });
         }
       }, 100);
-      
+
       // Clean up the flag
       if (fromProductPage) {
         sessionStorage.removeItem("fromProductPage");
