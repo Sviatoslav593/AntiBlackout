@@ -35,19 +35,22 @@ const CapacitySelectFilter = memo(function CapacitySelectFilter({
     setSelectedCapacity(value?.toString() || "all");
   }, [value]);
 
-  // Handle capacity selection - only update local state, don't call onCapacityChange immediately
+  // Handle capacity selection - update local state and notify parent
   const handleCapacitySelect = useCallback((value: string) => {
     console.log(
       "CapacitySelectFilter: handleCapacitySelect called with:",
       value
     );
     setSelectedCapacity(value);
-    // Don't call onCapacityChange immediately - wait for apply button
-  }, []);
+    
+    // Convert to number and call parent
+    const capacityValue = value === "all" || value === "" ? null : parseInt(value);
+    onCapacityChange(capacityValue);
+  }, [onCapacityChange]);
 
   const clearFilter = () => {
     setSelectedCapacity("all");
-    // Don't call onCapacityChange immediately - wait for apply button
+    onCapacityChange(null);
   };
 
   // Expose current value to parent component

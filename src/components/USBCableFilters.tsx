@@ -80,8 +80,15 @@ const USBCableFilters = memo(function USBCableFilters({
       value
     );
     setInputConnector(value);
-    // Don't call onFiltersChange immediately - wait for apply button
-  }, []);
+    
+    // Update parent with current values
+    const newFilters = {
+      inputConnector: value === "all" ? "" : value,
+      outputConnector: outputConnector === "all" ? "" : outputConnector,
+      cableLength: cableLength === "all" ? "" : cableLength,
+    };
+    onFiltersChange(newFilters);
+  }, [outputConnector, cableLength, onFiltersChange]);
 
   const handleOutputConnectorChange = useCallback((value: string) => {
     console.log(
@@ -89,20 +96,40 @@ const USBCableFilters = memo(function USBCableFilters({
       value
     );
     setOutputConnector(value);
-    // Don't call onFiltersChange immediately - wait for apply button
-  }, []);
+    
+    // Update parent with current values
+    const newFilters = {
+      inputConnector: inputConnector === "all" ? "" : inputConnector,
+      outputConnector: value === "all" ? "" : value,
+      cableLength: cableLength === "all" ? "" : cableLength,
+    };
+    onFiltersChange(newFilters);
+  }, [inputConnector, cableLength, onFiltersChange]);
 
   const handleCableLengthChange = useCallback((value: string) => {
     console.log("USBCableFilters: handleCableLengthChange called with:", value);
     setCableLength(value);
-    // Don't call onFiltersChange immediately - wait for apply button
-  }, []);
+    
+    // Update parent with current values
+    const newFilters = {
+      inputConnector: inputConnector === "all" ? "" : inputConnector,
+      outputConnector: outputConnector === "all" ? "" : outputConnector,
+      cableLength: value === "all" ? "" : value,
+    };
+    onFiltersChange(newFilters);
+  }, [inputConnector, outputConnector, onFiltersChange]);
 
   const clearFilters = () => {
     setInputConnector("all");
     setOutputConnector("all");
     setCableLength("all");
-    // Don't call onFiltersChange immediately - wait for apply button
+    
+    // Update parent with cleared values
+    onFiltersChange({
+      inputConnector: "",
+      outputConnector: "",
+      cableLength: "",
+    });
   };
 
   const hasActiveFilters =
@@ -116,80 +143,80 @@ const USBCableFilters = memo(function USBCableFilters({
     <div className="space-y-3">
       <h4 className="font-medium text-gray-900">Фільтри для кабелів</h4>
       <div className="space-y-2">
-          {/* Input Connector */}
-          {options.inputConnectors.length > 0 && (
-            <Select
-              value={inputConnector}
-              onValueChange={handleInputConnectorChange}
-            >
-              <SelectTrigger className="w-full cursor-pointer">
-                <SelectValue placeholder="Вхід (Тип коннектора)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="cursor-pointer">
-                  Всі типи входів
+        {/* Input Connector */}
+        {options.inputConnectors.length > 0 && (
+          <Select
+            value={inputConnector}
+            onValueChange={handleInputConnectorChange}
+          >
+            <SelectTrigger className="w-full cursor-pointer">
+              <SelectValue placeholder="Вхід (Тип коннектора)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="cursor-pointer">
+                Всі типи входів
+              </SelectItem>
+              {options.inputConnectors.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className="cursor-pointer"
+                >
+                  {option.label}
                 </SelectItem>
-                {options.inputConnectors.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="cursor-pointer"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
-          {/* Output Connector */}
-          {options.outputConnectors.length > 0 && (
-            <Select
-              value={outputConnector}
-              onValueChange={handleOutputConnectorChange}
-            >
-              <SelectTrigger className="w-full cursor-pointer">
-                <SelectValue placeholder="Вихід (Тип коннектора)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="cursor-pointer">
-                  Всі типи виходів
+        {/* Output Connector */}
+        {options.outputConnectors.length > 0 && (
+          <Select
+            value={outputConnector}
+            onValueChange={handleOutputConnectorChange}
+          >
+            <SelectTrigger className="w-full cursor-pointer">
+              <SelectValue placeholder="Вихід (Тип коннектора)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="cursor-pointer">
+                Всі типи виходів
+              </SelectItem>
+              {options.outputConnectors.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className="cursor-pointer"
+                >
+                  {option.label}
                 </SelectItem>
-                {options.outputConnectors.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="cursor-pointer"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
-          {/* Cable Length */}
-          {options.cableLengths.length > 0 && (
-            <Select value={cableLength} onValueChange={handleCableLengthChange}>
-              <SelectTrigger className="w-full cursor-pointer">
-                <SelectValue placeholder="Довжина кабелю" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="cursor-pointer">
-                  Всі довжини
+        {/* Cable Length */}
+        {options.cableLengths.length > 0 && (
+          <Select value={cableLength} onValueChange={handleCableLengthChange}>
+            <SelectTrigger className="w-full cursor-pointer">
+              <SelectValue placeholder="Довжина кабелю" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="cursor-pointer">
+                Всі довжини
+              </SelectItem>
+              {options.cableLengths.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className="cursor-pointer"
+                >
+                  {option.label}
                 </SelectItem>
-                {options.cableLengths.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    className="cursor-pointer"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
       {hasActiveFilters && (
         <Button
