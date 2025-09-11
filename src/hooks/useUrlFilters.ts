@@ -202,8 +202,11 @@ export function useUrlFilters() {
         cableLength: "",
       };
       console.log("Setting default filters:", defaultFilters);
+      console.log("Calling setActiveFilters with:", defaultFilters);
       setActiveFilters(defaultFilters);
+      console.log("Calling applyFilters with:", defaultFilters);
       applyFilters(defaultFilters);
+      console.log("Calling updateUrl with:", defaultFilters);
       updateUrl(defaultFilters);
     }
   }, [

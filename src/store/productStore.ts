@@ -159,7 +159,12 @@ export const useProductStore = create<ProductState>()(
 
         // If same filters, don't refetch
         if (newFilterKey === state.lastFilterKey) {
-          console.log("Same filters, skipping");
+          console.log("Same filters, skipping", {
+            newFilterKey,
+            lastFilterKey: state.lastFilterKey,
+            allProducts: state.allProducts.length,
+            filteredProducts: state.filteredProducts.length
+          });
           return;
         }
 
@@ -202,10 +207,17 @@ export const useProductStore = create<ProductState>()(
           totalProducts: state.allProducts.length,
           filters,
           categoryIds: filters.categoryIds,
-          brandIds: filters.brandIds
+          brandIds: filters.brandIds,
         });
 
         const filtered = state.allProducts.filter((product) => {
+          console.log(`Filtering product: ${product.name}`, {
+            categoryId: product.category_id,
+            category: product.category,
+            brand: product.brand,
+            price: product.price
+          });
+
           // Category filter - only apply if there are selected categories
           if (filters.categoryIds && filters.categoryIds.length > 0) {
             console.log("Category filter:", {
@@ -375,13 +387,23 @@ export const useProductStore = create<ProductState>()(
             }
           }
 
+          console.log(`✅ Product passed all filters: ${product.name}`);
           return true;
         });
 
         console.log(
           `Filtering complete: ${filtered.length} products out of ${state.allProducts.length}`
         );
-        console.log("Filtered products sample:", filtered.slice(0, 3).map(p => ({ name: p.name, category: p.category, brand: p.brand })));
+        console.log(
+          "Filtered products sample:",
+          filtered
+            .slice(0, 3)
+            .map((p) => ({
+              name: p.name,
+              category: p.category,
+              brand: p.brand,
+            }))
+        );
         console.log(
           "Filtered products sample:",
           filtered.slice(0, 3).map((p) => ({
