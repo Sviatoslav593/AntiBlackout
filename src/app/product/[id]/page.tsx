@@ -79,6 +79,11 @@ export default function ProductPage() {
   const [isCharacteristicsExpanded, setIsCharacteristicsExpanded] =
     useState(false);
 
+  // Scroll to top when product page loads
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -397,21 +402,38 @@ export default function ProductPage() {
       )}
 
       <div className="container py-8">
-        {/* Breadcrumb Navigation */}
-        <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
-          <button
+        {/* Back Button and Breadcrumb Navigation */}
+        <div className="mb-6">
+          {/* Back Button */}
+          <Button
+            variant="outline"
             onClick={() => {
               // Restore scroll position when going back
               restoreScrollPosition();
               router.push("/");
             }}
-            className="hover:text-foreground transition-colors"
+            className="mb-4 cursor-pointer"
           >
-            Головна
-          </button>
-          <span>/</span>
-          <span className="text-foreground">{product?.name}</span>
-        </nav>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Назад до каталогу
+          </Button>
+
+          {/* Breadcrumb Navigation */}
+          <nav className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <button
+              onClick={() => {
+                // Restore scroll position when going back
+                restoreScrollPosition();
+                router.push("/");
+              }}
+              className="hover:text-foreground transition-colors"
+            >
+              Головна
+            </button>
+            <span>/</span>
+            <span className="text-foreground">{product?.name}</span>
+          </nav>
+        </div>
 
         {/* Product Details Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
