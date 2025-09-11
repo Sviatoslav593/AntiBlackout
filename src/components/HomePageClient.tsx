@@ -133,7 +133,7 @@ const HomePageClientContent = memo(function HomePageClientContent() {
     useState<FilterParams | null>(null);
   const prevFilterState = useRef<string>("");
 
-  // Block background scrolling when mobile filters are open (robust)
+  // Block background scrolling when mobile filters are open (no jump version)
   useEffect(() => {
     const body = document.body;
     const html = document.documentElement;
@@ -163,8 +163,10 @@ const HomePageClientContent = memo(function HomePageClientContent() {
       window.addEventListener("wheel", preventScroll, { passive: false });
       window.addEventListener("touchmove", preventScroll, { passive: false });
     } else {
+      // Get saved position but don't restore it immediately
       const saved = body.dataset.scrollY ? parseInt(body.dataset.scrollY) : 0;
 
+      // Remove all styles first
       body.style.position = "";
       body.style.top = "";
       body.style.left = "";
@@ -173,15 +175,23 @@ const HomePageClientContent = memo(function HomePageClientContent() {
       body.style.overflow = "";
       body.style.paddingRight = "";
 
+      // Remove listeners
       window.removeEventListener("wheel", preventScroll as EventListener);
       window.removeEventListener("touchmove", preventScroll as EventListener);
 
+      // Clean up dataset
       delete body.dataset.scrollY;
 
-      // Restore next frame to avoid visual jump
-      requestAnimationFrame(() => {
-        window.scrollTo(0, saved);
-      });
+      // Only restore scroll position if it's different from current position
+      // This prevents unnecessary jumps
+      if (saved !== window.scrollY) {
+        // Use multiple rAF calls to ensure smooth restoration
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            window.scrollTo(0, saved);
+          });
+        });
+      }
     }
 
     return () => {
@@ -386,16 +396,16 @@ const HomePageClientContent = memo(function HomePageClientContent() {
     setVisibleCount(25);
   }, [activeFilters]);
 
-  // Handle scroll to products (only when needed)
-  const handleScrollToProducts = useCallback(() => {
+  // Handle scroll to products (manual button click or conditional)
+  const handleScrollToProducts = useCallback((forceScroll = false) => {
     const fromProductPage =
       sessionStorage.getItem("fromProductPage") === "true";
     const searchParams = new URLSearchParams(window.location.search);
     const hasSearchQuery =
       searchParams.has("search") || searchParams.has("query");
 
-    // Only scroll if returning from product page or there's a search query
-    if (fromProductPage || hasSearchQuery) {
+    // Scroll if forced (button click), returning from product page, or there's a search query
+    if (forceScroll || fromProductPage || hasSearchQuery) {
       setTimeout(() => {
         const productsSection = document.getElementById("products");
         if (productsSection) {
@@ -439,7 +449,7 @@ const HomePageClientContent = memo(function HomePageClientContent() {
             <div className="flex justify-center">
               <Button
                 size="lg"
-                onClick={handleScrollToProducts}
+                onClick={() => handleScrollToProducts(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Переглянути товари <ArrowRight className="ml-2 h-4 w-4" />
@@ -750,10 +760,12 @@ const HomePageClientContent = memo(function HomePageClientContent() {
               Оберіть найкращий павербанк або кабель для ваших потреб
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" variant="secondary" asChild>
-                <Link href="#products">
-                  Переглянути товари <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+              <Button 
+                size="lg" 
+                variant="secondary"
+                onClick={() => handleScrollToProducts(true)}
+              >
+                Переглянути товари <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <Button
                 size="lg"
