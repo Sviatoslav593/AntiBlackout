@@ -47,6 +47,7 @@ const CapacitySelectFilter = memo(function CapacitySelectFilter({
       // Convert to number and call parent
       const capacityValue =
         value === "all" || value === "" ? null : parseInt(value);
+      console.log("CapacitySelectFilter: calling onCapacityChange with:", capacityValue);
       onCapacityChange(capacityValue);
     },
     [onCapacityChange]

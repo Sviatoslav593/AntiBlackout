@@ -36,19 +36,12 @@ const FiltersSPA = memo(function FiltersSPA({
   const { setSortBy } = useProductStore();
   const [localFilters, setLocalFilters] = useState<FilterParams>(activeFilters);
 
-  // Update local filters when URL filters change (but don't reset if we're in the middle of selecting)
+  // Update local filters when URL filters change (only on initial load)
   useEffect(() => {
     console.log("FiltersSPA: activeFilters changed:", activeFilters);
-    // Only sync if localFilters is empty or if this is initial load
-    if (
-      !localFilters.categoryIds &&
-      !localFilters.brandIds &&
-      !localFilters.minCapacity &&
-      !localFilters.inputConnector
-    ) {
-      setLocalFilters(activeFilters);
-    }
-  }, [activeFilters, localFilters]); // Include localFilters to check if it's empty
+    // Only sync on initial load, not when user is actively selecting filters
+    setLocalFilters(activeFilters);
+  }, []); // Empty dependency array - only run once on mount
 
   // Notify parent component about current filters (for mobile)
   useEffect(() => {
@@ -138,6 +131,7 @@ const FiltersSPA = memo(function FiltersSPA({
   // Handle capacity change - only update local state, don't apply immediately
   const handleCapacityChange = useCallback(
     (capacity: number | null) => {
+      console.log("FiltersSPA: handleCapacityChange called with:", capacity);
       let newFilters = { ...localFilters };
 
       if (capacity === null) {
@@ -154,6 +148,7 @@ const FiltersSPA = memo(function FiltersSPA({
         };
       }
 
+      console.log("FiltersSPA: setting new localFilters:", newFilters);
       setLocalFilters(newFilters);
       // Don't apply filters immediately - wait for apply button
     },
@@ -167,6 +162,7 @@ const FiltersSPA = memo(function FiltersSPA({
       outputConnector?: string;
       cableLength?: string;
     }) => {
+      console.log("FiltersSPA: handleUSBFiltersChange called with:", usbFilters);
       const newFilters = {
         ...localFilters,
         inputConnector:
@@ -181,6 +177,7 @@ const FiltersSPA = memo(function FiltersSPA({
           usbFilters.cableLength === "all" ? "" : usbFilters.cableLength || "",
       };
 
+      console.log("FiltersSPA: setting new localFilters:", newFilters);
       setLocalFilters(newFilters);
       // Don't apply filters immediately - wait for apply button
     },
