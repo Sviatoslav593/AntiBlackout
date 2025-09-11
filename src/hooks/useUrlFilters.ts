@@ -131,7 +131,11 @@ export function useUrlFilters() {
   const applyFiltersAndUpdateUrl = useCallback(
     (filters: FilterParams) => {
       setActiveFilters(filters);
-      applyFilters(filters);
+      // Only apply filters if we have products loaded
+      const { allProducts } = useProductStore.getState();
+      if (allProducts.length > 0) {
+        applyFilters(filters);
+      }
       updateUrl(filters);
     },
     [setActiveFilters, applyFilters, updateUrl]
@@ -155,7 +159,11 @@ export function useUrlFilters() {
 
     console.log("Clearing filters:", defaultFilters);
     setActiveFilters(defaultFilters);
-    applyFilters(defaultFilters);
+    // Only apply filters if we have products loaded
+    const { allProducts } = useProductStore.getState();
+    if (allProducts.length > 0) {
+      applyFilters(defaultFilters);
+    }
     updateUrl(defaultFilters);
   }, [setActiveFilters, applyFilters, updateUrl]);
 
@@ -169,7 +177,11 @@ export function useUrlFilters() {
 
     if (currentFiltersStr !== urlFiltersStr) {
       setActiveFilters(urlFilters);
-      applyFilters(urlFilters);
+      // Only apply filters if we have products loaded
+      const { allProducts } = useProductStore.getState();
+      if (allProducts.length > 0) {
+        applyFilters(urlFilters);
+      }
     }
   }, [searchParams, parseUrlToFilters, setActiveFilters, applyFilters]); // Fixed: removed activeFilters from dependencies
 
@@ -242,7 +254,11 @@ export function useUrlFilters() {
         search: searchQuery,
       };
       setActiveFilters(newFilters);
-      applyFilters(newFilters);
+      // Only apply filters if we have products loaded
+      const { allProducts } = useProductStore.getState();
+      if (allProducts.length > 0) {
+        applyFilters(newFilters);
+      }
       updateUrl(newFilters);
     },
     [activeFilters, setActiveFilters, applyFilters, updateUrl]

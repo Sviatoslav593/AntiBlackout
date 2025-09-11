@@ -18,6 +18,7 @@ import { useSearch } from "@/context/SearchContext";
 import { useFavorites } from "@/context/FavoritesContext";
 import { useFilters } from "@/context/FilterContext";
 import { UrlFiltersProvider } from "@/components/UrlFiltersProvider";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { motion, AnimatePresence } from "framer-motion";
 import { CartDrawer } from "@/components/CartDrawer";
 
@@ -28,7 +29,7 @@ interface Category {
   children?: Category[];
 }
 
-export default function Header() {
+function HeaderContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -41,7 +42,7 @@ export default function Header() {
   const { searchQuery, setSearchQuery, clearSearch } = useSearch();
   const { count: favoritesCount } = useFavorites();
   const { setFilters } = useFilters();
-  // Remove direct useUrlFilters usage
+  const { updateSearch } = useUrlFilters();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchRef = useRef<HTMLDivElement>(null);
@@ -79,6 +80,9 @@ export default function Header() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
+    
+    // Update search in filters
+    updateSearch(query);
 
     // Always keep the field expanded when user is typing
     setIsSearchExpanded(true);
@@ -87,6 +91,7 @@ export default function Header() {
   // Handle search clear
   const handleSearchClear = () => {
     clearSearch();
+    updateSearch(""); // Clear search in filters
     setHasScrolledToProducts(false); // Reset scroll state
     // Keep the field expanded after clearing so user can continue typing
     setIsSearchExpanded(true);
@@ -689,5 +694,14 @@ export default function Header() {
         onClose={() => setIsCartDrawerOpen(false)}
       />
     </>
+  );
+}
+
+// Main component with Suspense wrapper
+export default function Header() {
+  return (
+    <UrlFiltersProvider>
+      {(urlFilters) => <HeaderContent />}
+    </UrlFiltersProvider>
   );
 }

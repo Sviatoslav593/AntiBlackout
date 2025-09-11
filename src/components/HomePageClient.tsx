@@ -151,7 +151,8 @@ const HomePageClientContent = memo(function HomePageClientContent() {
 
   // Context hooks
   const { restoreScrollPosition } = useScrollPosition();
-  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } = useUrlFilters();
+  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
+    useUrlFilters();
   const { filteredProducts } = useProductStore();
 
   // Load products, categories, and brands on mount

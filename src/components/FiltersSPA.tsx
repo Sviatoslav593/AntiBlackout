@@ -32,7 +32,8 @@ const FiltersSPAContent = memo(function FiltersSPAContent({
   onMobileClose,
   onFiltersChange,
 }: FiltersSPAProps) {
-  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } = useUrlFilters();
+  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
+    useUrlFilters();
   const { setSortBy } = useProductStore();
   const [localFilters, setLocalFilters] = useState<FilterParams>(activeFilters);
 
