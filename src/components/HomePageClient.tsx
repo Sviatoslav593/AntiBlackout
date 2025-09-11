@@ -134,6 +134,12 @@ const HomePageClient = memo(function HomePageClient() {
   // Allow scrolling when mobile filters are open (simplified approach)
   // No need to block scrolling - let users scroll naturally
 
+  // Debug logging for categories and brands
+  useEffect(() => {
+    console.log("HomePageClient - allCategories:", allCategories);
+    console.log("HomePageClient - allBrands:", allBrands);
+  }, [allCategories, allBrands]);
+
   // Context hooks
   const { restoreScrollPosition, scrollPosition } = useScrollPosition();
   const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
@@ -348,7 +354,8 @@ const HomePageClient = memo(function HomePageClient() {
       (activeFilters.maxPrice || 10000) < 10000 ||
       (activeFilters.minCapacity || 0) > 0 ||
       (activeFilters.maxCapacity || 50000) < 50000 ||
-      (activeFilters.inStockOnly || false);
+      activeFilters.inStockOnly ||
+      false;
 
     const products = hasActiveFilters
       ? [...(filteredProducts || [])]

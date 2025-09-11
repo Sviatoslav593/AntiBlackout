@@ -221,7 +221,11 @@ const FiltersSPA = memo(function FiltersSPA({
     return count;
   }, [localFilters]);
 
-  const FilterContent = () => (
+  const FilterContent = () => {
+    console.log("FiltersSPA FilterContent - availableCategories:", availableCategories);
+    console.log("FiltersSPA FilterContent - availableBrands:", availableBrands);
+    
+    return (
     <div className="space-y-6">
       {/* Categories */}
       {availableCategories && availableCategories.length > 0 && (
@@ -371,7 +375,8 @@ const FiltersSPA = memo(function FiltersSPA({
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   if (isMobile) {
     return <FilterContent />;
