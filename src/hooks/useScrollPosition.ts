@@ -61,7 +61,7 @@ export function useScrollPosition() {
       // Only restore scroll position on homepage, not on product pages
       const isProductPage = window.location.pathname.includes("/product/");
       const fromProductPage = sessionStorage.getItem("fromProductPage");
-      
+
       if (!isProductPage && fromProductPage) {
         // Use requestAnimationFrame to ensure DOM is ready
         requestAnimationFrame(() => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback, useRef, memo } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import SortDropdown from "@/components/SortDropdown";
@@ -134,42 +135,51 @@ const HomePageClientContent = memo(function HomePageClientContent() {
 
   // Block background scrolling when mobile filters are open
   useEffect(() => {
+    const body = document.body;
+    
     if (isMobileFiltersOpen) {
       // Save current scroll position before blocking
-      const currentScrollY = window.scrollY;
+      const scrollY = window.scrollY;
       
-      // Block scrolling completely
-      document.body.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.width = "100%";
-      document.body.style.height = "100%";
-      document.body.style.top = `-${currentScrollY}px`;
+      // Apply fixed positioning to prevent scroll
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollY}px`;
+      body.style.left = '0';
+      body.style.right = '0';
+      body.style.width = '100%';
+      body.style.overflow = 'hidden';
       
-      // Store scroll position for restoration
-      document.body.setAttribute('data-scroll-position', currentScrollY.toString());
+      // Store scroll position in dataset
+      body.dataset.scrollY = scrollY.toString();
     } else {
-      // Restore scrolling and position
-      const savedScrollY = parseInt(document.body.getAttribute('data-scroll-position') || '0');
+      // Restore scroll position and remove fixed positioning
+      const scrollY = body.dataset.scrollY ? parseInt(body.dataset.scrollY) : 0;
       
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.width = "";
-      document.body.style.height = "";
-      document.body.style.top = "";
-      document.body.removeAttribute('data-scroll-position');
+      body.style.position = '';
+      body.style.top = '';
+      body.style.left = '';
+      body.style.right = '';
+      body.style.width = '';
+      body.style.overflow = '';
       
-      // Restore scroll position
-      window.scrollTo(0, savedScrollY);
+      // Clean up dataset
+      delete body.dataset.scrollY;
+      
+      // Restore scroll position without triggering scroll events
+      window.scrollTo(0, scrollY);
     }
 
     // Cleanup function
     return () => {
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.width = "";
-      document.body.style.height = "";
-      document.body.style.top = "";
-      document.body.removeAttribute('data-scroll-position');
+      body.style.position = '';
+      body.style.top = '';
+      body.style.left = '';
+      body.style.right = '';
+      body.style.width = '';
+      body.style.overflow = '';
+      if (body.dataset.scrollY) {
+        delete body.dataset.scrollY;
+      }
     };
   }, [isMobileFiltersOpen]);
 
@@ -361,13 +371,32 @@ const HomePageClientContent = memo(function HomePageClientContent() {
     setVisibleCount(25);
   }, [activeFilters]);
 
-  // Handle scroll to products
-  const handleScrollToProducts = () => {
-    const productsSection = document.getElementById("products");
-    if (productsSection) {
-      productsSection.scrollIntoView({ behavior: "smooth" });
+  // Handle scroll to products (only when needed)
+  const handleScrollToProducts = useCallback(() => {
+    const fromProductPage = sessionStorage.getItem("fromProductPage") === "true";
+    const searchParams = new URLSearchParams(window.location.search);
+    const hasSearchQuery = searchParams.has("search") || searchParams.has("query");
+    
+    // Only scroll if returning from product page or there's a search query
+    if (fromProductPage || hasSearchQuery) {
+      setTimeout(() => {
+        const productsSection = document.getElementById("products");
+        if (productsSection) {
+          productsSection.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+      
+      // Clean up the flag
+      if (fromProductPage) {
+        sessionStorage.removeItem("fromProductPage");
+      }
     }
-  };
+  }, []);
+
+  // Handle conditional scroll to products on mount
+  useEffect(() => {
+    handleScrollToProducts();
+  }, [handleScrollToProducts]);
 
   // Clear all filters
   const handleClearFilters = () => {

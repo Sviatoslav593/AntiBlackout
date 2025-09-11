@@ -38,7 +38,7 @@ export function SearchProvider({ children }: SearchProviderProps) {
     // Check if this is a return from product page or search action
     const fromProductPage = sessionStorage.getItem("fromProductPage");
     const isSearchAction = searchQuery && searchQuery.trim() !== "";
-    
+
     // Only scroll if it's a search action or return from product page
     if (!isSearchAction && !fromProductPage) {
       return;
@@ -77,7 +77,7 @@ export function SearchProvider({ children }: SearchProviderProps) {
           behavior: "smooth",
         });
       }
-      
+
       // Clean up session storage
       if (fromProductPage) {
         sessionStorage.removeItem("fromProductPage");
