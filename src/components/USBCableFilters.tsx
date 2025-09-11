@@ -74,56 +74,68 @@ const USBCableFilters = memo(function USBCableFilters({
   };
 
   // Handle individual filter changes
-  const handleInputConnectorChange = useCallback((value: string) => {
-    console.log(
-      "USBCableFilters: handleInputConnectorChange called with:",
-      value
-    );
-    setInputConnector(value);
-    
-    // Update parent with current values
-    const newFilters = {
-      inputConnector: value === "all" ? "" : value,
-      outputConnector: outputConnector === "all" ? "" : outputConnector,
-      cableLength: cableLength === "all" ? "" : cableLength,
-    };
-    onFiltersChange(newFilters);
-  }, [outputConnector, cableLength, onFiltersChange]);
+  const handleInputConnectorChange = useCallback(
+    (value: string) => {
+      console.log(
+        "USBCableFilters: handleInputConnectorChange called with:",
+        value
+      );
+      setInputConnector(value);
 
-  const handleOutputConnectorChange = useCallback((value: string) => {
-    console.log(
-      "USBCableFilters: handleOutputConnectorChange called with:",
-      value
-    );
-    setOutputConnector(value);
-    
-    // Update parent with current values
-    const newFilters = {
-      inputConnector: inputConnector === "all" ? "" : inputConnector,
-      outputConnector: value === "all" ? "" : value,
-      cableLength: cableLength === "all" ? "" : cableLength,
-    };
-    onFiltersChange(newFilters);
-  }, [inputConnector, cableLength, onFiltersChange]);
+      // Update parent with current values
+      const newFilters = {
+        inputConnector: value === "all" ? "" : value,
+        outputConnector: outputConnector === "all" ? "" : outputConnector,
+        cableLength: cableLength === "all" ? "" : cableLength,
+      };
+      onFiltersChange(newFilters);
+    },
+    [outputConnector, cableLength, onFiltersChange]
+  );
 
-  const handleCableLengthChange = useCallback((value: string) => {
-    console.log("USBCableFilters: handleCableLengthChange called with:", value);
-    setCableLength(value);
-    
-    // Update parent with current values
-    const newFilters = {
-      inputConnector: inputConnector === "all" ? "" : inputConnector,
-      outputConnector: outputConnector === "all" ? "" : outputConnector,
-      cableLength: value === "all" ? "" : value,
-    };
-    onFiltersChange(newFilters);
-  }, [inputConnector, outputConnector, onFiltersChange]);
+  const handleOutputConnectorChange = useCallback(
+    (value: string) => {
+      console.log(
+        "USBCableFilters: handleOutputConnectorChange called with:",
+        value
+      );
+      setOutputConnector(value);
+
+      // Update parent with current values
+      const newFilters = {
+        inputConnector: inputConnector === "all" ? "" : inputConnector,
+        outputConnector: value === "all" ? "" : value,
+        cableLength: cableLength === "all" ? "" : cableLength,
+      };
+      onFiltersChange(newFilters);
+    },
+    [inputConnector, cableLength, onFiltersChange]
+  );
+
+  const handleCableLengthChange = useCallback(
+    (value: string) => {
+      console.log(
+        "USBCableFilters: handleCableLengthChange called with:",
+        value
+      );
+      setCableLength(value);
+
+      // Update parent with current values
+      const newFilters = {
+        inputConnector: inputConnector === "all" ? "" : inputConnector,
+        outputConnector: outputConnector === "all" ? "" : outputConnector,
+        cableLength: value === "all" ? "" : value,
+      };
+      onFiltersChange(newFilters);
+    },
+    [inputConnector, outputConnector, onFiltersChange]
+  );
 
   const clearFilters = () => {
     setInputConnector("all");
     setOutputConnector("all");
     setCableLength("all");
-    
+
     // Update parent with cleared values
     onFiltersChange({
       inputConnector: "",

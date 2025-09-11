@@ -509,6 +509,14 @@ const HomePageClient = memo(function HomePageClient() {
                               "Mobile: Applying filters:",
                               filtersToApply
                             );
+                            console.log(
+                              "Mobile: currentMobileFilters:",
+                              currentMobileFilters
+                            );
+                            console.log(
+                              "Mobile: activeFilters:",
+                              activeFilters
+                            );
                             applyFiltersAndUpdateUrl(filtersToApply);
                             setIsMobileFiltersOpen(false);
                           }}

@@ -36,17 +36,21 @@ const CapacitySelectFilter = memo(function CapacitySelectFilter({
   }, [value]);
 
   // Handle capacity selection - update local state and notify parent
-  const handleCapacitySelect = useCallback((value: string) => {
-    console.log(
-      "CapacitySelectFilter: handleCapacitySelect called with:",
-      value
-    );
-    setSelectedCapacity(value);
-    
-    // Convert to number and call parent
-    const capacityValue = value === "all" || value === "" ? null : parseInt(value);
-    onCapacityChange(capacityValue);
-  }, [onCapacityChange]);
+  const handleCapacitySelect = useCallback(
+    (value: string) => {
+      console.log(
+        "CapacitySelectFilter: handleCapacitySelect called with:",
+        value
+      );
+      setSelectedCapacity(value);
+
+      // Convert to number and call parent
+      const capacityValue =
+        value === "all" || value === "" ? null : parseInt(value);
+      onCapacityChange(capacityValue);
+    },
+    [onCapacityChange]
+  );
 
   const clearFilter = () => {
     setSelectedCapacity("all");

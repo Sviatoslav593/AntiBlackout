@@ -39,13 +39,16 @@ const FiltersSPA = memo(function FiltersSPA({
   // Update local filters when URL filters change (but don't reset if we're in the middle of selecting)
   useEffect(() => {
     console.log("FiltersSPA: activeFilters changed:", activeFilters);
-    // Always sync localFilters with activeFilters to ensure checkboxes work
-    setLocalFilters(activeFilters);
-  }, [activeFilters]); // Fixed: removed localFilters from dependencies to prevent infinite loop
+    // Only sync if localFilters is empty or if this is initial load
+    if (!localFilters.categoryIds && !localFilters.brandIds && !localFilters.minCapacity && !localFilters.inputConnector) {
+      setLocalFilters(activeFilters);
+    }
+  }, [activeFilters, localFilters]); // Include localFilters to check if it's empty
 
   // Notify parent component about current filters (for mobile)
   useEffect(() => {
     if (onFiltersChange) {
+      console.log("FiltersSPA: Notifying parent of filter changes:", localFilters);
       onFiltersChange(localFilters);
     }
   }, [localFilters, onFiltersChange]);
