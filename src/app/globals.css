@@ -381,9 +381,85 @@ body {
 
 /* Test with different approach */
 .header-blur-glass {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.2)) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.4),
+    rgba(255, 255, 255, 0.2)
+  ) !important;
   backdrop-filter: blur(30px) !important;
   -webkit-backdrop-filter: blur(30px) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Maximum blur effect with multiple fallbacks */
+.header-blur-maximum {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(50px) saturate(200%) brightness(1.1) !important;
+  -webkit-backdrop-filter: blur(50px) saturate(200%) brightness(1.1) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Alternative blur approach */
+.header-blur-alternative {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(60px) !important;
+  -webkit-backdrop-filter: blur(60px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 12px 50px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Simple but effective blur */
+.header-blur-simple {
+  background: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Fake blur effect using CSS filters */
+.header-blur-fake {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+  position: relative !important;
+}
+
+.header-blur-fake::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(30px) !important;
+  -webkit-backdrop-filter: blur(30px) !important;
+  z-index: -1 !important;
+}
+
+/* Test blur with different values */
+.header-blur-test-final {
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(25px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(150%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Force blur with inline styles approach */
+.header-blur-inline {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(35px) saturate(180%) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(35px) saturate(180%) brightness(1.05) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 50 !important;
+  width: 100% !important;
 }

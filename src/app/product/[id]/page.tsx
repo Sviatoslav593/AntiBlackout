@@ -405,9 +405,13 @@ export default function ProductPage() {
               // Set flag that we're returning from product page
               if (typeof window !== "undefined") {
                 sessionStorage.setItem("fromProductPage", "true");
-                const savedScrollPosition = sessionStorage.getItem("scrollPosition");
+                const savedScrollPosition =
+                  sessionStorage.getItem("scrollPosition");
                 if (savedScrollPosition) {
-                  console.log("Product page: Returning to scroll position:", savedScrollPosition);
+                  console.log(
+                    "Product page: Returning to scroll position:",
+                    savedScrollPosition
+                  );
                 }
               }
               router.push("/");

@@ -254,13 +254,17 @@ const HomePageClient = memo(function HomePageClient() {
   // Restore scroll position on mount
   useEffect(() => {
     // Check if we're returning from a product page
-    const fromProductPage = sessionStorage.getItem("fromProductPage") === "true";
+    const fromProductPage =
+      sessionStorage.getItem("fromProductPage") === "true";
     const savedScrollPosition = sessionStorage.getItem("scrollPosition");
-    
+
     if (fromProductPage && savedScrollPosition) {
       const scrollY = parseInt(savedScrollPosition);
-      console.log("HomePageClient: Restoring scroll position from sessionStorage:", scrollY);
-      
+      console.log(
+        "HomePageClient: Restoring scroll position from sessionStorage:",
+        scrollY
+      );
+
       // Add delay to ensure DOM is fully loaded
       const timer = setTimeout(() => {
         window.scrollTo(0, scrollY);
@@ -273,7 +277,9 @@ const HomePageClient = memo(function HomePageClient() {
     } else {
       // Use the existing restoreScrollPosition for other cases
       const timer = setTimeout(() => {
-        console.log("HomePageClient: Attempting to restore scroll position from store");
+        console.log(
+          "HomePageClient: Attempting to restore scroll position from store"
+        );
         restoreScrollPosition();
       }, 100);
 
