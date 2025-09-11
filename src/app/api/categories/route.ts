@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/client";
+import { createServerClient } from "@/utils/supabase/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
+    console.log("Categories API: Starting request");
+    const supabase = createServerClient();
+    console.log("Categories API: Supabase client created");
 
     // Get all categories
     const { data: categories, error } = await supabase
@@ -11,10 +13,12 @@ export async function GET(request: NextRequest) {
       .select("*")
       .order("id", { ascending: true });
 
+    console.log("Categories API: Query result:", { categories, error });
+
     if (error) {
       console.error("Error fetching categories:", error);
       return NextResponse.json(
-        { error: "Failed to fetch categories" },
+        { error: "Failed to fetch categories", details: error.message },
         { status: 500 }
       );
     }
@@ -43,11 +47,14 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.json({
+    const response = {
       success: true,
       categories: rootCategories,
       flat: categories,
-    });
+    };
+    
+    console.log("Categories API: Returning response:", response);
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Error fetching categories:", error);
     return NextResponse.json(
