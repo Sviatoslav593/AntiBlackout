@@ -82,14 +82,14 @@ const USBCableFilters = memo(function USBCableFilters({
       );
       setInputConnector(value);
 
-    // Update parent with current values
-    const newFilters = {
-      inputConnector: value === "all" ? "" : value,
-      outputConnector: outputConnector === "all" ? "" : outputConnector,
-      cableLength: cableLength === "all" ? "" : cableLength,
-    };
-    console.log("USBCableFilters: calling onFiltersChange with:", newFilters);
-    onFiltersChange(newFilters);
+      // Update parent with current values
+      const newFilters = {
+        inputConnector: value === "all" ? "" : value,
+        outputConnector: outputConnector === "all" ? "" : outputConnector,
+        cableLength: cableLength === "all" ? "" : cableLength,
+      };
+      console.log("USBCableFilters: calling onFiltersChange with:", newFilters);
+      onFiltersChange(newFilters);
     },
     [outputConnector, cableLength, onFiltersChange]
   );

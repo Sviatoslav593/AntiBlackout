@@ -162,7 +162,10 @@ const FiltersSPA = memo(function FiltersSPA({
       outputConnector?: string;
       cableLength?: string;
     }) => {
-      console.log("FiltersSPA: handleUSBFiltersChange called with:", usbFilters);
+      console.log(
+        "FiltersSPA: handleUSBFiltersChange called with:",
+        usbFilters
+      );
       const newFilters = {
         ...localFilters,
         inputConnector:
