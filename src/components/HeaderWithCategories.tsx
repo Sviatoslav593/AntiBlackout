@@ -8,12 +8,10 @@ import { useState, useRef, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { useSearch } from "@/context/SearchContext";
 import { useFavorites } from "@/context/FavoritesContext";
-import { UrlFiltersProvider } from "@/components/UrlFiltersProvider";
-import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { motion, AnimatePresence } from "framer-motion";
 import { CartDrawer } from "@/components/CartDrawer";
 
-function HeaderContent() {
+export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -21,7 +19,6 @@ function HeaderContent() {
   const { searchQuery, setSearchQuery, clearSearch, scrollToProducts } =
     useSearch();
   const { count: favoritesCount } = useFavorites();
-  const { updateSearch } = useUrlFilters();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchRef = useRef<HTMLDivElement>(null);
@@ -43,9 +40,6 @@ function HeaderContent() {
     const query = e.target.value;
     setSearchQuery(query);
 
-    // Update search in filters
-    updateSearch(query);
-
     // Always keep the field expanded when user is typing
     setIsSearchExpanded(true);
 
@@ -59,7 +53,6 @@ function HeaderContent() {
   // Handle search clear
   const handleSearchClear = () => {
     clearSearch();
-    updateSearch(""); // Clear search in filters
     // Keep the field expanded after clearing so user can continue typing
     setIsSearchExpanded(true);
     // Focus back to input after clearing
@@ -134,7 +127,7 @@ function HeaderContent() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md shadow-md">
         <div className="container flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
@@ -387,12 +380,5 @@ function HeaderContent() {
         onClose={() => setIsCartDrawerOpen(false)}
       />
     </>
-  );
-}
-
-// Main component with Suspense wrapper
-export default function Header() {
-  return (
-    <UrlFiltersProvider>{(urlFilters) => <HeaderContent />}</UrlFiltersProvider>
   );
 }

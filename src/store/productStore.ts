@@ -129,12 +129,7 @@ export const useProductStore = create<ProductState>()(
       lastFilterKey: "",
 
       // Basic setters
-      setProducts: (products) => {
-        set({
-          allProducts: products,
-          filteredProducts: products, // Show all products by default
-        });
-      },
+      setProducts: (products) => set({ allProducts: products }),
       setFilteredProducts: (products) => set({ filteredProducts: products }),
       appendProducts: (products) =>
         set((state) => ({

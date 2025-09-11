@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback, useRef, memo } from "react";
-import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import SortDropdown from "@/components/SortDropdown";
@@ -11,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import ScrollToProductsButton from "@/components/ScrollToProductsButton";
 import { useScrollPosition } from "@/hooks/useScrollPosition";
 import FiltersSPA from "@/components/FiltersSPA";
-import { UrlFiltersProvider } from "@/components/UrlFiltersProvider";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { useProductStore, FilterParams } from "@/store/productStore";
 import {
@@ -115,7 +113,7 @@ const sortProducts = (products: Product[], sortBy: SortOption): Product[] => {
   }
 };
 
-const HomePageClientContent = memo(function HomePageClientContent() {
+const HomePageClient = memo(function HomePageClient() {
   // State for products
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [allCategories, setAllCategories] = useState<string[]>([]);
@@ -133,79 +131,21 @@ const HomePageClientContent = memo(function HomePageClientContent() {
     useState<FilterParams | null>(null);
   const prevFilterState = useRef<string>("");
 
-  // Block background scrolling when mobile filters are open (no jump version)
+  // Block background scrolling when mobile filters are open
   useEffect(() => {
-    const body = document.body;
-    const html = document.documentElement;
-
-    const preventScroll = (e: Event) => {
-      e.preventDefault();
-    };
-
     if (isMobileFiltersOpen) {
-      const scrollY = window.scrollY;
-      body.dataset.scrollY = scrollY.toString();
-
-      // Compensate scrollbar width to avoid layout shift
-      const scrollbarWidth = window.innerWidth - html.clientWidth;
-      if (scrollbarWidth > 0) {
-        body.style.paddingRight = `${scrollbarWidth}px`;
-      }
-
-      body.style.position = "fixed";
-      body.style.top = `-${scrollY}px`;
-      body.style.left = "0";
-      body.style.right = "0";
-      body.style.width = "100%";
-      body.style.overflow = "hidden";
-
-      // Block wheel/touchmove
-      window.addEventListener("wheel", preventScroll, { passive: false });
-      window.addEventListener("touchmove", preventScroll, { passive: false });
+      // Block scrolling on mobile devices
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+      document.body.style.height = "100%";
     } else {
-      // Get saved position but don't restore it immediately
-      const saved = body.dataset.scrollY ? parseInt(body.dataset.scrollY) : 0;
-
-      // Remove all styles first
-      body.style.position = "";
-      body.style.top = "";
-      body.style.left = "";
-      body.style.right = "";
-      body.style.width = "";
-      body.style.overflow = "";
-      body.style.paddingRight = "";
-
-      // Remove listeners
-      window.removeEventListener("wheel", preventScroll as EventListener);
-      window.removeEventListener("touchmove", preventScroll as EventListener);
-
-      // Clean up dataset
-      delete body.dataset.scrollY;
-
-      // Only restore scroll position if it's different from current position
-      // This prevents unnecessary jumps
-      if (saved !== window.scrollY) {
-        // Use multiple rAF calls to ensure smooth restoration
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            window.scrollTo(0, saved);
-          });
-        });
-      }
+      // Restore scrolling
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      document.body.style.height = "";
     }
-
-    return () => {
-      window.removeEventListener("wheel", preventScroll as EventListener);
-      window.removeEventListener("touchmove", preventScroll as EventListener);
-      body.style.position = "";
-      body.style.top = "";
-      body.style.left = "";
-      body.style.right = "";
-      body.style.width = "";
-      body.style.overflow = "";
-      body.style.paddingRight = "";
-      if (body.dataset.scrollY) delete body.dataset.scrollY;
-    };
   }, [isMobileFiltersOpen]);
 
   // Context hooks
@@ -213,66 +153,6 @@ const HomePageClientContent = memo(function HomePageClientContent() {
   const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
     useUrlFilters();
   const { filteredProducts } = useProductStore();
-
-  // Count active filters with useMemo for performance and reactivity
-  const activeFiltersCount = useMemo(() => {
-    let count = 0;
-
-    // Count category filters
-    if (activeFilters.categoryIds && activeFilters.categoryIds.length > 0) {
-      count += activeFilters.categoryIds.length;
-    }
-
-    // Count brand filters
-    if (activeFilters.brandIds && activeFilters.brandIds.length > 0) {
-      count += activeFilters.brandIds.length;
-    }
-
-    // Count search filter
-    if (activeFilters.search && activeFilters.search.trim() !== "") {
-      count += 1;
-    }
-
-    // Count price filter
-    if (
-      (activeFilters.minPrice ?? 0) > 0 ||
-      (activeFilters.maxPrice ?? 10000) < 10000
-    ) {
-      count += 1;
-    }
-
-    // Count capacity filter
-    if (
-      (activeFilters.minCapacity ?? 0) > 0 ||
-      (activeFilters.maxCapacity ?? 50000) < 50000
-    ) {
-      count += 1;
-    }
-
-    // Count USB filters
-    if (activeFilters.inputConnector && activeFilters.inputConnector !== "") {
-      count += 1;
-    }
-    if (activeFilters.outputConnector && activeFilters.outputConnector !== "") {
-      count += 1;
-    }
-    if (activeFilters.cableLength && activeFilters.cableLength !== "") {
-      count += 1;
-    }
-
-    // Count stock filter
-    if (activeFilters.inStockOnly) {
-      count += 1;
-    }
-
-    console.log(
-      "Active filters count updated:",
-      count,
-      "filters:",
-      activeFilters
-    );
-    return count;
-  }, [activeFilters]);
 
   // Load products, categories, and brands on mount
   useEffect(() => {
@@ -289,16 +169,6 @@ const HomePageClientContent = memo(function HomePageClientContent() {
           console.log("First product structure:", productsData.products[0]);
           setAllProducts(productsData.products);
           useProductStore.getState().setProducts(productsData.products);
-
-          // Apply current filters after loading products
-          console.log(
-            "Applying filters after loading products:",
-            activeFilters
-          );
-          // Use setTimeout to ensure products are set in store before applying filters
-          setTimeout(() => {
-            applyFiltersAndUpdateUrl(activeFilters);
-          }, 100);
         }
 
         // Load categories
@@ -396,34 +266,13 @@ const HomePageClientContent = memo(function HomePageClientContent() {
     setVisibleCount(25);
   }, [activeFilters]);
 
-  // Handle scroll to products (manual button click or conditional)
-  const handleScrollToProducts = useCallback((forceScroll = false) => {
-    const fromProductPage =
-      sessionStorage.getItem("fromProductPage") === "true";
-    const searchParams = new URLSearchParams(window.location.search);
-    const hasSearchQuery =
-      searchParams.has("search") || searchParams.has("query");
-
-    // Scroll if forced (button click), returning from product page, or there's a search query
-    if (forceScroll || fromProductPage || hasSearchQuery) {
-      setTimeout(() => {
-        const productsSection = document.getElementById("products");
-        if (productsSection) {
-          productsSection.scrollIntoView({ behavior: "smooth" });
-        }
-      }, 100);
-
-      // Clean up the flag
-      if (fromProductPage) {
-        sessionStorage.removeItem("fromProductPage");
-      }
+  // Handle scroll to products
+  const handleScrollToProducts = () => {
+    const productsSection = document.getElementById("products");
+    if (productsSection) {
+      productsSection.scrollIntoView({ behavior: "smooth" });
     }
-  }, []);
-
-  // Handle conditional scroll to products on mount
-  useEffect(() => {
-    handleScrollToProducts();
-  }, [handleScrollToProducts]);
+  };
 
   // Clear all filters
   const handleClearFilters = () => {
@@ -449,7 +298,7 @@ const HomePageClientContent = memo(function HomePageClientContent() {
             <div className="flex justify-center">
               <Button
                 size="lg"
-                onClick={() => handleScrollToProducts(true)}
+                onClick={handleScrollToProducts}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Переглянути товари <ArrowRight className="ml-2 h-4 w-4" />
@@ -525,7 +374,7 @@ const HomePageClientContent = memo(function HomePageClientContent() {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 space-y-4 lg:space-y-0">
             <div>
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                Наші товари
+                Товари
               </h2>
               <p className="text-gray-600">
                 {loading
@@ -543,16 +392,11 @@ const HomePageClientContent = memo(function HomePageClientContent() {
           <div className="lg:hidden mb-4">
             <Button
               onClick={() => setIsMobileFiltersOpen(true)}
-              className="w-full relative"
+              className="w-full"
               variant="outline"
             >
               <Filter className="w-4 h-4 mr-2" />
               Фільтри
-              {activeFiltersCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                  {activeFiltersCount}
-                </span>
-              )}
             </Button>
           </div>
 
@@ -561,14 +405,7 @@ const HomePageClientContent = memo(function HomePageClientContent() {
             <div className="hidden lg:block lg:w-1/4">
               <div className="bg-white rounded-lg shadow-lg p-6 sticky top-4">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-semibold">Фільтри</h3>
-                    {activeFiltersCount > 0 && (
-                      <span className="bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                        {activeFiltersCount}
-                      </span>
-                    )}
-                  </div>
+                  <h3 className="text-lg font-semibold">Фільтри</h3>
                   <Button
                     variant="outline"
                     size="sm"
@@ -614,16 +451,9 @@ const HomePageClientContent = memo(function HomePageClientContent() {
                     <div className="h-full flex flex-col">
                       {/* Header with close button */}
                       <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-xl font-semibold text-gray-900">
-                            Фільтри
-                          </h3>
-                          {activeFiltersCount > 0 && (
-                            <span className="bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                              {activeFiltersCount}
-                            </span>
-                          )}
-                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900">
+                          Фільтри
+                        </h3>
                         <div className="flex items-center gap-2">
                           <Button
                             variant="outline"
@@ -760,12 +590,10 @@ const HomePageClientContent = memo(function HomePageClientContent() {
               Оберіть найкращий павербанк або кабель для ваших потреб
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                variant="secondary"
-                onClick={() => handleScrollToProducts(true)}
-              >
-                Переглянути товари <ArrowRight className="ml-2 h-4 w-4" />
+              <Button size="lg" variant="secondary" asChild>
+                <Link href="#products">
+                  Переглянути товари <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
               <Button
                 size="lg"
@@ -783,11 +611,4 @@ const HomePageClientContent = memo(function HomePageClientContent() {
   );
 });
 
-// Main component with Suspense wrapper
-export default function HomePageClient() {
-  return (
-    <UrlFiltersProvider>
-      {(urlFilters) => <HomePageClientContent />}
-    </UrlFiltersProvider>
-  );
-}
+export default HomePageClient;

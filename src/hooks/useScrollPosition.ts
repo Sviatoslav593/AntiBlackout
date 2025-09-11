@@ -25,7 +25,7 @@ export function useScrollPosition() {
     }
   };
 
-  // Save scroll position on page unload and navigation
+  // Save scroll position on page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
       saveScrollPosition();
@@ -37,37 +37,22 @@ export function useScrollPosition() {
       }
     };
 
-    // Save scroll position before navigation
-    const handleBeforeNavigate = () => {
-      saveScrollPosition();
-    };
-
     window.addEventListener("beforeunload", handleBeforeUnload);
     document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    // Listen for navigation events (Next.js router events)
-    window.addEventListener("beforeunload", handleBeforeNavigate);
 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("beforeunload", handleBeforeNavigate);
     };
   }, [setScrollPosition]);
 
-  // Restore scroll position on mount (only on homepage and only if returning from product page)
+  // Restore scroll position on mount
   useEffect(() => {
-    if (scrollPosition > 0 && typeof window !== "undefined") {
-      // Only restore scroll position on homepage, not on product pages
-      const isProductPage = window.location.pathname.includes("/product/");
-      const fromProductPage = sessionStorage.getItem("fromProductPage");
-
-      if (!isProductPage && fromProductPage) {
-        // Use requestAnimationFrame to ensure DOM is ready
-        requestAnimationFrame(() => {
-          restoreScrollPosition();
-        });
-      }
+    if (scrollPosition > 0) {
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        restoreScrollPosition();
+      });
     }
   }, []);
 

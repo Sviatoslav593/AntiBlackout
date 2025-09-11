@@ -94,10 +94,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleDetailsClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent card click (though it does the same thing)
-    // Save scroll position and set navigation flag before navigating
+    // Save scroll position before navigating
     if (typeof window !== "undefined") {
       sessionStorage.setItem("scrollPosition", window.scrollY.toString());
-      sessionStorage.setItem("fromProductPage", "true");
     }
     router.push(`/product/${product.id}`);
   };
@@ -149,10 +148,9 @@ export default function ProductCard({ product }: ProductCardProps) {
 
     if (!isButton) {
       e.preventDefault();
-      // Save scroll position and set navigation flag before navigating
+      // Save scroll position before navigating
       if (typeof window !== "undefined") {
         sessionStorage.setItem("scrollPosition", window.scrollY.toString());
-        sessionStorage.setItem("fromProductPage", "true");
       }
       router.push(`/product/${product.id}`);
     }

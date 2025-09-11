@@ -131,11 +131,7 @@ export function useUrlFilters() {
   const applyFiltersAndUpdateUrl = useCallback(
     (filters: FilterParams) => {
       setActiveFilters(filters);
-      // Only apply filters if we have products loaded
-      const { allProducts } = useProductStore.getState();
-      if (allProducts.length > 0) {
-        applyFilters(filters);
-      }
+      applyFilters(filters);
       updateUrl(filters);
     },
     [setActiveFilters, applyFilters, updateUrl]
@@ -159,11 +155,7 @@ export function useUrlFilters() {
 
     console.log("Clearing filters:", defaultFilters);
     setActiveFilters(defaultFilters);
-    // Only apply filters if we have products loaded
-    const { allProducts } = useProductStore.getState();
-    if (allProducts.length > 0) {
-      applyFilters(defaultFilters);
-    }
+    applyFilters(defaultFilters);
     updateUrl(defaultFilters);
   }, [setActiveFilters, applyFilters, updateUrl]);
 
@@ -177,11 +169,7 @@ export function useUrlFilters() {
 
     if (currentFiltersStr !== urlFiltersStr) {
       setActiveFilters(urlFilters);
-      // Only apply filters if we have products loaded
-      const { allProducts } = useProductStore.getState();
-      if (allProducts.length > 0) {
-        applyFilters(urlFilters);
-      }
+      applyFilters(urlFilters);
     }
   }, [searchParams, parseUrlToFilters, setActiveFilters, applyFilters]); // Fixed: removed activeFilters from dependencies
 
@@ -231,7 +219,6 @@ export function useUrlFilters() {
         "Calling applyFilters with:",
         JSON.stringify(defaultFilters, null, 2)
       );
-      // Always apply default filters, even if products are not loaded yet
       applyFilters(defaultFilters);
       console.log(
         "Calling updateUrl with:",
@@ -247,29 +234,10 @@ export function useUrlFilters() {
     activeFilters.categoryIds,
   ]);
 
-  // Update search query
-  const updateSearch = useCallback(
-    (searchQuery: string) => {
-      const newFilters = {
-        ...activeFilters,
-        search: searchQuery,
-      };
-      setActiveFilters(newFilters);
-      // Only apply filters if we have products loaded
-      const { allProducts } = useProductStore.getState();
-      if (allProducts.length > 0) {
-        applyFilters(newFilters);
-      }
-      updateUrl(newFilters);
-    },
-    [activeFilters, setActiveFilters, applyFilters, updateUrl]
-  );
-
   return {
     activeFilters,
     applyFiltersAndUpdateUrl,
     clearFilters,
     updateUrl,
-    updateSearch,
   };
 }
