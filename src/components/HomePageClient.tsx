@@ -453,7 +453,7 @@ const HomePageClient = memo(function HomePageClient() {
                     onClick={() => setIsMobileFiltersOpen(false)}
                   />
                   <motion.div
-                    className="fixed left-0 top-0 h-full w-4/5 max-w-sm bg-white shadow-2xl"
+                    className="fixed left-0 top-0 h-full w-4/5 max-w-sm bg-white shadow-2xl overflow-visible"
                     initial={{ x: "-100%" }}
                     animate={{ x: 0 }}
                     exit={{ x: "-100%" }}
@@ -486,7 +486,7 @@ const HomePageClient = memo(function HomePageClient() {
                       </div>
 
                       {/* Scrollable content */}
-                      <div className="flex-1 overflow-y-auto p-4 pb-16">
+                      <div className="flex-1 overflow-y-auto overflow-x-visible p-4 pb-16">
                         <FiltersSPA
                           availableCategories={allCategories || []}
                           availableBrands={allBrands || []}

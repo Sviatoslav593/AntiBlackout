@@ -164,7 +164,7 @@ const USBCableFilters = memo(function USBCableFilters({
             <SelectTrigger className="w-full cursor-pointer">
               <SelectValue placeholder="Вхід (Тип коннектора)" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[10000]">
               <SelectItem value="all" className="cursor-pointer">
                 Всі типи входів
               </SelectItem>
@@ -190,7 +190,7 @@ const USBCableFilters = memo(function USBCableFilters({
             <SelectTrigger className="w-full cursor-pointer">
               <SelectValue placeholder="Вихід (Тип коннектора)" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[10000]">
               <SelectItem value="all" className="cursor-pointer">
                 Всі типи виходів
               </SelectItem>
@@ -213,7 +213,7 @@ const USBCableFilters = memo(function USBCableFilters({
             <SelectTrigger className="w-full cursor-pointer">
               <SelectValue placeholder="Довжина кабелю" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[10000]">
               <SelectItem value="all" className="cursor-pointer">
                 Всі довжини
               </SelectItem>

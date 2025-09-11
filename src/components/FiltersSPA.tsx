@@ -40,7 +40,12 @@ const FiltersSPA = memo(function FiltersSPA({
   useEffect(() => {
     console.log("FiltersSPA: activeFilters changed:", activeFilters);
     // Only sync if localFilters is empty or if this is initial load
-    if (!localFilters.categoryIds && !localFilters.brandIds && !localFilters.minCapacity && !localFilters.inputConnector) {
+    if (
+      !localFilters.categoryIds &&
+      !localFilters.brandIds &&
+      !localFilters.minCapacity &&
+      !localFilters.inputConnector
+    ) {
       setLocalFilters(activeFilters);
     }
   }, [activeFilters, localFilters]); // Include localFilters to check if it's empty
@@ -48,7 +53,10 @@ const FiltersSPA = memo(function FiltersSPA({
   // Notify parent component about current filters (for mobile)
   useEffect(() => {
     if (onFiltersChange) {
-      console.log("FiltersSPA: Notifying parent of filter changes:", localFilters);
+      console.log(
+        "FiltersSPA: Notifying parent of filter changes:",
+        localFilters
+      );
       onFiltersChange(localFilters);
     }
   }, [localFilters, onFiltersChange]);

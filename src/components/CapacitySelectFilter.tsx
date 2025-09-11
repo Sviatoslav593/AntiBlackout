@@ -78,7 +78,7 @@ const CapacitySelectFilter = memo(function CapacitySelectFilter({
           <SelectTrigger className="w-full cursor-pointer">
             <SelectValue placeholder="Оберіть ємність" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="z-[10000]">
             <SelectItem value="all" className="cursor-pointer">
               Всі ємності
             </SelectItem>
