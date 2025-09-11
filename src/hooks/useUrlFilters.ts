@@ -231,6 +231,7 @@ export function useUrlFilters() {
         "Calling applyFilters with:",
         JSON.stringify(defaultFilters, null, 2)
       );
+      // Always apply default filters, even if products are not loaded yet
       applyFilters(defaultFilters);
       console.log(
         "Calling updateUrl with:",

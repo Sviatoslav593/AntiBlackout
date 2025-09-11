@@ -42,7 +42,7 @@ function HeaderContent() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-    
+
     // Update search in filters
     updateSearch(query);
 
@@ -393,8 +393,6 @@ function HeaderContent() {
 // Main component with Suspense wrapper
 export default function Header() {
   return (
-    <UrlFiltersProvider>
-      {(urlFilters) => <HeaderContent />}
-    </UrlFiltersProvider>
+    <UrlFiltersProvider>{(urlFilters) => <HeaderContent />}</UrlFiltersProvider>
   );
 }

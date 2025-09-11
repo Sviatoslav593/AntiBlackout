@@ -170,6 +170,13 @@ const HomePageClientContent = memo(function HomePageClientContent() {
           console.log("First product structure:", productsData.products[0]);
           setAllProducts(productsData.products);
           useProductStore.getState().setProducts(productsData.products);
+          
+          // Apply current filters after loading products
+          console.log("Applying filters after loading products:", activeFilters);
+          // Use setTimeout to ensure products are set in store before applying filters
+          setTimeout(() => {
+            applyFiltersAndUpdateUrl(activeFilters);
+          }, 100);
         }
 
         // Load categories
