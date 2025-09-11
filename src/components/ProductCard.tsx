@@ -14,6 +14,7 @@ import { useToast } from "@/context/ToastContext";
 import { useFavorites } from "@/context/FavoritesContext";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useScrollPosition } from "@/hooks/useScrollPosition";
 
 export interface Product {
   id: string;
@@ -59,6 +60,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { showToast } = useToast();
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
   const router = useRouter();
+  const { saveScrollPosition } = useScrollPosition();
   const quantity = getItemQuantity(product.id);
 
   const handleAddToCart = (e: React.MouseEvent | React.TouchEvent) => {
@@ -95,9 +97,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation(); // Prevent card click (though it does the same thing)
     // Save scroll position before navigating
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("scrollPosition", window.scrollY.toString());
-    }
+    saveScrollPosition();
     router.push(`/product/${product.id}`);
   };
 
@@ -149,9 +149,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     if (!isButton) {
       e.preventDefault();
       // Save scroll position before navigating
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem("scrollPosition", window.scrollY.toString());
-      }
+      saveScrollPosition();
       router.push(`/product/${product.id}`);
     }
   };

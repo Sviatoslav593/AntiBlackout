@@ -54,7 +54,7 @@ export function useScrollPosition() {
         restoreScrollPosition();
       });
     }
-  }, []);
+  }, [scrollPosition]);
 
   // Save scroll position on scroll (with throttling)
   useEffect(() => {

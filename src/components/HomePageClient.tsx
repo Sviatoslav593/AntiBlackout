@@ -163,7 +163,10 @@ const HomePageClient = memo(function HomePageClient() {
         // Check if products are already loaded in store
         const storeProducts = useProductStore.getState().allProducts;
         if (storeProducts && storeProducts.length > 0) {
-          console.log("Using cached products from store:", storeProducts.length);
+          console.log(
+            "Using cached products from store:",
+            storeProducts.length
+          );
           setAllProducts(storeProducts as Product[]);
           setLoading(false);
           return;
@@ -174,7 +177,10 @@ const HomePageClient = memo(function HomePageClient() {
         const productsData = await productsResponse.json();
 
         if (productsData.success && productsData.products) {
-          console.log("Loaded products from API:", productsData.products.slice(0, 2));
+          console.log(
+            "Loaded products from API:",
+            productsData.products.slice(0, 2)
+          );
           console.log("First product structure:", productsData.products[0]);
           setAllProducts(productsData.products);
           useProductStore.getState().setProducts(productsData.products);
