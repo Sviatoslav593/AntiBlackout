@@ -130,38 +130,15 @@ const HomePageClient = memo(function HomePageClient() {
   const [currentMobileFilters, setCurrentMobileFilters] =
     useState<FilterParams | null>(null);
   const prevFilterState = useRef<string>("");
-  const savedScrollPosition = useRef<number>(0);
 
   // Block background scrolling when mobile filters are open
   useEffect(() => {
     if (isMobileFiltersOpen) {
-      // Store current scroll position in ref
-      savedScrollPosition.current = window.scrollY;
-      console.log("Locking scroll at position:", savedScrollPosition.current);
-
-      // Store original styles
-      const originalOverflow = document.body.style.overflow;
-      const originalPosition = document.body.style.position;
-      const originalTop = document.body.style.top;
-      const originalWidth = document.body.style.width;
-
-      // Apply scroll lock without changing scroll position
+      // Simply block scrolling
       document.body.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${savedScrollPosition.current}px`;
-      document.body.style.width = "100%";
-
-      // Cleanup function
-      return () => {
-        console.log("Unlocking scroll, keeping position");
-        document.body.style.overflow = originalOverflow;
-        document.body.style.position = originalPosition;
-        document.body.style.top = originalTop;
-        document.body.style.width = originalWidth;
-
-        // Don't restore scroll position - let it stay where it is
-        // The page will naturally stay at the same position
-      };
+    } else {
+      // Restore scrolling
+      document.body.style.overflow = "";
     }
   }, [isMobileFiltersOpen]);
 

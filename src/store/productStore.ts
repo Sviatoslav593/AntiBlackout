@@ -153,13 +153,16 @@ export const useProductStore = create<ProductState>()(
         const state = get();
         const newFilterKey = JSON.stringify(filters);
 
-        console.log("applyFilters called with:", JSON.stringify(filters, null, 2));
+        console.log(
+          "applyFilters called with:",
+          JSON.stringify(filters, null, 2)
+        );
         console.log("Current lastFilterKey:", state.lastFilterKey);
         console.log("New filterKey:", newFilterKey);
         console.log("Current state:", {
           allProducts: state.allProducts.length,
           filteredProducts: state.filteredProducts.length,
-          activeFilters: state.activeFilters
+          activeFilters: state.activeFilters,
         });
 
         // If same filters, don't refetch
@@ -221,6 +224,23 @@ export const useProductStore = create<ProductState>()(
         );
 
         const filtered = state.allProducts.filter((product) => {
+          // Simple test: if no filters are applied, show all products
+          const hasCategoryFilter = filters.categoryIds && filters.categoryIds.length > 0;
+          const hasBrandFilter = filters.brandIds && filters.brandIds.length > 0;
+          const hasSearchFilter = filters.search && filters.search.trim() !== "";
+          const hasPriceFilter = filters.minPrice > 0 || filters.maxPrice < 10000;
+          const hasCapacityFilter = filters.minCapacity > 0 || filters.maxCapacity < 50000;
+          const hasUSBFilter = filters.inputConnector || filters.outputConnector || filters.cableLength;
+          const hasStockFilter = filters.inStockOnly;
+
+          const hasAnyFilter = hasCategoryFilter || hasBrandFilter || hasSearchFilter || 
+                              hasPriceFilter || hasCapacityFilter || hasUSBFilter || hasStockFilter;
+
+          if (!hasAnyFilter) {
+            console.log(`✅ No filters applied, showing product: ${product.name}`);
+            return true;
+          }
+
           console.log(
             `Filtering product: ${product.name}`,
             "categoryId:",

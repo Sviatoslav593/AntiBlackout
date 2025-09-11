@@ -206,12 +206,24 @@ export function useUrlFilters() {
         outputConnector: "",
         cableLength: "",
       };
-      console.log("Setting default filters:", JSON.stringify(defaultFilters, null, 2));
-      console.log("Calling setActiveFilters with:", JSON.stringify(defaultFilters, null, 2));
+      console.log(
+        "Setting default filters:",
+        JSON.stringify(defaultFilters, null, 2)
+      );
+      console.log(
+        "Calling setActiveFilters with:",
+        JSON.stringify(defaultFilters, null, 2)
+      );
       setActiveFilters(defaultFilters);
-      console.log("Calling applyFilters with:", JSON.stringify(defaultFilters, null, 2));
+      console.log(
+        "Calling applyFilters with:",
+        JSON.stringify(defaultFilters, null, 2)
+      );
       applyFilters(defaultFilters);
-      console.log("Calling updateUrl with:", JSON.stringify(defaultFilters, null, 2));
+      console.log(
+        "Calling updateUrl with:",
+        JSON.stringify(defaultFilters, null, 2)
+      );
       updateUrl(defaultFilters);
     }
   }, [
