@@ -190,6 +190,11 @@ const FiltersSPA = memo(function FiltersSPA({
       };
 
       console.log("FiltersSPA: setting new localFilters:", newFilters);
+      console.log("FiltersSPA: USB filters in newFilters:", {
+        inputConnector: newFilters.inputConnector,
+        outputConnector: newFilters.outputConnector,
+        cableLength: newFilters.cableLength
+      });
       setLocalFilters(newFilters);
       // Don't apply filters immediately - wait for "Apply" button
     },
@@ -210,6 +215,11 @@ const FiltersSPA = memo(function FiltersSPA({
   // Apply filters function - called when "Apply" button is clicked
   const handleApplyFilters = useCallback(() => {
     console.log("FiltersSPA: Applying filters:", localFilters);
+    console.log("FiltersSPA: USB filters:", {
+      inputConnector: localFilters.inputConnector,
+      outputConnector: localFilters.outputConnector,
+      cableLength: localFilters.cableLength
+    });
     applyFiltersAndUpdateUrl(localFilters);
   }, [localFilters, applyFiltersAndUpdateUrl]);
 
@@ -270,12 +280,6 @@ const FiltersSPA = memo(function FiltersSPA({
     return (
       <div className="space-y-6">
         {/* Categories */}
-        {console.log(
-          "Rendering categories check:",
-          availableCategories && availableCategories.length > 0,
-          "categories:",
-          availableCategories
-        )}
         {availableCategories && availableCategories.length > 0 && (
           <div className="space-y-3">
             <h4 className="font-medium text-gray-900">Категорії</h4>
@@ -310,12 +314,6 @@ const FiltersSPA = memo(function FiltersSPA({
         )}
 
         {/* Brands */}
-        {console.log(
-          "Rendering brands check:",
-          availableBrands && availableBrands.length > 0,
-          "brands:",
-          availableBrands
-        )}
         {availableBrands && availableBrands.length > 0 && (
           <div className="space-y-3">
             <h4 className="font-medium text-gray-900">Бренди</h4>
