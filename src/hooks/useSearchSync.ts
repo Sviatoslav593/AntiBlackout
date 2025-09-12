@@ -15,20 +15,23 @@ export function useSearchSync() {
       searchQuery,
       lastSearchQuery: lastSearchQuery.current,
       activeFiltersSearch: activeFilters.search,
-      isDifferent: searchQuery !== lastSearchQuery.current
+      isDifferent: searchQuery !== lastSearchQuery.current,
     });
 
     if (searchQuery !== lastSearchQuery.current) {
       console.log("useSearchSync: searchQuery is different, updating...");
       lastSearchQuery.current = searchQuery;
-      
+
       // Get fresh state to avoid stale closure
       const currentState = useProductStore.getState();
       const newFilters = { ...currentState.activeFilters, search: searchQuery };
-      
-      console.log("useSearchSync: Current activeFilters:", currentState.activeFilters);
+
+      console.log(
+        "useSearchSync: Current activeFilters:",
+        currentState.activeFilters
+      );
       console.log("useSearchSync: New filters to apply:", newFilters);
-      
+
       setActiveFilters(newFilters);
       applyFilters(newFilters);
     }

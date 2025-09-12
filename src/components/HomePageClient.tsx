@@ -171,6 +171,7 @@ const HomePageClient = memo(function HomePageClient() {
     hasMoreProducts,
     isLoadingMore,
     loadMoreProducts,
+    clearAllData,
   } = useProductStore();
 
   // Load products, categories, and brands on mount (only if not already loaded)
@@ -599,6 +600,17 @@ const HomePageClient = memo(function HomePageClient() {
 
             <div className="flex items-center gap-4">
               <SortDropdown value={sortBy} onValueChange={handleSortChange} />
+              <Button
+                onClick={() => {
+                  clearAllData();
+                  window.location.reload();
+                }}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+              >
+                Очистити кеш
+              </Button>
             </div>
           </div>
 
@@ -745,7 +757,7 @@ const HomePageClient = memo(function HomePageClient() {
                   <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {sortedProducts.map((product) => (
                       <ProductCard
-                        key={product.id}
+                        key={`${product.id}-${product.name}-${product.price}`}
                         product={{
                           ...product,
                           category: product.category || "Інше",

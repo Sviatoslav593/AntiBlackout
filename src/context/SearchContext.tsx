@@ -28,14 +28,17 @@ export function SearchProvider({ children }: SearchProviderProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Wrapper for setSearchQuery with logging
-  const setSearchQueryWithLog = useCallback((query: string) => {
-    console.log("SearchContext: setSearchQuery called with:", {
-      query,
-      previousQuery: searchQuery,
-      stack: new Error().stack
-    });
-    setSearchQuery(query);
-  }, [searchQuery]);
+  const setSearchQueryWithLog = useCallback(
+    (query: string) => {
+      console.log("SearchContext: setSearchQuery called with:", {
+        query,
+        previousQuery: searchQuery,
+        stack: new Error().stack,
+      });
+      setSearchQuery(query);
+    },
+    [searchQuery]
+  );
 
   const clearSearch = useCallback(() => {
     console.log("SearchContext: Clearing search");
@@ -47,7 +50,7 @@ export function SearchProvider({ children }: SearchProviderProps) {
     console.log("SearchContext: searchQuery changed:", {
       searchQuery,
       length: searchQuery.length,
-      trimmed: searchQuery.trim()
+      trimmed: searchQuery.trim(),
     });
   }, [searchQuery]);
 

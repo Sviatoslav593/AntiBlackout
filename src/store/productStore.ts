@@ -102,6 +102,7 @@ export interface ProductState {
   // Complex actions
   applyFilters: (filters: FilterParams) => void;
   clearFilters: () => void;
+  clearAllData: () => void;
   loadMoreProducts: () => Promise<void>;
   resetProductState: () => void;
 }
@@ -568,6 +569,24 @@ export const useProductStore = create<ProductState>()(
           hasMoreProducts: true,
         });
         get().applyFilters(defaultFilters);
+      },
+
+      clearAllData: () => {
+        set({
+          allProducts: [],
+          filteredProducts: [],
+          categories: [],
+          brands: [],
+          activeFilters: defaultFilters,
+          lastFilterKey: "",
+          currentPage: 1,
+          hasMoreProducts: true,
+          usbFilterOptions: {
+            inputConnectors: [],
+            outputConnectors: [],
+            cableLengths: [],
+          },
+        });
       },
 
       loadMoreProducts: async () => {
