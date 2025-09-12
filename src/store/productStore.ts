@@ -149,20 +149,21 @@ export const useProductStore = create<ProductState>()(
         console.log("appendProducts called:", {
           newProductsCount: products.length,
           currentAllProductsCount: get().allProducts.length,
-          currentFilteredProductsCount: get().filteredProducts.length
+          currentFilteredProductsCount: get().filteredProducts.length,
         });
         set((state) => {
           const newAllProducts = [...state.allProducts, ...products];
-          const newFilteredProducts = [...state.filteredProducts, ...products];
-          console.log("appendProducts: Updated counts:", {
+          console.log("appendProducts: Updated allProducts count:", {
             newAllProductsCount: newAllProducts.length,
-            newFilteredProductsCount: newFilteredProducts.length
           });
           return {
             allProducts: newAllProducts,
-            filteredProducts: newFilteredProducts,
           };
         });
+        
+        // Після додавання товарів, застосуємо фільтри до всіх товарів
+        console.log("appendProducts: Reapplying filters after adding products");
+        get().applyFilters(get().activeFilters);
       },
       setCategories: (categories) => set({ categories }),
       setBrands: (brands) => set({ brands }),
@@ -529,6 +530,12 @@ export const useProductStore = create<ProductState>()(
           }))
         );
 
+        console.log("applyFilters: Setting final state:", {
+          filteredProductsCount: filtered.length,
+          allProductsCount: state.allProducts.length,
+          wasCalledFromAppendProducts: true
+        });
+        
         set({
           filteredProducts: filtered,
           allProducts: state.allProducts, // Ensure allProducts is preserved
@@ -552,11 +559,13 @@ export const useProductStore = create<ProductState>()(
           hasMoreProducts: state.hasMoreProducts,
           currentPage: state.currentPage,
           allProductsCount: state.allProducts.length,
-          filteredProductsCount: state.filteredProducts.length
+          filteredProductsCount: state.filteredProducts.length,
         });
-        
+
         if (state.isLoadingMore || !state.hasMoreProducts) {
-          console.log("loadMoreProducts: Skipping - isLoadingMore or no more products");
+          console.log(
+            "loadMoreProducts: Skipping - isLoadingMore or no more products"
+          );
           return;
         }
 
@@ -585,15 +594,18 @@ export const useProductStore = create<ProductState>()(
             `/api/products?${queryParams.toString()}`
           );
           const data = await response.json();
-          
+
           console.log("loadMoreProducts: API response:", {
             success: data.success,
             productsCount: data.products?.length || 0,
-            hasMore: data.products?.length === 50
+            hasMore: data.products?.length === 50,
           });
 
           if (data.success && data.products) {
-            console.log("loadMoreProducts: Appending products:", data.products.length);
+            console.log(
+              "loadMoreProducts: Appending products:",
+              data.products.length
+            );
             get().appendProducts(data.products);
             set({
               currentPage: nextPage,
@@ -601,7 +613,7 @@ export const useProductStore = create<ProductState>()(
             });
             console.log("loadMoreProducts: Updated state:", {
               newCurrentPage: nextPage,
-              newHasMoreProducts: data.products.length === 50
+              newHasMoreProducts: data.products.length === 50,
             });
           } else {
             console.log("loadMoreProducts: API error or no products:", data);
