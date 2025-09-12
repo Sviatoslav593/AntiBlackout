@@ -247,7 +247,10 @@ const HomePageClient = memo(function HomePageClient() {
             console.log("Alternative category names:", categoryNames);
             setAllCategories(categoryNames);
             useProductStore.getState().setCategories(categoryNames);
-            console.log("Categories set in state (alternative):", categoryNames);
+            console.log(
+              "Categories set in state (alternative):",
+              categoryNames
+            );
           } else {
             console.log("Categories API returned empty data");
             setAllCategories([]);

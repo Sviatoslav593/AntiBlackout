@@ -56,6 +56,19 @@ export default function PriceFilter({
     setLocalMaxInput(newMax.toString());
   }, []);
 
+  // Prevent vertical scrolling when using slider
+  const handleSliderMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    // Prevent default touch behavior that might cause scrolling
+    if (e.type === 'touchstart') {
+      e.preventDefault();
+    }
+  }, []);
+
+  const handleSliderTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+  }, []);
+
   const handleSliderCommit = useCallback(
     (values: number[]) => {
       const [newMin, newMax] = values;
@@ -147,7 +160,11 @@ export default function PriceFilter({
         <h4 className="font-medium text-sm">Ціна (₴)</h4>
 
         {/* Slider */}
-        <div className="px-2">
+        <div 
+          className="px-2"
+          onMouseDown={handleSliderMouseDown}
+          onTouchStart={handleSliderTouchStart}
+        >
           <Slider
             value={localSliderValue}
             onValueChange={handleSliderChange}

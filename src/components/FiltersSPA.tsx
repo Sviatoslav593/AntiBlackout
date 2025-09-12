@@ -122,7 +122,7 @@ const FiltersSPA = memo(function FiltersSPA({
     [localFilters]
   );
 
-  // Handle price change
+  // Handle price change - only update local state, don't apply filters yet
   const handlePriceChange = useCallback(
     (priceRange: { min: number; max: number }) => {
       const newFilters = {
@@ -132,9 +132,9 @@ const FiltersSPA = memo(function FiltersSPA({
       };
 
       setLocalFilters(newFilters);
-      applyFiltersAndUpdateUrl(newFilters);
+      // Don't apply filters immediately - wait for "Apply" button
     },
-    [localFilters, applyFiltersAndUpdateUrl]
+    [localFilters]
   );
 
   // Handle capacity change - only update local state, don't apply immediately
@@ -159,7 +159,7 @@ const FiltersSPA = memo(function FiltersSPA({
 
       console.log("FiltersSPA: setting new localFilters:", newFilters);
       setLocalFilters(newFilters);
-      // Don't apply filters immediately - wait for apply button
+      // Don't apply filters immediately - wait for "Apply" button
     },
     [localFilters]
   );
@@ -191,7 +191,7 @@ const FiltersSPA = memo(function FiltersSPA({
 
       console.log("FiltersSPA: setting new localFilters:", newFilters);
       setLocalFilters(newFilters);
-      // Don't apply filters immediately - wait for apply button
+      // Don't apply filters immediately - wait for "Apply" button
     },
     [localFilters]
   );
@@ -204,7 +204,13 @@ const FiltersSPA = memo(function FiltersSPA({
     };
 
     setLocalFilters(newFilters);
-    applyFiltersAndUpdateUrl(newFilters);
+    // Don't apply filters immediately - wait for "Apply" button
+  }, [localFilters]);
+
+  // Apply filters function - called when "Apply" button is clicked
+  const handleApplyFilters = useCallback(() => {
+    console.log("FiltersSPA: Applying filters:", localFilters);
+    applyFiltersAndUpdateUrl(localFilters);
   }, [localFilters, applyFiltersAndUpdateUrl]);
 
   // Clear all filters
@@ -399,22 +405,7 @@ const FiltersSPA = memo(function FiltersSPA({
         {!isMobile && (
           <div className="pt-4 border-t">
             <Button
-              onClick={() => {
-                console.log("Applying filters:", localFilters);
-                // Apply all filters including capacity and USB filters
-                const filtersToApply = {
-                  ...localFilters,
-                  // Ensure capacity filters are properly set
-                  minCapacity: localFilters.minCapacity,
-                  maxCapacity: localFilters.maxCapacity,
-                  // Ensure USB filters are properly set
-                  inputConnector: localFilters.inputConnector || "",
-                  outputConnector: localFilters.outputConnector || "",
-                  cableLength: localFilters.cableLength || "",
-                };
-                console.log("Final filters to apply:", filtersToApply);
-                applyFiltersAndUpdateUrl(filtersToApply);
-              }}
+              onClick={handleApplyFilters}
               className="w-full"
               size="lg"
             >
