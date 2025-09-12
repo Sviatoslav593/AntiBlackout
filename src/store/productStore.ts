@@ -391,14 +391,22 @@ export const useProductStore = create<ProductState>()(
           if (filters.search) {
             const searchLower = filters.search.toLowerCase();
             const nameMatch = product.name.toLowerCase().includes(searchLower);
-            const descMatch = product.description.toLowerCase().includes(searchLower);
-            const brandMatch = product.brand.toLowerCase().includes(searchLower);
-            
+            const descMatch = product.description
+              .toLowerCase()
+              .includes(searchLower);
+            const brandMatch = product.brand
+              .toLowerCase()
+              .includes(searchLower);
+
             if (!nameMatch && !descMatch && !brandMatch) {
-              console.log(`❌ Search filter: ${product.name} - no match for "${filters.search}"`);
+              console.log(
+                `❌ Search filter: ${product.name} - no match for "${filters.search}"`
+              );
               return false;
             } else {
-              console.log(`✅ Search filter: ${product.name} - match for "${filters.search}"`);
+              console.log(
+                `✅ Search filter: ${product.name} - match for "${filters.search}"`
+              );
             }
           }
 

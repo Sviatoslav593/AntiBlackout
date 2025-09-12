@@ -11,6 +11,7 @@ import ScrollToProductsButton from "@/components/ScrollToProductsButton";
 import FiltersSPA from "@/components/FiltersSPA";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { useProductStore, FilterParams } from "@/store/productStore";
+import SearchSync from "@/components/SearchSync";
 import {
   Battery,
   Shield,
@@ -466,6 +467,7 @@ const HomePageClient = memo(function HomePageClient() {
 
   return (
     <>
+      <SearchSync />
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 overflow-hidden">
         {/* Animated background */}

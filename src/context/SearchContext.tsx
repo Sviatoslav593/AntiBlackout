@@ -9,7 +9,7 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
-import { useUrlFilters } from "@/hooks/useUrlFilters";
+// Remove direct import of useUrlFilters to avoid Suspense issues
 
 interface SearchContextType {
   searchQuery: string;
@@ -26,22 +26,6 @@ interface SearchProviderProps {
 
 export function SearchProvider({ children }: SearchProviderProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const { activeFilters, applyFiltersAndUpdateUrl } = useUrlFilters();
-
-  // Sync searchQuery with activeFilters
-  useEffect(() => {
-    if (activeFilters.search !== searchQuery) {
-      const newFilters = { ...activeFilters, search: searchQuery };
-      applyFiltersAndUpdateUrl(newFilters);
-    }
-  }, [searchQuery, activeFilters, applyFiltersAndUpdateUrl]);
-
-  // Sync activeFilters.search back to searchQuery
-  useEffect(() => {
-    if (activeFilters.search !== searchQuery) {
-      setSearchQuery(activeFilters.search || "");
-    }
-  }, [activeFilters.search, searchQuery]);
 
   const clearSearch = useCallback(() => {
     setSearchQuery("");
