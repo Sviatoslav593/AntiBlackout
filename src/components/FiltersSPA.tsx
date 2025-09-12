@@ -193,7 +193,7 @@ const FiltersSPA = memo(function FiltersSPA({
       console.log("FiltersSPA: USB filters in newFilters:", {
         inputConnector: newFilters.inputConnector,
         outputConnector: newFilters.outputConnector,
-        cableLength: newFilters.cableLength
+        cableLength: newFilters.cableLength,
       });
       setLocalFilters(newFilters);
       // Don't apply filters immediately - wait for "Apply" button
@@ -218,7 +218,7 @@ const FiltersSPA = memo(function FiltersSPA({
     console.log("FiltersSPA: USB filters:", {
       inputConnector: localFilters.inputConnector,
       outputConnector: localFilters.outputConnector,
-      cableLength: localFilters.cableLength
+      cableLength: localFilters.cableLength,
     });
     applyFiltersAndUpdateUrl(localFilters);
   }, [localFilters, applyFiltersAndUpdateUrl]);
@@ -402,11 +402,7 @@ const FiltersSPA = memo(function FiltersSPA({
         {/* Apply Filters Button - only show on desktop */}
         {!isMobile && (
           <div className="pt-4 border-t">
-            <Button
-              onClick={handleApplyFilters}
-              className="w-full"
-              size="lg"
-            >
+            <Button onClick={handleApplyFilters} className="w-full" size="lg">
               Застосувати фільтри
             </Button>
           </div>
