@@ -160,7 +160,7 @@ export const useProductStore = create<ProductState>()(
             allProducts: newAllProducts,
           };
         });
-        
+
         // Після додавання товарів, застосуємо фільтри до всіх товарів
         console.log("appendProducts: Reapplying filters after adding products");
         get().applyFilters(get().activeFilters);
@@ -533,9 +533,9 @@ export const useProductStore = create<ProductState>()(
         console.log("applyFilters: Setting final state:", {
           filteredProductsCount: filtered.length,
           allProductsCount: state.allProducts.length,
-          wasCalledFromAppendProducts: true
+          wasCalledFromAppendProducts: true,
         });
-        
+
         set({
           filteredProducts: filtered,
           allProducts: state.allProducts, // Ensure allProducts is preserved

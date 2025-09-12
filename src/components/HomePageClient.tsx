@@ -122,7 +122,7 @@ const HomePageClient = memo(function HomePageClient() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(25);
+  // Remove visibleCount - use currentPage from store instead
   const [currentMobileFilters, setCurrentMobileFilters] =
     useState<FilterParams | null>(null);
   const prevFilterState = useRef<string>("");
@@ -339,6 +339,7 @@ const HomePageClient = memo(function HomePageClient() {
           hasMoreProducts,
           isLoadingMore,
           totalProducts: (filteredProducts || allProducts).length,
+          visibleProducts: currentPage * 50,
         });
       }
     };
@@ -403,7 +404,8 @@ const HomePageClient = memo(function HomePageClient() {
       usingFiltered: hasActiveFilters,
       hasActiveFilters,
       activeFilters,
-      visibleCount,
+      currentPage,
+      maxItems: currentPage * 50,
     });
 
     let sorted = products;
@@ -431,9 +433,11 @@ const HomePageClient = memo(function HomePageClient() {
         break;
     }
 
-    // Apply local pagination - show only first visibleCount items
-    return sorted.slice(0, visibleCount);
-  }, [filteredProducts, allProducts, sortBy, activeFilters, visibleCount]);
+    // Apply pagination based on currentPage from store
+    const itemsPerPage = 50;
+    const maxItems = currentPage * itemsPerPage;
+    return sorted.slice(0, maxItems);
+  }, [filteredProducts, allProducts, sortBy, activeFilters, currentPage]);
 
   // Handle sort change
   const handleSortChange = (newSort: string) => {
@@ -445,10 +449,7 @@ const HomePageClient = memo(function HomePageClient() {
     loadMoreProducts();
   }, [loadMoreProducts]);
 
-  // Reset visible count when filters change
-  useEffect(() => {
-    setVisibleCount(25);
-  }, [activeFilters]);
+  // Pagination is now handled by currentPage from store
 
   // Handle scroll to products
   const handleScrollToProducts = () => {
