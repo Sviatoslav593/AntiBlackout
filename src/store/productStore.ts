@@ -56,6 +56,13 @@ export interface ProductState {
   categories: string[];
   brands: string[];
 
+  // USB Cable filter options (cached)
+  usbFilterOptions: {
+    inputConnectors: string[];
+    outputConnectors: string[];
+    cableLengths: string[];
+  };
+
   // Loading states
   isLoading: boolean;
   isLoadingMore: boolean;
@@ -79,6 +86,11 @@ export interface ProductState {
   appendProducts: (products: Product[]) => void;
   setCategories: (categories: string[]) => void;
   setBrands: (brands: string[]) => void;
+  setUsbFilterOptions: (options: {
+    inputConnectors: string[];
+    outputConnectors: string[];
+    cableLengths: string[];
+  }) => void;
   setLoading: (loading: boolean) => void;
   setLoadingMore: (loading: boolean) => void;
   setHasMoreProducts: (hasMore: boolean) => void;
@@ -118,6 +130,11 @@ export const useProductStore = create<ProductState>()(
       filteredProducts: [],
       categories: [],
       brands: [],
+      usbFilterOptions: {
+        inputConnectors: [],
+        outputConnectors: [],
+        cableLengths: [],
+      },
       isLoading: false,
       isLoadingMore: false,
       hasMoreProducts: true,
@@ -138,6 +155,7 @@ export const useProductStore = create<ProductState>()(
         })),
       setCategories: (categories) => set({ categories }),
       setBrands: (brands) => set({ brands }),
+      setUsbFilterOptions: (usbFilterOptions) => set({ usbFilterOptions }),
       setLoading: (isLoading) => set({ isLoading }),
       setLoadingMore: (isLoadingMore) => set({ isLoadingMore }),
       setHasMoreProducts: (hasMoreProducts) => set({ hasMoreProducts }),
@@ -160,7 +178,7 @@ export const useProductStore = create<ProductState>()(
         console.log("🔍 USB Filters in applyFilters:", {
           inputConnector: filters.inputConnector,
           outputConnector: filters.outputConnector,
-          cableLength: filters.cableLength
+          cableLength: filters.cableLength,
         });
         console.log("Current lastFilterKey:", state.lastFilterKey);
         console.log("New filterKey:", newFilterKey);
@@ -407,25 +425,40 @@ export const useProductStore = create<ProductState>()(
 
           // USB filters (for cables) - only apply if filters are set
           if (filters.inputConnector && filters.inputConnector !== "") {
-            console.log(`🔍 Checking inputConnector filter: ${filters.inputConnector}`);
+            console.log(
+              `🔍 Checking inputConnector filter: ${filters.inputConnector}`
+            );
             const inputConnector =
               product.characteristics?.["Вхід (Тип коннектора)"];
-            console.log(`Product ${product.name} inputConnector:`, inputConnector);
-            console.log(`Product ${product.name} characteristics:`, product.characteristics);
+            console.log(
+              `Product ${product.name} inputConnector:`,
+              inputConnector
+            );
+            console.log(
+              `Product ${product.name} characteristics:`,
+              product.characteristics
+            );
             if (!inputConnector || inputConnector !== filters.inputConnector) {
               console.log(
                 `❌ Product ${product.name} filtered out: inputConnector ${inputConnector} !== ${filters.inputConnector}`
               );
               return false;
             }
-            console.log(`✅ Product ${product.name} passed inputConnector filter`);
+            console.log(
+              `✅ Product ${product.name} passed inputConnector filter`
+            );
           }
 
           if (filters.outputConnector && filters.outputConnector !== "") {
-            console.log(`🔍 Checking outputConnector filter: ${filters.outputConnector}`);
+            console.log(
+              `🔍 Checking outputConnector filter: ${filters.outputConnector}`
+            );
             const outputConnector =
               product.characteristics?.["Вихід (Тип коннектора)"];
-            console.log(`Product ${product.name} outputConnector:`, outputConnector);
+            console.log(
+              `Product ${product.name} outputConnector:`,
+              outputConnector
+            );
             if (
               !outputConnector ||
               outputConnector !== filters.outputConnector
@@ -435,15 +468,23 @@ export const useProductStore = create<ProductState>()(
               );
               return false;
             }
-            console.log(`✅ Product ${product.name} passed outputConnector filter`);
+            console.log(
+              `✅ Product ${product.name} passed outputConnector filter`
+            );
           }
 
           if (filters.cableLength && filters.cableLength !== "") {
-            console.log(`🔍 Checking cableLength filter: ${filters.cableLength}`);
+            console.log(
+              `🔍 Checking cableLength filter: ${filters.cableLength}`
+            );
             const cableLength = product.characteristics?.["Довжина кабелю, м"];
             const cableLengthStr = cableLength?.toString();
             const filterLengthStr = filters.cableLength.toString();
-            console.log(`Product ${product.name} cableLength:`, cableLength, `(${cableLengthStr})`);
+            console.log(
+              `Product ${product.name} cableLength:`,
+              cableLength,
+              `(${cableLengthStr})`
+            );
             if (!cableLengthStr || cableLengthStr !== filterLengthStr) {
               console.log(
                 `❌ Product ${product.name} filtered out: cableLength ${cableLengthStr} !== ${filterLengthStr}`

@@ -31,6 +31,10 @@ const FiltersSPA = memo(function FiltersSPA({
   onMobileClose,
   onFiltersChange,
 }: FiltersSPAProps) {
+  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
+    useUrlFilters();
+  const { setSortBy, usbFilterOptions } = useProductStore();
+
   // Debug logging for received props
   console.log("FiltersSPA - Received props:", {
     availableCategories,
@@ -40,9 +44,7 @@ const FiltersSPA = memo(function FiltersSPA({
     categoriesType: typeof availableCategories,
     brandsType: typeof availableBrands,
   });
-  const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
-    useUrlFilters();
-  const { setSortBy } = useProductStore();
+  console.log("FiltersSPA - USB filter options from store:", usbFilterOptions);
   const [localFilters, setLocalFilters] = useState<FilterParams>(activeFilters);
 
   // Update local filters when URL filters change (only on initial load)

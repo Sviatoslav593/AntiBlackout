@@ -168,7 +168,7 @@ const HomePageClient = memo(function HomePageClient() {
   const { restoreScrollPosition, scrollPosition } = useScrollPosition();
   const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
     useUrlFilters();
-  const { filteredProducts } = useProductStore();
+  const { filteredProducts, usbFilterOptions } = useProductStore();
 
   // Load products, categories, and brands on mount (only if not already loaded)
   useEffect(() => {
@@ -315,6 +315,7 @@ const HomePageClient = memo(function HomePageClient() {
       } finally {
         setLoading(false);
         console.log("HomePageClient useEffect: Data loading completed");
+        console.log("HomePageClient - USB filter options:", usbFilterOptions);
       }
     };
 

@@ -9,29 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Static filter options for USB cables
-const STATIC_INPUT_CONNECTORS = [
-  { value: "USB-A", label: "USB-A" },
-  { value: "USB-C", label: "USB-C" },
-  { value: "Micro-USB", label: "Micro-USB" },
-  { value: "Lightning", label: "Lightning" },
-];
-
-const STATIC_OUTPUT_CONNECTORS = [
-  { value: "USB-A", label: "USB-A" },
-  { value: "USB-C", label: "USB-C" },
-  { value: "Micro-USB", label: "Micro-USB" },
-  { value: "Lightning", label: "Lightning" },
-];
-
-const STATIC_CABLE_LENGTHS = [
-  { value: "0.5m", label: "0.5 метра" },
-  { value: "1m", label: "1 метр" },
-  { value: "1.5m", label: "1.5 метра" },
-  { value: "2m", label: "2 метри" },
-  { value: "3m", label: "3 метри" },
-];
+import { useProductStore } from "@/store/productStore";
 
 interface USBCableFiltersProps {
   onFiltersChange: (filters: {
@@ -66,11 +44,58 @@ const USBCableFilters = memo(function USBCableFilters({
   const [cableLength, setCableLength] = useState<string>(
     values?.cableLength || "all"
   );
-  // Use static options instead of loading from API
+
+  // Get USB filter options from store
+  const { usbFilterOptions, setUsbFilterOptions } = useProductStore();
+
+  // Load USB filter options from API if not cached
+  useEffect(() => {
+    const loadUsbFilterOptions = async () => {
+      // Check if options are already loaded
+      if (
+        usbFilterOptions.inputConnectors.length > 0 ||
+        usbFilterOptions.outputConnectors.length > 0 ||
+        usbFilterOptions.cableLengths.length > 0
+      ) {
+        console.log("USBCableFilters: Using cached USB filter options");
+        return;
+      }
+
+      console.log("USBCableFilters: Loading USB filter options from API");
+      try {
+        const response = await fetch(`/api/filter-options?categoryId=${categoryId}`);
+        const data = await response.json();
+
+        if (data.success && data.options) {
+          console.log("USBCableFilters: Loaded USB filter options:", data.options);
+          setUsbFilterOptions(data.options);
+        } else {
+          console.error("USBCableFilters: Failed to load USB filter options:", data);
+        }
+      } catch (error) {
+        console.error("USBCableFilters: Error loading USB filter options:", error);
+      }
+    };
+
+    if (categoryId) {
+      loadUsbFilterOptions();
+    }
+  }, [categoryId, usbFilterOptions, setUsbFilterOptions]);
+
+  // Convert arrays to filter options format
   const options = {
-    inputConnectors: STATIC_INPUT_CONNECTORS,
-    outputConnectors: STATIC_OUTPUT_CONNECTORS,
-    cableLengths: STATIC_CABLE_LENGTHS,
+    inputConnectors: usbFilterOptions.inputConnectors.map(connector => ({
+      value: connector,
+      label: connector
+    })),
+    outputConnectors: usbFilterOptions.outputConnectors.map(connector => ({
+      value: connector,
+      label: connector
+    })),
+    cableLengths: usbFilterOptions.cableLengths.map(length => ({
+      value: length,
+      label: `${length} метра`
+    })),
   };
 
   // Handle individual filter changes
