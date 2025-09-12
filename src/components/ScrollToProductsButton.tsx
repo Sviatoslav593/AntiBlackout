@@ -2,20 +2,33 @@
 
 import { useState, useEffect } from "react";
 import { ArrowUp } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export default function ScrollToProductsButton() {
   const [isVisible, setIsVisible] = useState(false);
+  const pathname = usePathname();
+
+  // Only show on homepage
+  const isHomepage = pathname === "/";
 
   useEffect(() => {
+    if (!isHomepage) {
+      setIsVisible(false);
+      return;
+    }
+
     const toggleVisibility = () => {
       const productsSection = document.getElementById("products");
       if (productsSection) {
         const rect = productsSection.getBoundingClientRect();
-        // Show button when products section is visible (scrolled past its top)
-        setIsVisible(rect.top < window.innerHeight && rect.bottom > 0);
+        // Show button when scrolled 300px past the top of products section
+        // and when user is scrolling down from the products section
+        const scrolledPast300px = rect.top < -300;
+        const isScrollingDown = window.scrollY > 0;
+        setIsVisible(scrolledPast300px && isScrollingDown);
       } else {
-        // Fallback: show after scrolling 600px if products section not found
-        setIsVisible(window.scrollY > 600);
+        // Fallback: show after scrolling 900px if products section not found
+        setIsVisible(window.scrollY > 900);
       }
     };
 
@@ -24,12 +37,13 @@ export default function ScrollToProductsButton() {
 
     window.addEventListener("scroll", toggleVisibility);
     return () => window.removeEventListener("scroll", toggleVisibility);
-  }, []);
+  }, [isHomepage]);
 
   const scrollToSection = () => {
     const el = document.getElementById("products");
     if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
+      // Scroll to the top of products section
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -45,7 +59,7 @@ export default function ScrollToProductsButton() {
         bg-blue-600 text-white hover:bg-blue-700 rounded-full p-4 shadow-lg
         hover:shadow-xl transform hover:scale-110 active:scale-95
       `}
-      aria-label="Scroll to products"
+      aria-label="Повернутись до товарів"
     >
       <ArrowUp className="h-5 w-5" />
     </button>
