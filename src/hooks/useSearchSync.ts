@@ -11,9 +11,16 @@ export function useSearchSync() {
 
   // Sync searchQuery with activeFilters (only when searchQuery changes)
   useEffect(() => {
+    console.log("useSearchSync: searchQuery changed:", {
+      searchQuery,
+      lastSearchQuery: lastSearchQuery.current,
+      activeFiltersSearch: activeFilters.search
+    });
+    
     if (searchQuery !== lastSearchQuery.current) {
       lastSearchQuery.current = searchQuery;
       const newFilters = { ...activeFilters, search: searchQuery };
+      console.log("useSearchSync: Applying new filters:", newFilters);
       setActiveFilters(newFilters);
       applyFilters(newFilters);
     }

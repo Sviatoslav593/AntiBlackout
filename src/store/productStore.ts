@@ -186,6 +186,11 @@ export const useProductStore = create<ProductState>()(
           "applyFilters called with:",
           JSON.stringify(filters, null, 2)
         );
+        console.log("Search filter details:", {
+          search: filters.search,
+          hasSearch: !!filters.search,
+          searchLength: filters.search?.length || 0
+        });
         console.log("🔍 USB Filters in applyFilters:", {
           inputConnector: filters.inputConnector,
           outputConnector: filters.outputConnector,
@@ -545,6 +550,7 @@ export const useProductStore = create<ProductState>()(
           filteredProductsCount: filtered.length,
           allProductsCount: state.allProducts.length,
           searchQuery: filters.search,
+          hasSearchFilter: !!filters.search,
           wasCalledFromAppendProducts: true,
         });
 

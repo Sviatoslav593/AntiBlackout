@@ -28,8 +28,14 @@ export function SearchProvider({ children }: SearchProviderProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const clearSearch = useCallback(() => {
+    console.log("SearchContext: Clearing search");
     setSearchQuery("");
   }, []);
+
+  // Debug searchQuery changes
+  useEffect(() => {
+    console.log("SearchContext: searchQuery changed:", searchQuery);
+  }, [searchQuery]);
 
   const scrollToProducts = useCallback(() => {
     // Don't auto-scroll on first page load or if no search query
