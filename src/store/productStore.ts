@@ -390,12 +390,15 @@ export const useProductStore = create<ProductState>()(
           // Search filter
           if (filters.search) {
             const searchLower = filters.search.toLowerCase();
-            if (
-              !product.name.toLowerCase().includes(searchLower) &&
-              !product.description.toLowerCase().includes(searchLower) &&
-              !product.brand.toLowerCase().includes(searchLower)
-            ) {
+            const nameMatch = product.name.toLowerCase().includes(searchLower);
+            const descMatch = product.description.toLowerCase().includes(searchLower);
+            const brandMatch = product.brand.toLowerCase().includes(searchLower);
+            
+            if (!nameMatch && !descMatch && !brandMatch) {
+              console.log(`❌ Search filter: ${product.name} - no match for "${filters.search}"`);
               return false;
+            } else {
+              console.log(`✅ Search filter: ${product.name} - match for "${filters.search}"`);
             }
           }
 
@@ -533,6 +536,7 @@ export const useProductStore = create<ProductState>()(
         console.log("applyFilters: Setting final state:", {
           filteredProductsCount: filtered.length,
           allProductsCount: state.allProducts.length,
+          searchQuery: filters.search,
           wasCalledFromAppendProducts: true,
         });
 
