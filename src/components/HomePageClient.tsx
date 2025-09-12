@@ -467,24 +467,24 @@ const HomePageClient = memo(function HomePageClient() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 overflow-hidden animate-hero-loading">
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
         <div className="container relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight animate-hero-title">
               Ніколи не залишайтеся без{" "}
               <span className="text-blue-400">енергії</span>
             </h1>
-            <p className="text-xl lg:text-2xl text-gray-300 mb-8 leading-relaxed">
+            <p className="text-xl lg:text-2xl text-gray-300 mb-8 leading-relaxed animate-hero-subtitle">
               Потужні павербанки та якісні кабелі для захисту від блекаутів.
               Швидка доставка по всій Україні.
             </p>
-            <div className="flex justify-center">
+            <div className="flex justify-center animate-hero-button">
               <Button
                 size="lg"
                 onClick={handleScrollToProducts}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white transform transition-all duration-300 hover:scale-105"
               >
                 Переглянути товари <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -493,13 +493,13 @@ const HomePageClient = memo(function HomePageClient() {
         </div>
 
         {/* Floating elements */}
-        <div className="absolute top-20 left-10 animate-bounce">
+        <div className="absolute top-20 left-10 animate-bounce animate-hero-elements">
           <Battery className="h-8 w-8 text-blue-400" />
         </div>
-        <div className="absolute top-40 right-20 animate-bounce delay-1000">
+        <div className="absolute top-40 right-20 animate-bounce delay-1000 animate-hero-elements">
           <Zap className="h-6 w-6 text-yellow-400" />
         </div>
-        <div className="absolute bottom-20 left-20 animate-bounce delay-2000">
+        <div className="absolute bottom-20 left-20 animate-bounce delay-2000 animate-hero-elements">
           <Shield className="h-7 w-7 text-green-400" />
         </div>
       </section>
@@ -509,7 +509,11 @@ const HomePageClient = memo(function HomePageClient() {
         <div className="container">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
+              <div 
+                key={index} 
+                className="text-center animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
                 <div className="text-3xl lg:text-4xl font-bold text-blue-600 mb-2">
                   {stat.value}
                 </div>
@@ -523,7 +527,7 @@ const HomePageClient = memo(function HomePageClient() {
       {/* Features Section */}
       <section id="features" className="py-20 bg-gray-50">
         <div className="container">
-          <div className="text-center mb-16">
+          <div className="text-center mb-16 animate-slide-up">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Чому обирають нас
             </h2>
@@ -536,7 +540,8 @@ const HomePageClient = memo(function HomePageClient() {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 animate-slide-up"
+                style={{ animationDelay: `${index * 0.2}s` }}
               >
                 <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6">
                   <feature.icon className="h-8 w-8 text-blue-600" />
