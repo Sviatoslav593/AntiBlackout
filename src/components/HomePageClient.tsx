@@ -192,16 +192,16 @@ const HomePageClient = memo(function HomePageClient() {
           // Load products from all categories only if not cached
           console.log("Loading products from API...");
           const productsResponse = await fetch("/api/products?limit=10000");
-          const productsData = await productsResponse.json();
+        const productsData = await productsResponse.json();
 
-          if (productsData.success && productsData.products) {
+        if (productsData.success && productsData.products) {
             console.log(
               "Loaded products from API:",
               productsData.products.length
             );
-            console.log("First product structure:", productsData.products[0]);
-            setAllProducts(productsData.products);
-            useProductStore.getState().setProducts(productsData.products);
+          console.log("First product structure:", productsData.products[0]);
+          setAllProducts(productsData.products);
+          useProductStore.getState().setProducts(productsData.products);
           }
         }
 
@@ -214,7 +214,7 @@ const HomePageClient = memo(function HomePageClient() {
         } else {
           console.log("Loading categories from API...");
           try {
-            const categoriesResponse = await fetch("/api/categories");
+        const categoriesResponse = await fetch("/api/categories");
             console.log(
               "Categories response status:",
               categoriesResponse.status
@@ -226,7 +226,7 @@ const HomePageClient = memo(function HomePageClient() {
               );
             }
 
-            const categoriesData = await categoriesResponse.json();
+        const categoriesData = await categoriesResponse.json();
             console.log("Categories API response:", categoriesData);
 
             if (
@@ -236,8 +236,8 @@ const HomePageClient = memo(function HomePageClient() {
             ) {
               // Use flat categories array which contains all categories
               const categoryNames = categoriesData.flat.map(
-                (cat: any) => cat.name
-              );
+            (cat: any) => cat.name
+          );
               console.log("Category names from flat:", categoryNames);
               setAllCategories(categoryNames);
               useProductStore.getState().setCategories(categoryNames);
@@ -255,8 +255,8 @@ const HomePageClient = memo(function HomePageClient() {
                 (cat: any) => cat.name || cat
               );
               console.log("Alternative category names:", categoryNames);
-              setAllCategories(categoryNames);
-              useProductStore.getState().setCategories(categoryNames);
+          setAllCategories(categoryNames);
+          useProductStore.getState().setCategories(categoryNames);
               console.log(
                 "Categories set in state (alternative):",
                 categoryNames
@@ -282,14 +282,14 @@ const HomePageClient = memo(function HomePageClient() {
         } else {
           console.log("Loading brands from API...");
           try {
-            const brandsResponse = await fetch("/api/brands");
+        const brandsResponse = await fetch("/api/brands");
             console.log("Brands response status:", brandsResponse.status);
 
             if (!brandsResponse.ok) {
               throw new Error(`Brands API failed: ${brandsResponse.status}`);
             }
 
-            const brandsData = await brandsResponse.json();
+        const brandsData = await brandsResponse.json();
             console.log("Brands API response:", brandsData);
 
             if (
@@ -298,8 +298,8 @@ const HomePageClient = memo(function HomePageClient() {
               brandsData.brands.length > 0
             ) {
               console.log("Brand names:", brandsData.brands);
-              setAllBrands(brandsData.brands);
-              useProductStore.getState().setBrands(brandsData.brands);
+          setAllBrands(brandsData.brands);
+          useProductStore.getState().setBrands(brandsData.brands);
               console.log("Brands set in state:", brandsData.brands);
             } else if (brandsData.brands && brandsData.brands.length > 0) {
               // Try alternative structure
@@ -467,40 +467,62 @@ const HomePageClient = memo(function HomePageClient() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 overflow-hidden animate-hero-loading">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] animate-hero-fade-in" />
+        
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-transparent to-purple-600/20 animate-hero-fade-in" />
 
         <div className="container relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight animate-hero-title">
+            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight animate-hero-slide-up">
               Ніколи не залишайтеся без{" "}
-              <span className="text-blue-400">енергії</span>
+              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                енергії
+              </span>
             </h1>
-            <p className="text-xl lg:text-2xl text-gray-300 mb-8 leading-relaxed animate-hero-subtitle">
+            <p className="text-xl lg:text-2xl text-gray-300 mb-8 leading-relaxed animate-hero-slide-up-delay">
               Потужні павербанки та якісні кабелі для захисту від блекаутів.
               Швидка доставка по всій Україні.
             </p>
-            <div className="flex justify-center animate-hero-button">
+            <div className="flex justify-center animate-hero-slide-up-delay-2">
               <Button
                 size="lg"
                 onClick={handleScrollToProducts}
-                className="bg-blue-600 hover:bg-blue-700 text-white transform transition-all duration-300 hover:scale-105"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-2xl hover:shadow-blue-500/25 transform transition-all duration-300 hover:scale-105 hover:-translate-y-1"
               >
-                Переглянути товари <ArrowRight className="ml-2 h-4 w-4" />
+                Переглянути товари <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Floating elements */}
-        <div className="absolute top-20 left-10 animate-bounce animate-hero-elements">
+        {/* Floating elements with modern animation */}
+        <div className="absolute top-20 left-10 animate-hero-float">
+          <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-blue-400/30">
           <Battery className="h-8 w-8 text-blue-400" />
+          </div>
         </div>
-        <div className="absolute top-40 right-20 animate-bounce delay-1000 animate-hero-elements">
+        <div className="absolute top-40 right-20 animate-hero-float-delay">
+          <div className="w-12 h-12 bg-yellow-500/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-yellow-400/30">
           <Zap className="h-6 w-6 text-yellow-400" />
+          </div>
         </div>
-        <div className="absolute bottom-20 left-20 animate-bounce delay-2000 animate-hero-elements">
+        <div className="absolute bottom-20 left-20 animate-hero-float-delay-2">
+          <div className="w-14 h-14 bg-green-500/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-green-400/30">
           <Shield className="h-7 w-7 text-green-400" />
+          </div>
+        </div>
+        <div className="absolute top-1/2 right-10 animate-hero-float">
+          <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-purple-400/30">
+            <Zap className="h-5 w-5 text-purple-400" />
+          </div>
+        </div>
+        <div className="absolute bottom-40 right-1/4 animate-hero-float-delay">
+          <div className="w-12 h-12 bg-cyan-500/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-cyan-400/30">
+            <Battery className="h-6 w-6 text-cyan-400" />
+          </div>
         </div>
       </section>
 
@@ -509,8 +531,8 @@ const HomePageClient = memo(function HomePageClient() {
         <div className="container">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="text-center animate-fade-in"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
@@ -605,7 +627,7 @@ const HomePageClient = memo(function HomePageClient() {
 
             {/* Mobile Filters Overlay */}
             <AnimatePresence>
-              {isMobileFiltersOpen && (
+            {isMobileFiltersOpen && (
                 <div className="fixed inset-0 z-[9999] lg:hidden">
                   <motion.div
                     className="fixed inset-0 bg-black/20 backdrop-blur-sm"
@@ -613,8 +635,8 @@ const HomePageClient = memo(function HomePageClient() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    onClick={() => setIsMobileFiltersOpen(false)}
-                  />
+                  onClick={() => setIsMobileFiltersOpen(false)}
+                />
                   <motion.div
                     className="fixed left-0 top-0 h-full w-4/5 max-w-sm bg-white shadow-2xl overflow-visible"
                     initial={{ x: "-100%" }}
@@ -633,38 +655,38 @@ const HomePageClient = memo(function HomePageClient() {
                         <h3 className="text-xl font-semibold text-gray-900">
                           Фільтри
                         </h3>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={clearFilters}
-                            className="text-sm"
-                          >
-                            Очистити
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsMobileFiltersOpen(false)}
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={clearFilters}
+                          className="text-sm"
+                        >
+                          Очистити
+                        </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsMobileFiltersOpen(false)}
                             className="p-2 hover:bg-gray-100 rounded-full"
-                          >
-                            <X className="w-5 h-5" />
-                          </Button>
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
                         </div>
                       </div>
 
                       {/* Scrollable content */}
                       <div className="flex-1 overflow-y-auto overflow-x-visible p-4 pb-16">
-                        <FiltersSPA
-                          availableCategories={allCategories || []}
-                          availableBrands={allBrands || []}
-                          priceRange={{ min: 0, max: 10000 }}
-                          capacityRange={{ min: 0, max: 50000 }}
+                    <FiltersSPA
+                      availableCategories={allCategories || []}
+                      availableBrands={allBrands || []}
+                      priceRange={{ min: 0, max: 10000 }}
+                      capacityRange={{ min: 0, max: 50000 }}
                           isMobile={true}
                           onMobileClose={() => setIsMobileFiltersOpen(false)}
                           onFiltersChange={setCurrentMobileFilters}
-                        />
-                      </div>
+                    />
+                  </div>
 
                       {/* Fixed bottom button - always visible */}
                       <div className="p-4 border-t bg-white sticky bottom-0 z-20">
@@ -696,8 +718,8 @@ const HomePageClient = memo(function HomePageClient() {
                       </div>
                     </div>
                   </motion.div>
-                </div>
-              )}
+              </div>
+            )}
             </AnimatePresence>
 
             {/* Products Grid */}

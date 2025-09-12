@@ -303,28 +303,35 @@ body {
     opacity: 0;
   }
 
-  .animate-hero-loading {
-    animation: heroLoading 1.2s ease-out forwards;
+  .animate-hero-fade-in {
+    animation: heroFadeIn 0.8s ease-out forwards;
   }
 
-  .animate-hero-title {
-    animation: heroTitle 1s ease-out 0.3s forwards;
+  .animate-hero-slide-up {
+    animation: heroSlideUp 0.6s ease-out 0.2s forwards;
     opacity: 0;
   }
 
-  .animate-hero-subtitle {
-    animation: heroSubtitle 1s ease-out 0.6s forwards;
+  .animate-hero-slide-up-delay {
+    animation: heroSlideUp 0.6s ease-out 0.4s forwards;
     opacity: 0;
   }
 
-  .animate-hero-button {
-    animation: heroButton 1s ease-out 0.9s forwards;
+  .animate-hero-slide-up-delay-2 {
+    animation: heroSlideUp 0.6s ease-out 0.6s forwards;
     opacity: 0;
   }
 
-  .animate-hero-elements {
-    animation: heroElements 1s ease-out 1.2s forwards;
-    opacity: 0;
+  .animate-hero-float {
+    animation: heroFloat 3s ease-in-out infinite;
+  }
+
+  .animate-hero-float-delay {
+    animation: heroFloat 3s ease-in-out infinite 1s;
+  }
+
+  .animate-hero-float-delay-2 {
+    animation: heroFloat 3s ease-in-out infinite 2s;
   }
 }
 
@@ -348,33 +355,16 @@ body {
   }
 }
 
-@keyframes heroLoading {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(1.05);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes heroTitle {
+@keyframes heroFadeIn {
   from {
     opacity: 0;
-    transform: translateY(50px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
-@keyframes heroSubtitle {
+@keyframes heroSlideUp {
   from {
     opacity: 0;
     transform: translateY(30px);
@@ -385,25 +375,12 @@ body {
   }
 }
 
-@keyframes heroButton {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.9);
+@keyframes heroFloat {
+  0%, 100% {
+    transform: translateY(0px);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes heroElements {
-  from {
-    opacity: 0;
-    transform: scale(0) rotate(180deg);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
+  50% {
+    transform: translateY(-20px);
   }
 }
 
