@@ -120,9 +120,6 @@ const HomePageClient = memo(function HomePageClient() {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>("popularity-desc");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [hasMoreProducts, setHasMoreProducts] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(25);
@@ -166,7 +163,14 @@ const HomePageClient = memo(function HomePageClient() {
   // Context hooks
   const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
     useUrlFilters();
-  const { filteredProducts, usbFilterOptions } = useProductStore();
+  const { 
+    filteredProducts, 
+    usbFilterOptions, 
+    currentPage, 
+    hasMoreProducts, 
+    isLoadingMore,
+    loadMoreProducts 
+  } = useProductStore();
 
   // Load products, categories, and brands on mount (only if not already loaded)
   useEffect(() => {
@@ -330,6 +334,12 @@ const HomePageClient = memo(function HomePageClient() {
         setLoading(false);
         console.log("HomePageClient useEffect: Data loading completed");
         console.log("HomePageClient - USB filter options:", usbFilterOptions);
+        console.log("HomePageClient - Pagination state:", {
+          currentPage,
+          hasMoreProducts,
+          isLoadingMore,
+          totalProducts: (filteredProducts || allProducts).length
+        });
       }
     };
 
@@ -430,10 +440,10 @@ const HomePageClient = memo(function HomePageClient() {
     setSortBy(newSort as any);
   };
 
-  // Handle load more products (local pagination)
+  // Handle load more products (store pagination)
   const handleLoadMore = useCallback(() => {
-    setVisibleCount((prev) => prev + 25);
-  }, []);
+    loadMoreProducts();
+  }, [loadMoreProducts]);
 
   // Reset visible count when filters change
   useEffect(() => {
@@ -714,17 +724,20 @@ const HomePageClient = memo(function HomePageClient() {
                     ))}
                   </div>
 
-                  {/* Load More Button - Show if there are more products to display */}
-                  {sortedProducts.length <
-                    (filteredProducts || allProducts).length && (
+                  {/* Load More Button - Show if there are more products to load */}
+                  {hasMoreProducts && (
                     <div className="text-center mt-12">
                       <Button
                         onClick={handleLoadMore}
+                        disabled={isLoadingMore}
                         size="lg"
                         className="px-8"
                       >
-                        Завантажити ще ({sortedProducts.length} з{" "}
-                        {(filteredProducts || allProducts).length})
+                        {isLoadingMore ? (
+                          "Завантаження..."
+                        ) : (
+                          `Завантажити ще (${sortedProducts.length} товарів)`
+                        )}
                       </Button>
                     </div>
                   )}

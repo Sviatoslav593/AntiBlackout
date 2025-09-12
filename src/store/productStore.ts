@@ -599,6 +599,9 @@ export const useProductStore = create<ProductState>()(
         brands: state.brands,
         activeFilters: state.activeFilters,
         sortBy: state.sortBy,
+        currentPage: state.currentPage,
+        hasMoreProducts: state.hasMoreProducts,
+        usbFilterOptions: state.usbFilterOptions,
       }),
     }
   )
