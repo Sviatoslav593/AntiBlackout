@@ -8,7 +8,6 @@ import ProductCard from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ScrollToProductsButton from "@/components/ScrollToProductsButton";
-import { useScrollPosition } from "@/hooks/useScrollPosition";
 import FiltersSPA from "@/components/FiltersSPA";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { useProductStore, FilterParams } from "@/store/productStore";
@@ -165,7 +164,6 @@ const HomePageClient = memo(function HomePageClient() {
   // No fallback data - only real data from database
 
   // Context hooks
-  const { restoreScrollPosition, scrollPosition } = useScrollPosition();
   const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
     useUrlFilters();
   const { filteredProducts, usbFilterOptions } = useProductStore();
@@ -186,28 +184,33 @@ const HomePageClient = memo(function HomePageClient() {
             storeProducts.length
           );
           setAllProducts(storeProducts as Product[]);
-          // Don't return here - we still need to load categories and brands
         } else {
+          // Load products from all categories only if not cached
+          console.log("Loading products from API...");
+          const productsResponse = await fetch("/api/products?limit=10000");
+          const productsData = await productsResponse.json();
+
+          if (productsData.success && productsData.products) {
+            console.log(
+              "Loaded products from API:",
+              productsData.products.length
+            );
+            console.log("First product structure:", productsData.products[0]);
+            setAllProducts(productsData.products);
+            useProductStore.getState().setProducts(productsData.products);
+          }
         }
 
-        // Load products from all categories
-        const productsResponse = await fetch("/api/products?limit=10000");
-        const productsData = await productsResponse.json();
-
-        if (productsData.success && productsData.products) {
-          console.log(
-            "Loaded products from API:",
-            productsData.products.slice(0, 2)
-          );
-          console.log("First product structure:", productsData.products[0]);
-          setAllProducts(productsData.products);
-          useProductStore.getState().setProducts(productsData.products);
-        }
-
-        // Load categories
-        console.log("Loading categories...");
-        try {
-          const categoriesResponse = await fetch("/api/categories");
+        // Load categories (check cache first)
+        const storeCategories = useProductStore.getState().categories;
+        console.log("Store categories check:", storeCategories?.length || 0);
+        if (storeCategories && storeCategories.length > 0) {
+          console.log("Using cached categories from store:", storeCategories);
+          setAllCategories(storeCategories);
+        } else {
+          console.log("Loading categories from API...");
+          try {
+            const categoriesResponse = await fetch("/api/categories");
           console.log("Categories response status:", categoriesResponse.status);
 
           if (!categoriesResponse.ok) {
@@ -256,16 +259,23 @@ const HomePageClient = memo(function HomePageClient() {
             setAllCategories([]);
             useProductStore.getState().setCategories([]);
           }
-        } catch (error) {
-          console.error("Error loading categories:", error);
-          setAllCategories([]);
-          useProductStore.getState().setCategories([]);
+          } catch (error) {
+            console.error("Error loading categories:", error);
+            setAllCategories([]);
+            useProductStore.getState().setCategories([]);
+          }
         }
 
-        // Load brands
-        console.log("Loading brands...");
-        try {
-          const brandsResponse = await fetch("/api/brands");
+        // Load brands (check cache first)
+        const storeBrands = useProductStore.getState().brands;
+        console.log("Store brands check:", storeBrands?.length || 0);
+        if (storeBrands && storeBrands.length > 0) {
+          console.log("Using cached brands from store:", storeBrands);
+          setAllBrands(storeBrands);
+        } else {
+          console.log("Loading brands from API...");
+          try {
+            const brandsResponse = await fetch("/api/brands");
           console.log("Brands response status:", brandsResponse.status);
 
           if (!brandsResponse.ok) {
@@ -301,10 +311,11 @@ const HomePageClient = memo(function HomePageClient() {
             setAllBrands([]);
             useProductStore.getState().setBrands([]);
           }
-        } catch (error) {
-          console.error("Error loading brands:", error);
-          setAllBrands([]);
-          useProductStore.getState().setBrands([]);
+          } catch (error) {
+            console.error("Error loading brands:", error);
+            setAllBrands([]);
+            useProductStore.getState().setBrands([]);
+          }
         }
       } catch (error) {
         console.error("Error loading data:", error);
@@ -354,105 +365,6 @@ const HomePageClient = memo(function HomePageClient() {
     };
   }, [activeFilters, applyFiltersAndUpdateUrl]);
 
-  // Restore scroll position on mount (only once)
-  const hasRestoredScroll = useRef(false);
-
-  useEffect(() => {
-    // Check if we're returning from a product page
-    const fromProductPage =
-      sessionStorage.getItem("fromProductPage") === "true";
-    const savedScrollPosition = sessionStorage.getItem("scrollPosition");
-
-    if (fromProductPage && savedScrollPosition) {
-      // Always restore scroll position when returning from product page
-      const scrollY = parseInt(savedScrollPosition);
-      console.log(
-        "HomePageClient: Restoring scroll position from sessionStorage:",
-        scrollY
-      );
-
-      // Add delay to ensure DOM is fully loaded
-      const timer = setTimeout(() => {
-        window.scrollTo(0, scrollY);
-        // Clean up sessionStorage
-        sessionStorage.removeItem("scrollPosition");
-        sessionStorage.removeItem("fromProductPage");
-        hasRestoredScroll.current = true;
-      }, 200);
-
-      return () => clearTimeout(timer);
-    } else if (
-      !fromProductPage &&
-      scrollPosition > 0 &&
-      !hasRestoredScroll.current
-    ) {
-      // Use the existing restoreScrollPosition for other cases (only once)
-      hasRestoredScroll.current = true;
-      const timer = setTimeout(() => {
-        console.log(
-          "HomePageClient: Attempting to restore scroll position from store"
-        );
-        restoreScrollPosition();
-      }, 100);
-
-      return () => clearTimeout(timer);
-    }
-  }, [restoreScrollPosition, scrollPosition]);
-
-  // Listen for changes in sessionStorage to restore scroll position
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "fromProductPage" && e.newValue === "true") {
-        const savedScrollPosition = sessionStorage.getItem("scrollPosition");
-        if (savedScrollPosition) {
-          const scrollY = parseInt(savedScrollPosition);
-          console.log(
-            "HomePageClient: Storage change - restoring scroll position:",
-            scrollY
-          );
-
-          // Add delay to ensure DOM is fully loaded
-          setTimeout(() => {
-            window.scrollTo(0, scrollY);
-            // Clean up sessionStorage
-            sessionStorage.removeItem("scrollPosition");
-            sessionStorage.removeItem("fromProductPage");
-          }, 100);
-        }
-      }
-    };
-
-    const handlePopState = () => {
-      // Check if we're returning from a product page
-      const fromProductPage =
-        sessionStorage.getItem("fromProductPage") === "true";
-      const savedScrollPosition = sessionStorage.getItem("scrollPosition");
-
-      if (fromProductPage && savedScrollPosition) {
-        const scrollY = parseInt(savedScrollPosition);
-        console.log(
-          "HomePageClient: Popstate - restoring scroll position:",
-          scrollY
-        );
-
-        // Add delay to ensure DOM is fully loaded
-        setTimeout(() => {
-          window.scrollTo(0, scrollY);
-          // Clean up sessionStorage
-          sessionStorage.removeItem("scrollPosition");
-          sessionStorage.removeItem("fromProductPage");
-        }, 100);
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, []);
 
   // Sort products and apply local pagination
   const sortedProducts = useMemo(() => {

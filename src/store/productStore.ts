@@ -77,7 +77,6 @@ export interface ProductState {
   sortBy: string;
 
   // UI state
-  scrollPosition: number;
   lastFilterKey: string;
 
   // Actions
@@ -98,7 +97,6 @@ export interface ProductState {
   setTotalProducts: (total: number) => void;
   setActiveFilters: (filters: FilterParams) => void;
   setSortBy: (sort: string) => void;
-  setScrollPosition: (position: number) => void;
   setLastFilterKey: (key: string) => void;
 
   // Complex actions
@@ -142,7 +140,6 @@ export const useProductStore = create<ProductState>()(
       totalProducts: 0,
       activeFilters: defaultFilters,
       sortBy: "popularity-desc",
-      scrollPosition: 0,
       lastFilterKey: "",
 
       // Basic setters
@@ -163,7 +160,6 @@ export const useProductStore = create<ProductState>()(
       setTotalProducts: (totalProducts) => set({ totalProducts }),
       setActiveFilters: (activeFilters) => set({ activeFilters }),
       setSortBy: (sortBy) => set({ sortBy }),
-      setScrollPosition: (scrollPosition) => set({ scrollPosition }),
       setLastFilterKey: (lastFilterKey) => set({ lastFilterKey }),
 
       // Complex actions
@@ -591,7 +587,6 @@ export const useProductStore = create<ProductState>()(
           totalProducts: 0,
           activeFilters: defaultFilters,
           sortBy: "popularity-desc",
-          scrollPosition: 0,
           lastFilterKey: "",
         });
       },
@@ -604,7 +599,6 @@ export const useProductStore = create<ProductState>()(
         brands: state.brands,
         activeFilters: state.activeFilters,
         sortBy: state.sortBy,
-        scrollPosition: state.scrollPosition,
       }),
     }
   )

@@ -63,17 +63,28 @@ const USBCableFilters = memo(function USBCableFilters({
 
       console.log("USBCableFilters: Loading USB filter options from API");
       try {
-        const response = await fetch(`/api/filter-options?categoryId=${categoryId}`);
+        const response = await fetch(
+          `/api/filter-options?categoryId=${categoryId}`
+        );
         const data = await response.json();
 
         if (data.success && data.options) {
-          console.log("USBCableFilters: Loaded USB filter options:", data.options);
+          console.log(
+            "USBCableFilters: Loaded USB filter options:",
+            data.options
+          );
           setUsbFilterOptions(data.options);
         } else {
-          console.error("USBCableFilters: Failed to load USB filter options:", data);
+          console.error(
+            "USBCableFilters: Failed to load USB filter options:",
+            data
+          );
         }
       } catch (error) {
-        console.error("USBCableFilters: Error loading USB filter options:", error);
+        console.error(
+          "USBCableFilters: Error loading USB filter options:",
+          error
+        );
       }
     };
 
@@ -84,17 +95,17 @@ const USBCableFilters = memo(function USBCableFilters({
 
   // Convert arrays to filter options format
   const options = {
-    inputConnectors: usbFilterOptions.inputConnectors.map(connector => ({
+    inputConnectors: usbFilterOptions.inputConnectors.map((connector) => ({
       value: connector,
-      label: connector
+      label: connector,
     })),
-    outputConnectors: usbFilterOptions.outputConnectors.map(connector => ({
+    outputConnectors: usbFilterOptions.outputConnectors.map((connector) => ({
       value: connector,
-      label: connector
+      label: connector,
     })),
-    cableLengths: usbFilterOptions.cableLengths.map(length => ({
+    cableLengths: usbFilterOptions.cableLengths.map((length) => ({
       value: length,
-      label: `${length} метра`
+      label: `${length} метра`,
     })),
   };
 
