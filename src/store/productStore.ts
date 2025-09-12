@@ -189,7 +189,7 @@ export const useProductStore = create<ProductState>()(
         console.log("Search filter details:", {
           search: filters.search,
           hasSearch: !!filters.search,
-          searchLength: filters.search?.length || 0
+          searchLength: filters.search?.length || 0,
         });
         console.log("🔍 USB Filters in applyFilters:", {
           inputConnector: filters.inputConnector,

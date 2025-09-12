@@ -27,6 +27,16 @@ interface SearchProviderProps {
 export function SearchProvider({ children }: SearchProviderProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Wrapper for setSearchQuery with logging
+  const setSearchQueryWithLog = useCallback((query: string) => {
+    console.log("SearchContext: setSearchQuery called with:", {
+      query,
+      previousQuery: searchQuery,
+      stack: new Error().stack
+    });
+    setSearchQuery(query);
+  }, [searchQuery]);
+
   const clearSearch = useCallback(() => {
     console.log("SearchContext: Clearing search");
     setSearchQuery("");
@@ -34,7 +44,11 @@ export function SearchProvider({ children }: SearchProviderProps) {
 
   // Debug searchQuery changes
   useEffect(() => {
-    console.log("SearchContext: searchQuery changed:", searchQuery);
+    console.log("SearchContext: searchQuery changed:", {
+      searchQuery,
+      length: searchQuery.length,
+      trimmed: searchQuery.trim()
+    });
   }, [searchQuery]);
 
   const scrollToProducts = useCallback(() => {
@@ -82,11 +96,11 @@ export function SearchProvider({ children }: SearchProviderProps) {
   const value = useMemo(
     () => ({
       searchQuery,
-      setSearchQuery,
+      setSearchQuery: setSearchQueryWithLog,
       clearSearch,
       scrollToProducts,
     }),
-    [searchQuery, clearSearch, scrollToProducts]
+    [searchQuery, setSearchQueryWithLog, clearSearch, scrollToProducts]
   );
 
   return (
