@@ -211,54 +211,57 @@ const HomePageClient = memo(function HomePageClient() {
           console.log("Loading categories from API...");
           try {
             const categoriesResponse = await fetch("/api/categories");
-          console.log("Categories response status:", categoriesResponse.status);
-
-          if (!categoriesResponse.ok) {
-            throw new Error(
-              `Categories API failed: ${categoriesResponse.status}`
-            );
-          }
-
-          const categoriesData = await categoriesResponse.json();
-          console.log("Categories API response:", categoriesData);
-
-          if (
-            categoriesData.success &&
-            categoriesData.flat &&
-            categoriesData.flat.length > 0
-          ) {
-            // Use flat categories array which contains all categories
-            const categoryNames = categoriesData.flat.map(
-              (cat: any) => cat.name
-            );
-            console.log("Category names from flat:", categoryNames);
-            setAllCategories(categoryNames);
-            useProductStore.getState().setCategories(categoryNames);
-            console.log("Categories set in state:", categoryNames);
-          } else if (
-            categoriesData.categories &&
-            categoriesData.categories.length > 0
-          ) {
-            // Try alternative structure
             console.log(
-              "Trying alternative categories structure:",
-              categoriesData.categories
+              "Categories response status:",
+              categoriesResponse.status
             );
-            const categoryNames = categoriesData.categories.map(
-              (cat: any) => cat.name || cat
-            );
-            console.log("Alternative category names:", categoryNames);
-            setAllCategories(categoryNames);
-            useProductStore.getState().setCategories(categoryNames);
-            console.log(
-              "Categories set in state (alternative):",
-              categoryNames
-            );
-          } else {
-            console.log("Categories API returned empty data");
-            setAllCategories([]);
-            useProductStore.getState().setCategories([]);
-          }
+
+            if (!categoriesResponse.ok) {
+              throw new Error(
+                `Categories API failed: ${categoriesResponse.status}`
+              );
+            }
+
+            const categoriesData = await categoriesResponse.json();
+            console.log("Categories API response:", categoriesData);
+
+            if (
+              categoriesData.success &&
+              categoriesData.flat &&
+              categoriesData.flat.length > 0
+            ) {
+              // Use flat categories array which contains all categories
+              const categoryNames = categoriesData.flat.map(
+                (cat: any) => cat.name
+              );
+              console.log("Category names from flat:", categoryNames);
+              setAllCategories(categoryNames);
+              useProductStore.getState().setCategories(categoryNames);
+              console.log("Categories set in state:", categoryNames);
+            } else if (
+              categoriesData.categories &&
+              categoriesData.categories.length > 0
+            ) {
+              // Try alternative structure
+              console.log(
+                "Trying alternative categories structure:",
+                categoriesData.categories
+              );
+              const categoryNames = categoriesData.categories.map(
+                (cat: any) => cat.name || cat
+              );
+              console.log("Alternative category names:", categoryNames);
+              setAllCategories(categoryNames);
+              useProductStore.getState().setCategories(categoryNames);
+              console.log(
+                "Categories set in state (alternative):",
+                categoryNames
+              );
+            } else {
+              console.log("Categories API returned empty data");
+              setAllCategories([]);
+              useProductStore.getState().setCategories([]);
+            }
           } catch (error) {
             console.error("Error loading categories:", error);
             setAllCategories([]);
@@ -276,41 +279,41 @@ const HomePageClient = memo(function HomePageClient() {
           console.log("Loading brands from API...");
           try {
             const brandsResponse = await fetch("/api/brands");
-          console.log("Brands response status:", brandsResponse.status);
+            console.log("Brands response status:", brandsResponse.status);
 
-          if (!brandsResponse.ok) {
-            throw new Error(`Brands API failed: ${brandsResponse.status}`);
-          }
+            if (!brandsResponse.ok) {
+              throw new Error(`Brands API failed: ${brandsResponse.status}`);
+            }
 
-          const brandsData = await brandsResponse.json();
-          console.log("Brands API response:", brandsData);
+            const brandsData = await brandsResponse.json();
+            console.log("Brands API response:", brandsData);
 
-          if (
-            brandsData.success &&
-            brandsData.brands &&
-            brandsData.brands.length > 0
-          ) {
-            console.log("Brand names:", brandsData.brands);
-            setAllBrands(brandsData.brands);
-            useProductStore.getState().setBrands(brandsData.brands);
-            console.log("Brands set in state:", brandsData.brands);
-          } else if (brandsData.brands && brandsData.brands.length > 0) {
-            // Try alternative structure
-            console.log(
-              "Trying alternative brands structure:",
-              brandsData.brands
-            );
-            const brandNames = brandsData.brands.map(
-              (brand: any) => brand.name || brand
-            );
-            console.log("Alternative brand names:", brandNames);
-            setAllBrands(brandNames);
-            useProductStore.getState().setBrands(brandNames);
-          } else {
-            console.log("Brands API returned empty data");
-            setAllBrands([]);
-            useProductStore.getState().setBrands([]);
-          }
+            if (
+              brandsData.success &&
+              brandsData.brands &&
+              brandsData.brands.length > 0
+            ) {
+              console.log("Brand names:", brandsData.brands);
+              setAllBrands(brandsData.brands);
+              useProductStore.getState().setBrands(brandsData.brands);
+              console.log("Brands set in state:", brandsData.brands);
+            } else if (brandsData.brands && brandsData.brands.length > 0) {
+              // Try alternative structure
+              console.log(
+                "Trying alternative brands structure:",
+                brandsData.brands
+              );
+              const brandNames = brandsData.brands.map(
+                (brand: any) => brand.name || brand
+              );
+              console.log("Alternative brand names:", brandNames);
+              setAllBrands(brandNames);
+              useProductStore.getState().setBrands(brandNames);
+            } else {
+              console.log("Brands API returned empty data");
+              setAllBrands([]);
+              useProductStore.getState().setBrands([]);
+            }
           } catch (error) {
             console.error("Error loading brands:", error);
             setAllBrands([]);
@@ -364,7 +367,6 @@ const HomePageClient = memo(function HomePageClient() {
       );
     };
   }, [activeFilters, applyFiltersAndUpdateUrl]);
-
 
   // Sort products and apply local pagination
   const sortedProducts = useMemo(() => {

@@ -8,7 +8,6 @@ import { useCart } from "@/context/CartContext";
 import { useToast } from "@/context/ToastContext";
 import { useFavorites } from "@/context/FavoritesContext";
 import { useCategory } from "@/context/CategoryContext";
-import { useScrollPosition } from "@/hooks/useScrollPosition";
 import ProductImageGallery from "@/components/ProductImageGallery";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -67,7 +66,6 @@ export default function ProductPage() {
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
   const { currentCategory, setCurrentCategory, getCategorySlug } =
     useCategory();
-  const { restoreScrollPosition } = useScrollPosition();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
@@ -248,7 +246,6 @@ export default function ProductPage() {
             </p>
             <Button
               onClick={() => {
-                restoreScrollPosition();
                 router.push("/");
               }}
               variant="outline"
@@ -409,8 +406,6 @@ export default function ProductPage() {
         <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
           <button
             onClick={() => {
-              // Restore scroll position when going back
-              restoreScrollPosition();
               router.push("/");
             }}
             className="hover:text-foreground transition-colors"

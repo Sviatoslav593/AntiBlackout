@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import ScrollToProductsButton from "@/components/ScrollToProductsButton";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { useProducts } from "@/hooks/useProducts";
-import { useScrollPosition } from "@/hooks/useScrollPosition";
 import { useProductStore } from "@/store/productStore";
 import FiltersSPA from "@/components/FiltersSPA";
 import {
@@ -62,13 +61,7 @@ export default function HomePage() {
     hasMoreProducts,
     handleLoadMore,
   } = useProducts();
-  const { restoreScrollPosition } = useScrollPosition();
   const { sortBy, setSortBy } = useProductStore();
-
-  // Restore scroll position on mount
-  useEffect(() => {
-    restoreScrollPosition();
-  }, [restoreScrollPosition]);
 
   // Sort products
   const sortedProducts = useMemo(() => {
