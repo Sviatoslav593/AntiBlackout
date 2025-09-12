@@ -13,7 +13,9 @@ function UrlFiltersContent({ children }: UrlFiltersProviderProps) {
   return <>{children}</>;
 }
 
-export default function UrlFiltersProvider({ children }: UrlFiltersProviderProps) {
+export default function UrlFiltersProvider({
+  children,
+}: UrlFiltersProviderProps) {
   return (
     <Suspense fallback={<div>Loading filters...</div>}>
       <UrlFiltersContent>{children}</UrlFiltersContent>
