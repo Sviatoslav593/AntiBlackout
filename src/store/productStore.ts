@@ -145,11 +145,25 @@ export const useProductStore = create<ProductState>()(
       // Basic setters
       setProducts: (products) => set({ allProducts: products }),
       setFilteredProducts: (products) => set({ filteredProducts: products }),
-      appendProducts: (products) =>
-        set((state) => ({
-          allProducts: [...state.allProducts, ...products],
-          filteredProducts: [...state.filteredProducts, ...products],
-        })),
+      appendProducts: (products) => {
+        console.log("appendProducts called:", {
+          newProductsCount: products.length,
+          currentAllProductsCount: get().allProducts.length,
+          currentFilteredProductsCount: get().filteredProducts.length
+        });
+        set((state) => {
+          const newAllProducts = [...state.allProducts, ...products];
+          const newFilteredProducts = [...state.filteredProducts, ...products];
+          console.log("appendProducts: Updated counts:", {
+            newAllProductsCount: newAllProducts.length,
+            newFilteredProductsCount: newFilteredProducts.length
+          });
+          return {
+            allProducts: newAllProducts,
+            filteredProducts: newFilteredProducts,
+          };
+        });
+      },
       setCategories: (categories) => set({ categories }),
       setBrands: (brands) => set({ brands }),
       setUsbFilterOptions: (usbFilterOptions) => set({ usbFilterOptions }),
@@ -533,12 +547,24 @@ export const useProductStore = create<ProductState>()(
 
       loadMoreProducts: async () => {
         const state = get();
-        if (state.isLoadingMore || !state.hasMoreProducts) return;
+        console.log("loadMoreProducts called:", {
+          isLoadingMore: state.isLoadingMore,
+          hasMoreProducts: state.hasMoreProducts,
+          currentPage: state.currentPage,
+          allProductsCount: state.allProducts.length,
+          filteredProductsCount: state.filteredProducts.length
+        });
+        
+        if (state.isLoadingMore || !state.hasMoreProducts) {
+          console.log("loadMoreProducts: Skipping - isLoadingMore or no more products");
+          return;
+        }
 
         set({ isLoadingMore: true });
 
         try {
           const nextPage = state.currentPage + 1;
+          console.log("loadMoreProducts: Loading page", nextPage);
           const queryParams = new URLSearchParams();
 
           // Add filter parameters to query
@@ -552,20 +578,33 @@ export const useProductStore = create<ProductState>()(
             }
           });
 
-          queryParams.append("page", nextPage.toString());
+          queryParams.append("offset", ((nextPage - 1) * 50).toString());
           queryParams.append("limit", "50");
 
           const response = await fetch(
             `/api/products?${queryParams.toString()}`
           );
           const data = await response.json();
+          
+          console.log("loadMoreProducts: API response:", {
+            success: data.success,
+            productsCount: data.products?.length || 0,
+            hasMore: data.products?.length === 50
+          });
 
           if (data.success && data.products) {
+            console.log("loadMoreProducts: Appending products:", data.products.length);
             get().appendProducts(data.products);
             set({
               currentPage: nextPage,
               hasMoreProducts: data.products.length === 50,
             });
+            console.log("loadMoreProducts: Updated state:", {
+              newCurrentPage: nextPage,
+              newHasMoreProducts: data.products.length === 50
+            });
+          } else {
+            console.log("loadMoreProducts: API error or no products:", data);
           }
         } catch (error) {
           console.error("Error loading more products:", error);

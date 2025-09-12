@@ -163,13 +163,13 @@ const HomePageClient = memo(function HomePageClient() {
   // Context hooks
   const { activeFilters, applyFiltersAndUpdateUrl, clearFilters } =
     useUrlFilters();
-  const { 
-    filteredProducts, 
-    usbFilterOptions, 
-    currentPage, 
-    hasMoreProducts, 
+  const {
+    filteredProducts,
+    usbFilterOptions,
+    currentPage,
+    hasMoreProducts,
     isLoadingMore,
-    loadMoreProducts 
+    loadMoreProducts,
   } = useProductStore();
 
   // Load products, categories, and brands on mount (only if not already loaded)
@@ -338,7 +338,7 @@ const HomePageClient = memo(function HomePageClient() {
           currentPage,
           hasMoreProducts,
           isLoadingMore,
-          totalProducts: (filteredProducts || allProducts).length
+          totalProducts: (filteredProducts || allProducts).length,
         });
       }
     };
@@ -733,11 +733,9 @@ const HomePageClient = memo(function HomePageClient() {
                         size="lg"
                         className="px-8"
                       >
-                        {isLoadingMore ? (
-                          "Завантаження..."
-                        ) : (
-                          `Завантажити ще (${sortedProducts.length} товарів)`
-                        )}
+                        {isLoadingMore
+                          ? "Завантаження..."
+                          : `Завантажити ще (${sortedProducts.length} товарів)`}
                       </Button>
                     </div>
                   )}
