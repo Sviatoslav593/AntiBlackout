@@ -119,6 +119,18 @@ export default function OrderSuccessContent() {
 
       setOrder(orderData);
 
+      // Track Facebook Pixel Purchase event
+      if (typeof window !== 'undefined' && (window as any).fbq) {
+        console.log('📊 Tracking Facebook Pixel Purchase event:', {
+          value: orderData.total_amount,
+          currency: 'UAH'
+        });
+        (window as any).fbq('track', 'Purchase', {
+          value: orderData.total_amount,
+          currency: 'UAH'
+        });
+      }
+
       // For online payments, just update status to paid (email already sent in checkout)
       if (
         orderData.payment_method === "online" &&
@@ -188,6 +200,19 @@ export default function OrderSuccessContent() {
             console.log("✅ Order loaded from database:", dbOrderData);
             setOrder(dbOrderData);
             setError(null);
+
+            // Track Facebook Pixel Purchase event
+            if (typeof window !== 'undefined' && (window as any).fbq) {
+              console.log('📊 Tracking Facebook Pixel Purchase event (DB):', {
+                value: dbOrderData.total_amount,
+                currency: 'UAH'
+              });
+              (window as any).fbq('track', 'Purchase', {
+                value: dbOrderData.total_amount,
+                currency: 'UAH'
+              });
+            }
+
             // Cart will be cleared by the API endpoint
             return;
           }
@@ -241,6 +266,18 @@ export default function OrderSuccessContent() {
 
         setOrder(transformedOrder);
         setError(null);
+
+        // Track Facebook Pixel Purchase event
+        if (typeof window !== 'undefined' && (window as any).fbq) {
+          console.log('📊 Tracking Facebook Pixel Purchase event (localStorage):', {
+            value: transformedOrder.total_amount,
+            currency: 'UAH'
+          });
+          (window as any).fbq('track', 'Purchase', {
+            value: transformedOrder.total_amount,
+            currency: 'UAH'
+          });
+        }
 
         // Clear cart for localStorage fallback (online payment)
         console.log("🧹 Online payment fallback - clearing cart");
