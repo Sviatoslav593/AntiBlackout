@@ -40,7 +40,7 @@ export const checkoutSchema = z
       .or(z.literal("")) // Allow empty string for optional email
       .optional(),
 
-    paymentMethod: z.enum(["online", "cod"], {
+    paymentMethod: z.enum(["card_details", "cod"], {
       message: "Будь ласка, оберіть спосіб оплати",
     }),
 

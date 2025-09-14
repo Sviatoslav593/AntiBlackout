@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
       city: customerData.city || "",
       branch: customerData.branch || "",
       payment_method:
-        customerData.paymentMethod === "online" ? "online" : "cod",
+        customerData.paymentMethod === "card_details" ? "Card (via Bank Details)" : "cod",
       total_amount: totalAmount,
       status: "pending" as const,
     };
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
 
     // Normalize payment method
     const paymentMethod = customerData.paymentMethod || "cod";
-    const normalizedPM = paymentMethod === "online" ? "online" : "cod";
+    const normalizedPM = paymentMethod === "card_details" ? "Card (via Bank Details)" : "cod";
     console.log(`💾 Creating ${normalizedPM} order in Supabase...`);
 
     // Validate required fields
@@ -332,15 +332,15 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-    } else if (normalizedPM === "online") {
-      // For online payment, send email and clear cart immediately, then return order data for payment
+    } else if (normalizedPM === "Card (via Bank Details)") {
+      // For card details payment, send email and clear cart immediately
       console.log(
-        "💳 Processing online order - sending email and clearing cart immediately"
+        "💳 Processing card details order - sending email and clearing cart immediately"
       );
 
       try {
-        // Send confirmation email for online order
-        console.log("📧 Sending online order confirmation emails...");
+        // Send confirmation email for card details order
+        console.log("📧 Sending card details order confirmation emails...");
         // Fetch product images for email (same structure as COD)
         const itemsWithImages = await Promise.all(
           items.map(async (item) => {

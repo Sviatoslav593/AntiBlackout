@@ -18,13 +18,11 @@ import { FormInput } from "@/components/ui/form-input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { FormRadioGroup } from "@/components/ui/form-radio-group";
 import { CheckoutFormData } from "@/lib/validations";
-import { localStorageUtils } from "@/lib/localStorage";
 
 export default function CheckoutPage() {
   const { state, clearCart } = useCart();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [orderId, setOrderId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const {
     form,
@@ -136,80 +134,16 @@ export default function CheckoutPage() {
       const orderResult = await orderResponse.json();
       console.log("✅ Order created successfully:", orderResult);
 
-      // Clear cart immediately after order creation (for both payment methods)
+      // Clear cart immediately after order creation
       console.log("🧹 Clearing cart after order creation...");
       clearCart();
 
-      if (data.paymentMethod === "online") {
-        // For online payment, create LiqPay session and redirect
-        console.log("💳 Creating LiqPay payment session...");
+      // Store orderId in localStorage for backup
+      localStorage.setItem("lastOrderId", orderResult.orderId);
 
-        try {
-          const response = await fetch("/api/payment/liqpay-session", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              orderId: orderResult.orderId,
-              customerData,
-              items,
-              totalAmount: state.total,
-            }),
-          });
-
-          const result = await response.json();
-
-          if (!response.ok) {
-            throw new Error(result.error || "Failed to create payment session");
-          }
-
-          console.log("✅ LiqPay session created, redirecting to payment...");
-
-          // Save order data to localStorage for fallback loading
-          if (result.orderData) {
-            console.log(
-              "💾 Saving order data to localStorage:",
-              result.orderData
-            );
-            localStorageUtils.savePendingOrder(result.orderData);
-          }
-
-          // Create LiqPay form and auto-submit
-          const form = document.createElement("form");
-          form.method = "POST";
-          form.action = "https://www.liqpay.ua/api/3/checkout";
-          form.target = "_self";
-
-          const dataInput = document.createElement("input");
-          dataInput.type = "hidden";
-          dataInput.name = "data";
-          dataInput.value = result.data;
-
-          const signatureInput = document.createElement("input");
-          signatureInput.type = "hidden";
-          signatureInput.name = "signature";
-          signatureInput.value = result.signature;
-
-          form.appendChild(dataInput);
-          form.appendChild(signatureInput);
-          document.body.appendChild(form);
-          form.submit();
-        } catch (error) {
-          console.error("❌ Failed to create payment session:", error);
-          const errorMessage = getErrorMessage(error);
-          setError(errorMessage);
-        }
-      } else {
-        // For COD, redirect to order page
-        console.log("✅ COD order created, redirecting to order page...");
-
-        // Store orderId in localStorage for backup
-        localStorage.setItem("lastOrderId", orderResult.orderId);
-
-        // Redirect to order page
-        router.push(`/order?orderId=${orderResult.orderId}`);
-      }
+      // Redirect to order page for both payment methods
+      console.log("✅ Order created, redirecting to order page...");
+      router.push(`/order?orderId=${orderResult.orderId}`);
     } catch (error) {
       console.error("Failed to create order:", error);
       const errorMessage = getErrorMessage(error);
@@ -240,9 +174,9 @@ export default function CheckoutPage() {
 
   const paymentOptions = [
     {
-      value: "online",
-      label: "Оплата карткою онлайн",
-      description: "Безпечна оплата через банківську картку",
+      value: "card_details",
+      label: "💳 Оплата карткою онлайн (за реквізитами)",
+      description: "Отримайте реквізити для оплати після оформлення замовлення",
       icon: <CreditCard className="h-4 w-4" />,
     },
     {
@@ -329,6 +263,25 @@ export default function CheckoutPage() {
                       value={paymentMethod}
                       onChange={handlePaymentMethodChange}
                     />
+
+                    {/* Payment method info block */}
+                    {paymentMethod === "card_details" && (
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0">
+                            <CreditCard className="h-5 w-5 text-blue-600 mt-0.5" />
+                          </div>
+                          <div className="text-sm text-blue-800">
+                            <p className="font-medium mb-2">
+                              Після оформлення замовлення ви отримаєте SMS або Viber повідомлення з реквізитами для оплати (IBAN / картка ПриватБанк чи Monobank).
+                            </p>
+                            <p>
+                              Будь ласка, дочекайтеся дзвінка нашого менеджера для підтвердження замовлення.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     <Separator className="my-6" />
 

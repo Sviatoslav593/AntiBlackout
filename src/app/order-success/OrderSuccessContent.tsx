@@ -120,14 +120,14 @@ export default function OrderSuccessContent() {
       setOrder(orderData);
 
       // Track Facebook Pixel Purchase event
-      if (typeof window !== 'undefined' && (window as any).fbq) {
-        console.log('📊 Tracking Facebook Pixel Purchase event:', {
+      if (typeof window !== "undefined" && (window as any).fbq) {
+        console.log("📊 Tracking Facebook Pixel Purchase event:", {
           value: orderData.total_amount,
-          currency: 'UAH'
+          currency: "UAH",
         });
-        (window as any).fbq('track', 'Purchase', {
+        (window as any).fbq("track", "Purchase", {
           value: orderData.total_amount,
-          currency: 'UAH'
+          currency: "UAH",
         });
       }
 
@@ -202,14 +202,14 @@ export default function OrderSuccessContent() {
             setError(null);
 
             // Track Facebook Pixel Purchase event
-            if (typeof window !== 'undefined' && (window as any).fbq) {
-              console.log('📊 Tracking Facebook Pixel Purchase event (DB):', {
+            if (typeof window !== "undefined" && (window as any).fbq) {
+              console.log("📊 Tracking Facebook Pixel Purchase event (DB):", {
                 value: dbOrderData.total_amount,
-                currency: 'UAH'
+                currency: "UAH",
               });
-              (window as any).fbq('track', 'Purchase', {
+              (window as any).fbq("track", "Purchase", {
                 value: dbOrderData.total_amount,
-                currency: 'UAH'
+                currency: "UAH",
               });
             }
 
@@ -268,14 +268,17 @@ export default function OrderSuccessContent() {
         setError(null);
 
         // Track Facebook Pixel Purchase event
-        if (typeof window !== 'undefined' && (window as any).fbq) {
-          console.log('📊 Tracking Facebook Pixel Purchase event (localStorage):', {
+        if (typeof window !== "undefined" && (window as any).fbq) {
+          console.log(
+            "📊 Tracking Facebook Pixel Purchase event (localStorage):",
+            {
+              value: transformedOrder.total_amount,
+              currency: "UAH",
+            }
+          );
+          (window as any).fbq("track", "Purchase", {
             value: transformedOrder.total_amount,
-            currency: 'UAH'
-          });
-          (window as any).fbq('track', 'Purchase', {
-            value: transformedOrder.total_amount,
-            currency: 'UAH'
+            currency: "UAH",
           });
         }
 
@@ -419,8 +422,15 @@ export default function OrderSuccessContent() {
               Замовлення успішно оформлено!
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Дякуємо за ваше замовлення! Ми отримали ваш запит і обробимо його
-              найближчим часом.
+              {order.payment_method === "Card (via Bank Details)" ? (
+                <>
+                  ✅ Дякуємо! Ваше замовлення прийнято. 
+                  <br />
+                  Наш менеджер зв'яжеться з вами найближчим часом та надішле реквізити для оплати і деталі доставки.
+                </>
+              ) : (
+                "Дякуємо за ваше замовлення! Ми отримали ваш запит і обробимо його найближчим часом."
+              )}
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">
               <p className="text-blue-800 font-medium">
@@ -555,7 +565,9 @@ export default function OrderSuccessContent() {
                   <div>
                     <p className="text-sm text-gray-500">Спосіб оплати</p>
                     <p className="font-medium">
-                      {order.payment_method === "online"
+                      {order.payment_method === "Card (via Bank Details)"
+                        ? "Оплата карткою онлайн (за реквізитами)"
+                        : order.payment_method === "online"
                         ? "Оплата карткою онлайн"
                         : "Післяплата"}
                     </p>
