@@ -125,7 +125,9 @@ export async function POST(request: NextRequest) {
       city: customerData.city || "",
       branch: customerData.branch || "",
       payment_method:
-        customerData.paymentMethod === "card_details" ? "Card (via Bank Details)" : "cod",
+        customerData.paymentMethod === "card_details"
+          ? "Card (via Bank Details)"
+          : "cod",
       total_amount: totalAmount,
       status: "pending" as const,
     };
@@ -140,7 +142,8 @@ export async function POST(request: NextRequest) {
 
     // Normalize payment method
     const paymentMethod = customerData.paymentMethod || "cod";
-    const normalizedPM = paymentMethod === "card_details" ? "Card (via Bank Details)" : "cod";
+    const normalizedPM =
+      paymentMethod === "card_details" ? "Card (via Bank Details)" : "cod";
     console.log(`💾 Creating ${normalizedPM} order in Supabase...`);
 
     // Validate required fields
