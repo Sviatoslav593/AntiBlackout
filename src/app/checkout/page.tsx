@@ -278,8 +278,8 @@ export default function CheckoutPage() {
                               / картка ПриватБанк чи Monobank).
                             </p>
                             <p>
-                              Будь ласка, дочекайтеся повідомлення від нашого менеджера
-                              для підтвердження замовлення.
+                              Будь ласка, дочекайтеся повідомлення від нашого
+                              менеджера для підтвердження замовлення.
                             </p>
                           </div>
                         </div>
@@ -432,9 +432,9 @@ export default function CheckoutPage() {
                     <span>Підсумок:</span>
                     <span>₴{state.total.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-green-600">
+                  <div className="flex justify-between text-sm text-gray-600">
                     <span>Доставка:</span>
-                    <span>Безкоштовно</span>
+                    <span>За тарифами Нової Пошти</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-lg font-bold">
