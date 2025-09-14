@@ -486,6 +486,91 @@ export default function ProductPage() {
               )}
             </div>
 
+            {/* Quantity & Add to Cart */}
+            <div className="space-y-4">
+              {/* Quantity Selector */}
+              <div className="flex items-center gap-3">
+                <label htmlFor="quantity" className="text-sm font-medium">
+                  Кількість:
+                </label>
+                <div className="flex items-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                    className="cursor-pointer"
+                  >
+                    -
+                  </Button>
+                  <span className="px-4 py-2 text-sm font-medium min-w-[60px] text-center">
+                    {quantity}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="cursor-pointer"
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+
+              {/* Add to Cart Button */}
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={!product.inStock || isAddingToCart}
+                  className="flex-1 h-12 text-base font-semibold cursor-pointer"
+                  size="lg"
+                >
+                  <motion.div
+                    className="flex items-center gap-2"
+                    animate={isAddingToCart ? { scale: [1, 0.95, 1] } : {}}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    {isAddingToCart ? "Додається..." : "Додати в кошик"}
+                  </motion.div>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={handleFavoriteToggle}
+                  className={`h-12 px-4 cursor-pointer transition-all ${
+                    isFavorite(product.id.toString())
+                      ? "bg-red-50 border-red-300 text-red-600 hover:bg-red-100"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  <Heart
+                    className={`h-5 w-5 ${
+                      isFavorite(product.id.toString())
+                        ? "fill-current"
+                        : ""
+                    }`}
+                  />
+                </Button>
+              </div>
+
+              {/* Current cart quantity */}
+              {currentQuantityInCart > 0 && (
+                <div className="text-sm text-muted-foreground">
+                  В кошику: {currentQuantityInCart} шт.
+                </div>
+              )}
+
+              {/* Total price preview */}
+              <div className="text-sm text-muted-foreground">
+                Загальна вартість:{" "}
+                <span className="font-semibold text-foreground">
+                  {(product.price * quantity).toLocaleString()} ₴
+                </span>
+              </div>
+            </div>
+
             {/* Stock Status */}
             <div className="flex items-center gap-2">
               {product.inStock ? (
@@ -591,95 +676,6 @@ export default function ProductPage() {
 
             <Separator />
 
-            {/* Quantity & Add to Cart */}
-            <div className="space-y-4">
-              {/* Quantity Selector */}
-              <div className="flex items-center gap-3">
-                <label htmlFor="quantity" className="text-sm font-medium">
-                  Кількість:
-                </label>
-                <div className="flex items-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                    className="cursor-pointer"
-                  >
-                    -
-                  </Button>
-                  <span className="px-4 py-2 text-sm font-medium min-w-[60px] text-center">
-                    {quantity}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="cursor-pointer"
-                  >
-                    +
-                  </Button>
-                </div>
-              </div>
-
-              {/* Add to Cart Button */}
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleAddToCart}
-                  disabled={!product.inStock || isAddingToCart}
-                  className="flex-1 h-12 text-base font-semibold cursor-pointer"
-                  size="lg"
-                >
-                  <motion.div
-                    className="flex items-center gap-2"
-                    animate={isAddingToCart ? { scale: [1, 0.95, 1] } : {}}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <ShoppingCart className="h-5 w-5" />
-                    {isAddingToCart ? "Додається..." : "Додати в кошик"}
-                  </motion.div>
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={handleFavoriteToggle}
-                  className={`h-12 px-4 cursor-pointer transition-all ${
-                    isFavorite(product.id.toString())
-                      ? "bg-red-50 border-red-300 text-red-600 hover:bg-red-100"
-                      : "hover:bg-gray-50"
-                  }`}
-                >
-                  <motion.div
-                    whileTap={{ scale: 0.9 }}
-                    whileHover={{ scale: 1.1 }}
-                  >
-                    <Heart
-                      className={`h-5 w-5 transition-colors ${
-                        isFavorite(product.id.toString())
-                          ? "fill-red-500 text-red-500"
-                          : "text-gray-600"
-                      }`}
-                    />
-                  </motion.div>
-                </Button>
-              </div>
-
-              {/* Current cart quantity */}
-              {currentQuantityInCart > 0 && (
-                <div className="text-sm text-muted-foreground">
-                  В кошику: {currentQuantityInCart} шт.
-                </div>
-              )}
-
-              {/* Total price preview */}
-              <div className="text-sm text-muted-foreground">
-                Загальна вартість:{" "}
-                <span className="font-semibold text-foreground">
-                  {(product.price * quantity).toLocaleString()} ₴
-                </span>
-              </div>
-            </div>
           </motion.div>
         </div>
 
