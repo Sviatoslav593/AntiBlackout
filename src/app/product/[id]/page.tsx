@@ -547,9 +547,7 @@ export default function ProductPage() {
                 >
                   <Heart
                     className={`h-5 w-5 ${
-                      isFavorite(product.id.toString())
-                        ? "fill-current"
-                        : ""
+                      isFavorite(product.id.toString()) ? "fill-current" : ""
                     }`}
                   />
                 </Button>
@@ -675,7 +673,6 @@ export default function ProductPage() {
             </div>
 
             <Separator />
-
           </motion.div>
         </div>
 
